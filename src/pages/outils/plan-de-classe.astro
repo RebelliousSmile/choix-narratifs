@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MapEditor from '../../components/MapEditor.astro';
+import { generateClassroom, CLASSROOM_DESK_PALETTE_ID } from '../../scripts/classroom';
+import type { PaletteItem } from '../../scripts/map-state';
+
+const palette: PaletteItem[] = [
+  { id: CLASSROOM_DESK_PALETTE_ID, label: 'Pupitre', color: '#4477aa', shape: 'rect' },
+  { id: 'bureau-prof', label: 'Bureau du prof', color: '#aa7744', shape: 'rect' },
+  { id: 'porte', label: 'Porte', color: '#77aa55', shape: 'rect' },
+  { id: 'fenetre', label: 'Fenêtre', color: '#55aacc', shape: 'rect' },
+  { id: 'tableau', label: 'Tableau', color: '#445566', shape: 'rect' },
+  { id: 'eleve', label: 'Élève / PNJ', color: '#c45a92', shape: 'circle' },
+];
+
+// Ébauche par défaut affichée d'emblée (déterministe), réutilisable telle quelle.
+const defaultRows = 4;
+const defaultCols = 5;
+const presets = generateClassroom(defaultRows, defaultCols);
+---
+
+<BaseLayout
+  title="Générateur de plan de classe — Monsterhearts"
+  description="Générez une ébauche de plan de classe puis ajustez-la librement : pupitres, bureau, porte, fenêtres, tableau et PNJ. Sauvegarde et export inclus."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Générateur de plan de classe — Monsterhearts</h1>
+      <p class="outil__intro">
+        Pour planter le décor d'un lycée surnaturel : générez une grille de
+        pupitres en quelques secondes, puis déplacez, ajoutez ou supprimez les
+        éléments à la souris. Votre plan peut être sauvegardé dans le navigateur,
+        exporté en JSON ou en image.
+      </p>
+
+      <form class="generator" data-generator>
+        <label>
+          Rangées
+          <input type="number" name="rows" min="1" max="12" value={defaultRows} data-rows />
+        </label>
+        <label>
+          Colonnes
+          <input type="number" name="cols" min="1" max="12" value={defaultCols} data-cols />
+        </label>
+        <button type="submit">Générer une ébauche</button>
+      </form>
+    </header>
+
+    <MapEditor tool="plan-de-classe" palette={palette} presets={presets} client:visible />
+
+    <footer class="outil__footer">
+      <p>
+        <a href="/">&larr; Retour à l'accueil</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .generator {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+    }
+    .generator label {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+    .generator input {
+      width: 6rem;
+      padding: 0.4rem 0.6rem;
+      font: inherit;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    .generator button {
+      padding: 0.5rem 1rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .generator button:hover,
+    .generator button:focus-visible {
+      background: var(--color-accent-strong);
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      color: var(--color-text-muted);
+    }
+  </style>
+
+  <script>
+    import { generateClassroom } from '../../scripts/classroom';
+    import { MAP_SCHEMA_VERSION } from '../../scripts/map-state';
+
+    const form = document.querySelector<HTMLFormElement>('[data-generator]');
+    const editorRoot = document.querySelector<HTMLElement>('.map-editor[data-config]');
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!editorRoot) return;
+      const rows = Number(form.querySelector<HTMLInputElement>('[data-rows]')?.value ?? 0);
+      const cols = Number(form.querySelector<HTMLInputElement>('[data-cols]')?.value ?? 0);
+      const items = generateClassroom(rows, cols);
+      editorRoot.dispatchEvent(
+        new CustomEvent('map-editor:load-state', {
+          detail: { schemaVersion: MAP_SCHEMA_VERSION, items },
+        }),
+      );
+    });
+  </script>
+</BaseLayout>

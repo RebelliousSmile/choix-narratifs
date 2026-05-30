@@ -184,6 +184,17 @@ const config = JSON.stringify({ tool, palette, presets, background });
       URL.revokeObjectURL(url);
     });
 
+    // Permet à la page hôte de charger un état (ex. ébauche générée) sans
+    // dépendre de l'instance : on écoute un CustomEvent sur le conteneur.
+    // Rétrocompatible : les pages qui ne déclenchent pas l'événement ne sont
+    // pas affectées.
+    root.addEventListener('map-editor:load-state', (event) => {
+      const detail = (event as CustomEvent<MapState>).detail;
+      if (detail && Array.isArray(detail.items)) {
+        editor.loadState(detail);
+      }
+    });
+
     const input = root.querySelector<HTMLInputElement>('[data-import-input]');
     action('import-json', () => input?.click());
     input?.addEventListener('change', async () => {
