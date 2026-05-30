@@ -1,0 +1,200 @@
+{
+  "jeu": "Monsterhearts",
+  "mues": [
+    {
+      "id": "elue",
+      "nom": "L'Élue",
+      "resume": "Désignée pour combattre les ténèbres, elle porte un fardeau qu'elle n'a pas choisi.",
+      "themes": ["destin", "devoir", "violence"],
+      "tags": ["combat", "responsabilite", "solitaire"]
+    },
+    {
+      "id": "spectre",
+      "nom": "Le Spectre",
+      "resume": "Mort mais pas parti, il s'accroche au monde des vivants par une rancune tenace.",
+      "themes": ["deuil", "vengeance", "memoire"],
+      "tags": ["surnaturel", "passe", "intangible"]
+    },
+    {
+      "id": "goule",
+      "nom": "La Goule",
+      "resume": "Affamée d'une chair qui la dégoûte autant qu'elle l'attire, elle lutte contre ses pulsions.",
+      "themes": ["faim", "honte", "controle"],
+      "tags": ["appetit", "secret", "interieur"]
+    },
+    {
+      "id": "fee",
+      "nom": "La Fée",
+      "resume": "Liée par ses promesses, elle marchande charme et faveurs sans jamais pouvoir mentir tout à fait.",
+      "themes": ["pacte", "seduction", "regles"],
+      "tags": ["charme", "manipulation", "social"]
+    },
+    {
+      "id": "mortelle",
+      "nom": "La Mortelle",
+      "resume": "Sans pouvoir surnaturel, elle attire pourtant les monstres comme une flamme attire les phalènes.",
+      "themes": ["fragilite", "desir", "obsession"],
+      "tags": ["humaine", "vulnerable", "amour"]
+    },
+    {
+      "id": "infernale",
+      "nom": "L'Infernale",
+      "resume": "Elle a signé avec un Maître obscur et lui doit des services qu'elle préférerait oublier.",
+      "themes": ["pacte", "pouvoir", "dette"],
+      "tags": ["surnaturel", "ambition", "danger"]
+    },
+    {
+      "id": "loup-garou",
+      "nom": "Le Loup-Garou",
+      "resume": "Une bête vit sous sa peau et la rage menace de prendre le dessus au pire moment.",
+      "themes": ["rage", "nature", "perte de controle"],
+      "tags": ["bete", "instinct", "violence"]
+    },
+    {
+      "id": "sorciere",
+      "nom": "La Sorcière",
+      "resume": "Elle tisse des sorts et des rancunes, et fait payer cher ceux qui la blessent.",
+      "themes": ["pouvoir", "rancune", "secret"],
+      "tags": ["magie", "manipulation", "vengeance"]
+    },
+    {
+      "id": "vampire",
+      "nom": "Le Vampire",
+      "resume": "Élégant et glacial, il collectionne les âmes qu'il fascine et finit par consumer.",
+      "themes": ["soif", "domination", "eternite"],
+      "tags": ["seduction", "predateur", "ancien"]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1-source",
+      "texte": "D'où vient ce qui te rend différent·e des autres ?",
+      "options": [
+        {
+          "id": "q1-a",
+          "texte": "D'une mission ou d'un héritage qui me dépasse.",
+          "poids": { "elue": 3, "infernale": 1 }
+        },
+        {
+          "id": "q1-b",
+          "texte": "D'un pacte ou d'une promesse que j'ai scellée.",
+          "poids": { "infernale": 3, "fee": 2 }
+        },
+        {
+          "id": "q1-c",
+          "texte": "D'une faim ou d'une bête que je porte en moi.",
+          "poids": { "goule": 3, "loup-garou": 2 }
+        },
+        {
+          "id": "q1-d",
+          "texte": "De rien : je suis simplement humain·e, et c'est déjà compliqué.",
+          "poids": { "mortelle": 3 }
+        }
+      ]
+    },
+    {
+      "id": "q2-rapport-autres",
+      "texte": "Comment obtiens-tu ce que tu veux des autres ?",
+      "options": [
+        {
+          "id": "q2-a",
+          "texte": "Par le charme et les promesses bien tournées.",
+          "poids": { "fee": 3, "vampire": 2 }
+        },
+        {
+          "id": "q2-b",
+          "texte": "Par la peur et la force quand il le faut.",
+          "poids": { "loup-garou": 2, "elue": 2 }
+        },
+        {
+          "id": "q2-c",
+          "texte": "Par des manigances et des sorts discrets.",
+          "poids": { "sorciere": 3, "infernale": 1 }
+        },
+        {
+          "id": "q2-d",
+          "texte": "Je n'y arrive pas vraiment : on me veut, pas l'inverse.",
+          "poids": { "mortelle": 3, "spectre": 1 }
+        }
+      ]
+    },
+    {
+      "id": "q3-peur",
+      "texte": "Qu'est-ce qui te terrifie le plus ?",
+      "options": [
+        {
+          "id": "q3-a",
+          "texte": "Perdre le contrôle et blesser ceux que j'aime.",
+          "poids": { "loup-garou": 3, "goule": 2 }
+        },
+        {
+          "id": "q3-b",
+          "texte": "Être oublié·e ou rester seul·e pour toujours.",
+          "poids": { "spectre": 3, "vampire": 1 }
+        },
+        {
+          "id": "q3-c",
+          "texte": "Devoir payer ce que je dois à plus puissant que moi.",
+          "poids": { "infernale": 3, "fee": 1 }
+        },
+        {
+          "id": "q3-d",
+          "texte": "Échouer là où l'on compte sur moi.",
+          "poids": { "elue": 3 }
+        }
+      ]
+    },
+    {
+      "id": "q4-desir",
+      "texte": "Au fond, qu'est-ce que tu cherches ?",
+      "options": [
+        {
+          "id": "q4-a",
+          "texte": "Être aimé·e pour de vrai, sans condition.",
+          "poids": { "mortelle": 3, "spectre": 2 }
+        },
+        {
+          "id": "q4-b",
+          "texte": "Le pouvoir, ou au moins l'illusion de maîtrise.",
+          "poids": { "sorciere": 2, "infernale": 2, "vampire": 1 }
+        },
+        {
+          "id": "q4-c",
+          "texte": "Apaiser une faim qui ne me lâche jamais.",
+          "poids": { "goule": 3, "vampire": 2 }
+        },
+        {
+          "id": "q4-d",
+          "texte": "Réparer une injustice ou venger un tort.",
+          "poids": { "spectre": 2, "sorciere": 2, "elue": 1 }
+        }
+      ]
+    },
+    {
+      "id": "q5-image",
+      "texte": "Quelle image te ressemble le plus ?",
+      "options": [
+        {
+          "id": "q5-a",
+          "texte": "Un prédateur élégant qui sourit dans l'ombre.",
+          "poids": { "vampire": 3, "fee": 1 }
+        },
+        {
+          "id": "q5-b",
+          "texte": "Une présence froide qu'on devine plus qu'on ne voit.",
+          "poids": { "spectre": 3 }
+        },
+        {
+          "id": "q5-c",
+          "texte": "Une arme vivante, tendue, prête à frapper.",
+          "poids": { "elue": 2, "loup-garou": 2 }
+        },
+        {
+          "id": "q5-d",
+          "texte": "Quelqu'un de presque ordinaire, qui cache bien son jeu.",
+          "poids": { "mortelle": 2, "goule": 1, "sorciere": 1 }
+        }
+      ]
+    }
+  ]
+}
