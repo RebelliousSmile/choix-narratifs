@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ToolEmbed from '../components/ToolEmbed.astro';
+import { validateEmbeds, type EmbedEntry } from '../scripts/embeds-schema';
+import embedsData from '../data/embeds.json';
+
+// embeds.json est lu en SEULE LECTURE et filtré ici — jamais modifié.
+const result = validateEmbeds(embedsData);
+const entries: EmbedEntry[] = result.ok ? result.value : [];
+
+function pick(ids: string[]): EmbedEntry[] {
+  // Conserve l'ordre demandé et ignore proprement les ids absents.
+  return ids
+    .map((id) => entries.find((entry) => entry.id === id))
+    .filter((entry): entry is EmbedEntry => entry !== undefined);
+}
+
+const dialogueTools = pick(['conversational-cards', 'suddenly']);
+---
+
+<BaseLayout
+  title="Dialogues interactifs"
+  description="À quoi servent les dialogues interactifs et à embranchements en jeu de rôle narratif, et quels outils permettent de les animer."
+>
+  <article class="dialogues">
+    <header class="dialogues__header">
+      <h1>Dialogues interactifs</h1>
+      <p class="dialogues__intro">
+        Un dialogue interactif (ou à embranchements) laisse la conversation
+        bifurquer selon les choix et les réactions : au lieu d'une réplique
+        figée, chaque échange ouvre des suites différentes. C'est un ressort
+        narratif puissant pour donner de l'épaisseur aux personnages, faire
+        compter les décisions et rendre une scène sociale aussi tendue qu'un
+        combat.
+      </p>
+    </header>
+
+    <section class="dialogues__section" aria-labelledby="outils-titre">
+      <h2 id="outils-titre">Outils pour animer vos dialogues</h2>
+      {
+        dialogueTools.length > 0 ? (
+          <div class="dialogues__grid">
+            {dialogueTools.map((entry) => (
+              <ToolEmbed entry={entry} />
+            ))}
+          </div>
+        ) : (
+          <p>Les outils de dialogue seront bientôt disponibles.</p>
+        )
+      }
+      <p class="dialogues__note">
+        L'outil de dialogue à embranchements intégré à Suddenly est encore en
+        cours de développement : son intégration évoluera au fil des versions.
+      </p>
+    </section>
+  </article>
+
+  <style>
+    .dialogues__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-5);
+    }
+    .dialogues__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .dialogues__section {
+      margin-bottom: var(--space-5);
+    }
+    .dialogues__grid {
+      display: grid;
+      gap: var(--space-4);
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      margin-bottom: var(--space-4);
+    }
+    .dialogues__note {
+      max-width: 44rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+    }
+  </style>
+</BaseLayout>
