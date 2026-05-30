@@ -7,9 +7,12 @@ import {
   previousStep,
   isComplete,
   resetFunnel,
+  funnelEligibility,
+  countEligible,
   type ScoredMue,
 } from '../src/scripts/funnel';
-import type { Mue } from '../src/scripts/mues-schema';
+import type { Mue, JeuMues } from '../src/scripts/mues-schema';
+import monsterhearts from '../src/data/mues-monsterhearts.json';
 
 function mue(id: string): Mue {
   return { id, nom: id, resume: `resume ${id}`, themes: [], tags: [] };
@@ -125,5 +128,67 @@ describe('état de l’entonnoir', () => {
 
   it('resetFunnel renvoie un état initial', () => {
     expect(resetFunnel()).toEqual(createFunnelState());
+  });
+});
+
+describe('funnelEligibility — entonnoir éliminatoire', () => {
+  const jeu: JeuMues = {
+    jeu: 'Test',
+    mues: [
+      { id: 'a', nom: 'A', resume: 'a', themes: [], tags: [] },
+      { id: 'b', nom: 'B', resume: 'b', themes: [], tags: [] },
+      { id: 'c', nom: 'C', resume: 'c', themes: [], tags: [] },
+    ],
+    questions: [
+      {
+        id: 'q1',
+        texte: 'q1',
+        options: [
+          { id: 'q1a', texte: '', poids: { a: 3 } },
+          { id: 'q1b', texte: '', poids: { b: 3, c: 1 } },
+        ],
+      },
+      {
+        id: 'q2',
+        texte: 'q2',
+        options: [
+          { id: 'q2a', texte: '', poids: { a: 1, b: 1 } },
+          { id: 'q2b', texte: '', poids: { c: 3 } },
+        ],
+      },
+    ],
+  };
+
+  it('sans réponse, toutes les mues sont éligibles', () => {
+    expect(countEligible(jeu, {})).toBe(3);
+  });
+
+  it('élimine ce qui ne peut plus rattraper la tête', () => {
+    // q1a : a=3 (leader). b plafonne à 0+1=1 < 3 -> éliminée. c plafonne à 0+3=3 -> reste.
+    const e = funnelEligibility(jeu, { q1: 'q1a' });
+    const elig = Object.fromEntries(e.map((x) => [x.mue.id, x.eligible]));
+    expect(elig).toEqual({ a: true, b: false, c: true });
+    expect(countEligible(jeu, { q1: 'q1a' })).toBe(2);
+  });
+
+  it('le compte est monotone décroissant', () => {
+    const c0 = countEligible(jeu, {});
+    const c1 = countEligible(jeu, { q1: 'q1a' });
+    const c2 = countEligible(jeu, { q1: 'q1a', q2: 'q2a' });
+    expect(c0).toBeGreaterThanOrEqual(c1);
+    expect(c1).toBeGreaterThanOrEqual(c2);
+    expect(c2).toBe(1); // converge sur la gagnante
+  });
+
+  it('la gagnante reste toujours éligible (données réelles)', () => {
+    const jeuReel = monsterhearts as unknown as JeuMues;
+    const reponses = { 'q4-tragique': 'q4-d', 'q5-ambiance': 'q5-e', 'q7-conflit': 'q7-a' };
+    const e = funnelEligibility(jeuReel, reponses);
+    const elue = e.find((x) => x.mue.id === 'elue');
+    expect(elue?.eligible).toBe(true);
+    // au moins une éliminée, jamais zéro éligible
+    const eligibles = e.filter((x) => x.eligible).length;
+    expect(eligibles).toBeGreaterThanOrEqual(1);
+    expect(eligibles).toBeLessThan(jeuReel.mues.length);
   });
 });
