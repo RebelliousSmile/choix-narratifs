@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { snakeBayPresets } from '../scripts/snakebay';
+import { snakeBayPresets } from '../src/scripts/snakebay';
 
 describe('snakeBayPresets', () => {
   it('est déterministe (mêmes presets à chaque appel)', () => {
