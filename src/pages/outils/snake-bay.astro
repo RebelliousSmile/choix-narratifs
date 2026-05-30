@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MapEditor from '../../components/MapEditor.astro';
+import { snakeBayPresets } from '../../scripts/snakebay';
+import type { PaletteItem } from '../../scripts/map-state';
+
+const palette: PaletteItem[] = [
+  { id: 'lieu', label: 'Lieu', color: '#8888aa', shape: 'rect' },
+  { id: 'pnj', label: 'PNJ', color: '#c45a92', shape: 'circle' },
+  { id: 'commerce', label: 'Commerce', color: '#aa7744', shape: 'rect' },
+  { id: 'plage', label: 'Plage', color: '#e0c873', shape: 'rect' },
+  { id: 'lycee', label: 'Lycée', color: '#4477aa', shape: 'rect' },
+  { id: 'port', label: 'Port', color: '#55aacc', shape: 'rect' },
+];
+
+const presets = snakeBayPresets();
+---
+
+<BaseLayout
+  title="Générateur de plan de Snake Bay — Monsterhearts"
+  description="Esquissez une petite ville côtière pour vos parties : lieux, commerces, plage, lycée, port et PNJ. Génération d'ébauche, édition, sauvegarde et export."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Générateur de plan de Snake Bay — Monsterhearts</h1>
+      <p class="outil__intro">
+        Une carte de départ pour situer l'action d'une chronique au bord de l'eau.
+        L'ébauche pose quelques repères génériques (lycée, port, plage,
+        commerces…) que vous pouvez déplacer, renommer dans votre tête, compléter
+        ou supprimer. Sauvegarde locale et export inclus.
+      </p>
+    </header>
+
+    <MapEditor
+      tool="snake-bay"
+      palette={palette}
+      presets={presets}
+      background="#11202a"
+      client:visible
+    />
+
+    <footer class="outil__footer">
+      <p class="outil__source">
+        Les lieux proposés sont génériques et reformulés : reportez-vous au livre
+        officiel de <em>Monsterhearts</em> (saison 2) pour la description complète
+        du cadre et de son ambiance.
+      </p>
+      <p>
+        <a href="/">&larr; Retour à l'accueil</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      max-width: 44rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .outil__source {
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+    }
+  </style>
+</BaseLayout>
