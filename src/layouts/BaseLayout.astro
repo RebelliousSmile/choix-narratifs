@@ -1,0 +1,227 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Outils interactifs pour le jeu de rôle narratif, pour joueuses et joueurs solo comme pour les meneuses et meneurs de jeu.',
+} = Astro.props;
+
+const navItems = [
+  { href: '/', label: 'Accueil' },
+  { href: '/jeux', label: 'Jeux' },
+  { href: '/solo', label: 'Solo' },
+  { href: '/dialogues', label: 'Dialogues' },
+  { href: '/liens', label: 'Liens' },
+];
+
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/">Choix narratifs</a>
+        <nav class="site-nav" aria-label="Navigation principale">
+          <ul>
+            {
+              navItems.map((item) => {
+                const itemPath = item.href.replace(/\/+$/, '') || '/';
+                const isCurrent = itemPath === currentPath;
+                return (
+                  <li>
+                    <a href={item.href} aria-current={isCurrent ? 'page' : undefined}>
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenu" class="container site-main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>Choix narratifs &middot; outils pour le JdR narratif &middot; contenus reformulés, renvoi vers les ouvrages officiels.</p>
+      </div>
+    </footer>
+
+    <style is:global>
+      :root {
+        --color-bg: #14111c;
+        --color-surface: #1e1929;
+        --color-surface-alt: #261f35;
+        --color-border: #3a3150;
+        --color-text: #ece8f5;
+        --color-text-muted: #b3a9c7;
+        --color-accent: #c45a92;
+        --color-accent-strong: #e07bb0;
+        --color-focus: #ffd34d;
+
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 1rem;
+        --space-4: 1.5rem;
+        --space-5: 2.5rem;
+        --space-6: 4rem;
+
+        --font-base: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        --font-size-base: 1rem;
+        --line-height-base: 1.6;
+
+        --radius-sm: 6px;
+        --radius-md: 12px;
+
+        --max-width: 64rem;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-base);
+        font-size: var(--font-size-base);
+        line-height: var(--line-height-base);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 100%;
+        max-width: var(--max-width);
+        margin-inline: auto;
+        padding-inline: var(--space-3);
+      }
+
+      a {
+        color: var(--color-accent-strong);
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+
+      .skip-link {
+        position: absolute;
+        left: var(--space-2);
+        top: -3rem;
+        background: var(--color-accent);
+        color: #fff;
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-sm);
+        z-index: 10;
+        transition: top 0.15s ease;
+      }
+
+      .skip-link:focus {
+        top: var(--space-2);
+      }
+
+      .site-header {
+        border-bottom: 1px solid var(--color-border);
+        background: var(--color-surface);
+      }
+
+      .site-header__inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding-block: var(--space-3);
+      }
+
+      .brand {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--color-text);
+        text-decoration: none;
+      }
+
+      .site-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-3);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .site-nav a {
+        color: var(--color-text-muted);
+        text-decoration: none;
+        padding: var(--space-1) var(--space-2);
+        border-radius: var(--radius-sm);
+      }
+
+      .site-nav a:hover {
+        color: var(--color-text);
+        background: var(--color-surface-alt);
+      }
+
+      .site-nav a[aria-current='page'] {
+        color: var(--color-accent-strong);
+        font-weight: 600;
+      }
+
+      .site-main {
+        flex: 1 0 auto;
+        padding-block: var(--space-5);
+      }
+
+      .site-footer {
+        border-top: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        padding-block: var(--space-4);
+        font-size: 0.9rem;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+      }
+
+      @media (min-width: 48rem) {
+        .site-header__inner {
+          flex-wrap: nowrap;
+        }
+      }
+    </style>
+  </body>
+</html>

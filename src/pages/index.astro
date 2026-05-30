@@ -1,21 +1,88 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Card from '../components/Card.astro';
+
 const title = 'Choix narratifs & JdR narratifs';
+const pitch =
+  'Une boîte à outils interactifs pour le jeu de rôle narratif, pensée pour les joueuses et joueurs solo comme pour les meneuses et meneurs de jeu.';
+
+const tools = [
+  {
+    title: 'Sélecteur de mues — Monsterhearts',
+    description: "Quelques questions en entonnoir pour trouver la mue qui colle à votre personnage.",
+    href: '/outils/selecteur-mues-monsterhearts',
+    badge: 'Monsterhearts',
+  },
+  {
+    title: 'Sélecteur de playbook — Monster of the Week',
+    description: 'Un questionnaire guidé vers le playbook MotW le plus adapté à votre style.',
+    href: '/outils/selecteur-mues-motw',
+    badge: 'MotW',
+  },
+  {
+    title: 'Plan de classe',
+    description: 'Esquisse automatique puis retouche manuelle du plan de classe de vos personnages.',
+    href: '/outils/plan-de-classe',
+    badge: 'Monsterhearts',
+  },
+  {
+    title: 'Plan de Snake Bay',
+    description: 'Génération et édition de la carte de Snake Bay pour la saison 2.',
+    href: '/outils/snake-bay',
+    badge: 'Monsterhearts',
+  },
+  {
+    title: 'Création narrative solo',
+    description: 'Oracles, jauges et outils pour structurer et nourrir vos récits en solo.',
+    href: '/solo',
+  },
+  {
+    title: 'Dialogues interactifs',
+    description: 'Outils de conversation et de dialogue pour vos scènes narratives.',
+    href: '/dialogues',
+  },
+];
 ---
 
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  </head>
-  <body>
+<BaseLayout title={title} description={pitch}>
+  <section class="hero">
     <h1>{title}</h1>
-    <p>
-      Une boîte à outils interactifs pour le jeu de rôle narratif, pensée pour
-      les joueuses et joueurs solo comme pour les meneuses et meneurs de jeu.
-      Les outils arrivent bientôt.
-    </p>
-  </body>
-</html>
+    <p class="hero__pitch">{pitch}</p>
+  </section>
+
+  <section aria-labelledby="outils-titre">
+    <h2 id="outils-titre">Les outils</h2>
+    <div class="card-grid">
+      {
+        tools.map((tool) => (
+          <Card title={tool.title} description={tool.description} href={tool.href} badge={tool.badge} />
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    margin-bottom: var(--space-5);
+  }
+
+  .hero h1 {
+    margin: 0 0 var(--space-3);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+  }
+
+  .hero__pitch {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+</style>
