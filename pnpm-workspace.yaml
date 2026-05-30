@@ -1,0 +1,4 @@
+packages:
+  - "."
+  # Futur crate WASM (générateur de cartes procédurales lourdes) à ajouter ici plus tard,
+  # ex. "crates/*" — non requis en v1 (logique des outils en TypeScript pur).
