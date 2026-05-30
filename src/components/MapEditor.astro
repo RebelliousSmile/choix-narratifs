@@ -103,10 +103,13 @@ const groupColorsJson = JSON.stringify(GROUP_COLORS);
           Créer un ascendant →
         </button>
         <span class="map-editor__link-hint" data-link-hint hidden>
-          <span>Cliquez sur la cible. (Échap pour annuler)</span>
-          <button type="button" data-cancel-link>Annuler</button>
+          <span>Cliquez sur une ou plusieurs cibles. (Échap pour terminer)</span>
+          <button type="button" data-cancel-link>Terminé</button>
         </span>
       </div>
+      <p class="map-editor__link-tip">
+        Astuce : pour supprimer un ascendant, cliquez sur sa flèche.
+      </p>
     </div>
   </div>
 
@@ -346,6 +349,17 @@ const groupColorsJson = JSON.stringify(GROUP_COLORS);
     background: #c45a92 !important;
     color: #fff !important;
   }
+  .map-editor__link-btn.is-active {
+    background: #c45a92 !important;
+    color: #fff !important;
+    opacity: 1;
+  }
+  .map-editor__link-tip {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #8b7fa6;
+    font-style: italic;
+  }
 
   /* ── Canvas — ratio A4 paysage ── */
   .map-editor__canvas {
@@ -465,6 +479,7 @@ const groupColorsJson = JSON.stringify(GROUP_COLORS);
 
       onLinkModeChange: (active) => {
         linkHint.hidden = !active;
+        linkFromBtn.classList.toggle('is-active', active);
       },
     });
 

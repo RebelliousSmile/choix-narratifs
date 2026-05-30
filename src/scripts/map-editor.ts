@@ -224,16 +224,15 @@ export function createMapEditor(
 
     group.on('click tap', () => {
       if (linkSource !== null) {
-        // Ascendant : cible doit être un humain différent de la source
+        // Ascendant : la cible doit être un humain différent de la source.
+        // Mode « collant » : on RESTE en mode liaison pour enchaîner plusieurs
+        // ascendants depuis la même source (Échap / Terminé pour sortir).
         if (item.id !== linkSource && isHuman(item.paletteId)) {
-          const rel: Relation = { id: `rel-${Date.now()}`, from: linkSource, to: item.id };
+          const rel: Relation = { id: `rel-${linkSource}-${item.id}`, from: linkSource, to: item.id };
           state = addRelation(state, rel);
           renderRelations();
           emitChange();
         }
-        linkSource = null;
-        options.onLinkModeChange?.(false);
-        render();
         return;
       }
       selectedId = item.id;
@@ -296,14 +295,18 @@ export function createMapEditor(
         pointerWidth: 8,
         listening: true,
         tension: 0,
+        hitStrokeWidth: 14, // zone de clic élargie pour supprimer facilement
       });
 
+      // Clic sur une flèche = suppression de l'ascendant (hors mode liaison)
       arrow.on('click tap', () => {
-        selectedRelationId = rel.id;
-        selectedId = null;
+        if (linkSource !== null) return;
+        state = removeRelation(state, rel.id);
         renderRelations();
-        options.onSelect?.(null, null);
+        emitChange();
       });
+      arrow.on('mouseenter', () => { if (linkSource === null) container.style.cursor = 'pointer'; });
+      arrow.on('mouseleave', () => { container.style.cursor = ''; });
 
       relationsLayer.add(arrow);
     }
