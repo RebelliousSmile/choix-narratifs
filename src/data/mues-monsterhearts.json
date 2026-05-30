@@ -10,7 +10,7 @@
     },
     {
       "id": "spectre",
-      "nom": "Le Spectre",
+      "nom": "Le Fantôme",
       "resume": "Mort mais pas parti, il s'accroche au monde des vivants par une rancune tenace.",
       "themes": ["deuil", "vengeance", "memoire"],
       "tags": ["surnaturel", "passe", "intangible"]
@@ -31,21 +31,21 @@
     },
     {
       "id": "mortelle",
-      "nom": "La Mortelle",
+      "nom": "Le Mortel",
       "resume": "Sans pouvoir surnaturel, elle attire pourtant les monstres comme une flamme attire les phalènes.",
       "themes": ["fragilite", "desir", "obsession"],
       "tags": ["humaine", "vulnerable", "amour"]
     },
     {
       "id": "infernale",
-      "nom": "L'Infernale",
+      "nom": "L'Âme damnée",
       "resume": "Elle a signé avec un Maître obscur et lui doit des services qu'elle préférerait oublier.",
       "themes": ["pacte", "pouvoir", "dette"],
       "tags": ["surnaturel", "ambition", "danger"]
     },
     {
       "id": "loup-garou",
-      "nom": "Le Loup-Garou",
+      "nom": "Le Loup-garou",
       "resume": "Une bête vit sous sa peau et la rage menace de prendre le dessus au pire moment.",
       "themes": ["rage", "nature", "perte de controle"],
       "tags": ["bete", "instinct", "violence"]
@@ -63,7 +63,26 @@
       "resume": "Élégant et glacial, il collectionne les âmes qu'il fascine et finit par consumer.",
       "themes": ["soif", "domination", "eternite"],
       "tags": ["seduction", "predateur", "ancien"]
-    }
+    },
+    { "id": "ombre",       "nom": "L'Ombre",        "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "reine",       "nom": "La Reine",       "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "bakeneko",    "nom": "Le Bakeneko",    "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "cerbere",     "nom": "Le Cerbère",     "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "detraquante", "nom": "La Détraquante", "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "diable",      "nom": "Le Diable",      "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "disciple",    "nom": "Le Disciple",    "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "dragon",      "nom": "Le Dragon",      "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "fomoire",     "nom": "Le Fomoire",     "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "furet",       "nom": "Le Furet",       "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "immortelle",  "nom": "L'Immortelle",   "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "leshy",       "nom": "Le Leshy",       "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "ophidien",    "nom": "L'Ophidien",     "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "promethee",   "nom": "Le Prométhée",   "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "sirene",      "nom": "La Sirène",      "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "tengu",       "nom": "Le Tengu",       "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "vila",        "nom": "La Vila",        "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "meduse",      "nom": "La Méduse",      "resume": "À compléter.", "themes": [], "tags": [] },
+    { "id": "momie",       "nom": "La Momie",       "resume": "À compléter.", "themes": [], "tags": [] }
   ],
   "questions": [
     {
