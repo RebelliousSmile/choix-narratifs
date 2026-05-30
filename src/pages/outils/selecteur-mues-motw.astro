@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FunnelSelector from '../../components/FunnelSelector.astro';
+import jeu from '../../data/mues-motw.json';
+import type { JeuMues } from '../../scripts/mues-schema';
+
+const jeuMues = jeu as unknown as JeuMues;
+---
+
+<BaseLayout
+  title="Sélecteur de playbooks — Monster of the Week"
+  description="Questionnaire en entonnoir pour identifier le playbook Monster of the Week le plus adapté à votre chasseur ou chasseuse."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Sélecteur de playbooks — Monster of the Week</h1>
+      <p class="outil__intro">
+        Décrivez votre chasseur ou chasseuse en quelques réponses : à chaque
+        étape, choisissez ce qui colle le mieux à son tempérament et à sa façon
+        d'affronter les monstres. L'outil propose alors un playbook principal et
+        une ou deux pistes alternatives.
+      </p>
+    </header>
+
+    <FunnelSelector jeu={jeuMues} client:visible />
+
+    <footer class="outil__footer">
+      <p class="outil__source">
+        Les playbooks sont résumés de manière personnelle : référez-vous au livre
+        officiel de <em>Monster of the Week</em> pour leurs règles et leur
+        description complètes.
+      </p>
+      <p>
+        <a href="/">&larr; Retour à l'accueil</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 40rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      max-width: 40rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .outil__source {
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+    }
+  </style>
+</BaseLayout>
