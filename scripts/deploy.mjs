@@ -28,3 +28,8 @@ execSync(
 doneTransfer()
 
 console.log('\nDeployed successfully ✓')
+
+// Push du code source vers GitHub (seulement si le déploiement a réussi)
+console.log('\nPush vers GitHub...')
+execSync('git push', { stdio: 'inherit' })
+console.log('Push terminé ✓')

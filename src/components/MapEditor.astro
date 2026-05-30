@@ -1,5 +1,6 @@
 ---
 import type { PaletteItem, PlacedItem } from '../scripts/map-state';
+import { GROUP_COLORS } from '../scripts/map-state';
 
 export interface Props {
   tool: string;
@@ -9,69 +10,141 @@ export interface Props {
 }
 
 const { tool, palette, presets = [], background } = Astro.props;
-
 const config = JSON.stringify({ tool, palette, presets, background });
+const groupColorsJson = JSON.stringify(GROUP_COLORS);
 ---
 
-<section class="map-editor" aria-label={`Éditeur de carte (${tool})`} data-config={config}>
-  <div class="map-editor__toolbar" role="toolbar" aria-label="Outils de la carte">
-    <div class="map-editor__palette" data-palette aria-label="Palette d'éléments">
-      {
-        palette.map((item) => (
-          <button
-            type="button"
-            class="map-editor__palette-item"
-            data-palette-id={item.id}
-            style={item.color ? `--swatch:${item.color}` : undefined}
-          >
-            {item.label}
-          </button>
-        ))
-      }
+<section
+  class="map-editor"
+  aria-label={`Éditeur de carte (${tool})`}
+  data-config={config}
+  data-group-colors={groupColorsJson}
+>
+  <!-- Barre d'outils -->
+  <div class="map-editor__toolbar">
+    <div class="map-editor__palette" aria-label="Palette d'éléments">
+      {palette.map((item) => (
+        <button
+          type="button"
+          class="map-editor__palette-item"
+          data-palette-id={item.id}
+          style={item.color ? `--swatch:${item.color}` : undefined}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
     <div class="map-editor__actions">
       <button type="button" data-action="new">Nouveau</button>
       <button type="button" data-action="save">Sauvegarder</button>
       <button type="button" data-action="load">Charger</button>
       <button type="button" data-action="export-png">Exporter PNG</button>
-      <button type="button" data-action="export-json">Exporter JSON</button>
-      <button type="button" data-action="import-json">Importer JSON</button>
+      <button type="button" data-action="export-pdf">Exporter PDF</button>
       <button type="button" data-action="delete">Supprimer</button>
     </div>
   </div>
 
-  <div class="map-editor__canvas" data-canvas tabindex="0" aria-label="Zone d'édition de la carte"></div>
+  <!-- Panneau d'édition — commun -->
+  <div class="map-editor__edit" data-edit-panel hidden>
+    <!-- Nom (commun à tous) -->
+    <div class="map-editor__edit-row">
+      <label class="map-editor__edit-label">
+        Nom
+        <input type="text" data-edit-name class="map-editor__edit-input" placeholder="Nom de l'élément" />
+      </label>
+    </div>
 
-  <input type="file" accept="application/json" data-import-input hidden />
+    <!-- ── Section pupitre ── -->
+    <div class="map-editor__desk-section" data-desk-section hidden>
+      <div class="map-editor__edit-row">
+        <span class="map-editor__edit-label">Taille</span>
+        <div class="map-editor__seg" role="group" aria-label="Taille du pupitre">
+          <button type="button" class="map-editor__seg-btn" data-desk-size="1">×1</button>
+          <button type="button" class="map-editor__seg-btn" data-desk-size="2">×2</button>
+          <button type="button" class="map-editor__seg-btn" data-desk-size="3">×3</button>
+        </div>
+        <div class="map-editor__seg" data-orient-seg hidden role="group" aria-label="Orientation">
+          <button type="button" class="map-editor__seg-btn" data-desk-orient="h">→</button>
+          <button type="button" class="map-editor__seg-btn" data-desk-orient="v">↓</button>
+        </div>
+      </div>
+      <div class="map-editor__edit-row">
+        <span class="map-editor__edit-label">Générer grille</span>
+        <label class="map-editor__gen-label">
+          Rangées <input type="number" data-gen-rows min="1" max="12" value="4" class="map-editor__gen-input" />
+        </label>
+        <label class="map-editor__gen-label">
+          Colonnes <input type="number" data-gen-cols min="1" max="12" value="5" class="map-editor__gen-input" />
+        </label>
+        <button type="button" data-gen-submit class="map-editor__gen-btn">Générer</button>
+      </div>
+    </div>
+
+    <!-- ── Section humain ── -->
+    <div class="map-editor__human-section" data-human-section hidden>
+      <!-- Groupe d'influence -->
+      <div class="map-editor__edit-row">
+        <span class="map-editor__edit-label">Groupe d'influence</span>
+        <div class="map-editor__group-chips" data-group-chips></div>
+        <button type="button" class="map-editor__add-group-btn" data-add-group>+ Nouveau groupe</button>
+      </div>
+      <!-- Formulaire nouveau groupe (boîte distincte, repliée par défaut) -->
+      <div class="map-editor__new-group" data-new-group-form hidden>
+        <span class="map-editor__new-group-title">Nouveau groupe</span>
+        <input type="text" data-new-group-name class="map-editor__edit-input" placeholder="Nom du groupe" />
+        <div class="map-editor__color-swatches" data-color-swatches></div>
+        <button type="button" data-confirm-group class="map-editor__confirm-group-btn">Créer</button>
+        <button type="button" data-cancel-group>Annuler</button>
+      </div>
+
+      <!-- Ascendant : bouton + indicateur inline -->
+      <div class="map-editor__edit-row">
+        <button type="button" class="map-editor__link-btn" data-link-from>
+          Créer un ascendant →
+        </button>
+        <span class="map-editor__link-hint" data-link-hint hidden>
+          <span>Cliquez sur la cible. (Échap pour annuler)</span>
+          <button type="button" data-cancel-link>Annuler</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas Konva -->
+  <div class="map-editor__canvas" data-canvas tabindex="0" aria-label="Zone d'édition de la carte"></div>
 </section>
 
 <style>
   .map-editor {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.6rem;
     width: 100%;
   }
+
+  /* ── Toolbar ── */
   .map-editor__toolbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: flex-start;
   }
   .map-editor__palette,
   .map-editor__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
   .map-editor button {
     font: inherit;
-    padding: 0.4rem 0.8rem;
+    padding: 0.35rem 0.75rem;
     border: 1px solid #555;
     border-radius: 6px;
     background: #2a2440;
     color: #ece8f5;
     cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.12s, border-color 0.12s;
   }
   .map-editor button:hover,
   .map-editor button:focus-visible {
@@ -80,13 +153,204 @@ const config = JSON.stringify({ tool, palette, presets, background });
     outline: 2px solid #ffd34d;
     outline-offset: 1px;
   }
-  .map-editor__palette-item {
-    border-left: 6px solid var(--swatch, #4477aa);
+  .map-editor button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
+  .map-editor__palette-item {
+    border-left: 5px solid var(--swatch, #4477aa);
+  }
+
+  /* ── Link hint (inline, à côté du bouton ascendant) ── */
+  .map-editor__link-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(196,90,146,0.15);
+    border: 1px solid #c45a92;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #e07bb0;
+  }
+
+  /* ── Edit panel ── */
+  .map-editor__edit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #1e1929;
+    border: 1px solid #3a3150;
+    border-radius: 8px;
+  }
+  .map-editor__edit-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .map-editor__edit-label {
+    font-size: 0.875rem;
+    color: #b3a9c7;
+    white-space: nowrap;
+  }
+  .map-editor__edit-input {
+    font: inherit;
+    font-size: 0.875rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid #3a3150;
+    border-radius: 6px;
+    background: #14111c;
+    color: #ece8f5;
+    min-width: 12rem;
+  }
+  .map-editor__edit-input:focus {
+    outline: 2px solid #ffd34d;
+    outline-offset: 1px;
+    border-color: #ffd34d;
+  }
+
+  /* ── Desk section ── */
+  .map-editor__desk-section,
+  .map-editor__human-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #3a3150;
+  }
+
+  /* ── Segmented buttons (taille / orientation) ── */
+  .map-editor__seg {
+    display: flex;
+    border: 1px solid #555;
+    border-radius: 6px;
+    overflow: hidden;
+    gap: 0;
+  }
+  .map-editor__seg-btn {
+    border: none !important;
+    border-radius: 0 !important;
+    border-right: 1px solid #555 !important;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  .map-editor__seg-btn:last-child {
+    border-right: none !important;
+  }
+  .map-editor__seg-btn.is-active {
+    background: #c45a92 !important;
+    color: #fff;
+  }
+
+  /* ── Generate form ── */
+  .map-editor__gen-label {
+    font-size: 0.8rem;
+    color: #b3a9c7;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .map-editor__gen-input {
+    width: 4.5rem;
+    font: inherit;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid #3a3150;
+    border-radius: 6px;
+    background: #14111c;
+    color: #ece8f5;
+  }
+  .map-editor__gen-btn {
+    align-self: flex-end;
+    background: #c45a92 !important;
+    border-color: #e07bb0 !important;
+    color: #fff;
+  }
+  .map-editor__gen-btn:hover {
+    background: #e07bb0 !important;
+  }
+
+  /* ── Human section ── */
+  .map-editor__group-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .map-editor__group-chip {
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--chip-color, #3a3150);
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 0.12s, border-color 0.12s;
+  }
+  .map-editor__group-chip.is-active { opacity: 1; border-color: #ffd34d; }
+  .map-editor__group-chip:hover { opacity: 1; border-color: rgba(255,255,255,0.5); }
+
+  .map-editor__add-group-btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    background: transparent !important;
+    border-color: #3a3150 !important;
+    color: #b3a9c7 !important;
+  }
+
+  .map-editor__new-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: #14111c;
+    border: 1px dashed #c45a92;
+    border-radius: 8px;
+  }
+  .map-editor__new-group-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e07bb0;
+    white-space: nowrap;
+  }
+  .map-editor__confirm-group-btn {
+    background: #c45a92 !important;
+    border-color: #e07bb0 !important;
+    color: #fff !important;
+  }
+  .map-editor__confirm-group-btn:hover {
+    background: #e07bb0 !important;
+  }
+  .map-editor__color-swatches { display: flex; gap: 0.35rem; }
+  .map-editor__color-swatch {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.12s, transform 0.12s;
+  }
+  .map-editor__color-swatch:hover { transform: scale(1.2); }
+  .map-editor__color-swatch.is-selected { border-color: #ffd34d; }
+
+  .map-editor__link-btn {
+    font-size: 0.85rem;
+    background: #261f35 !important;
+    border-color: #c45a92 !important;
+    color: #e07bb0 !important;
+  }
+  .map-editor__link-btn:hover {
+    background: #c45a92 !important;
+    color: #fff !important;
+  }
+
+  /* ── Canvas — ratio A4 paysage ── */
   .map-editor__canvas {
     width: 100%;
-    height: 60vh;
-    min-height: 400px;
+    aspect-ratio: 297 / 210;
     border: 1px solid #555;
     border-radius: 8px;
     overflow: hidden;
@@ -94,39 +358,32 @@ const config = JSON.stringify({ tool, palette, presets, background });
     position: relative;
   }
   .map-editor__canvas:focus-visible {
-    outline: 2px solid #555;
+    outline: 2px solid #ffd34d;
     outline-offset: 2px;
   }
 </style>
 
 <script>
-  // konva ne doit JAMAIS être importé côté serveur : tout est dynamique ici.
-  import type { MapEditor } from '../scripts/map-editor';
-  import type { MapState, PaletteItem, PlacedItem } from '../scripts/map-state';
+  import type { MapEditor, ItemType } from '../scripts/map-editor';
+  import type { MapState, Group } from '../scripts/map-state';
 
   interface MapConfig {
     tool: string;
-    palette: PaletteItem[];
-    presets: PlacedItem[];
+    palette: import('../scripts/map-state').PaletteItem[];
+    presets: import('../scripts/map-state').PlacedItem[];
     background?: string;
   }
 
   async function initEditor(root: HTMLElement): Promise<void> {
     const raw = root.dataset.config;
     if (!raw) return;
-
     let config: MapConfig;
-    try {
-      config = JSON.parse(raw) as MapConfig;
-    } catch {
-      console.error('[MapEditor] Impossible de parser la config JSON');
-      return;
-    }
+    try { config = JSON.parse(raw) as MapConfig; } catch { return; }
 
+    const groupColors: string[] = JSON.parse(root.dataset.groupColors ?? '[]');
     const canvas = root.querySelector<HTMLElement>('[data-canvas]');
     if (!canvas) return;
 
-    // Attendre que le layout soit stabilisé avant d'initialiser Konva.
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     let createMapEditor: (typeof import('../scripts/map-editor'))['createMapEditor'];
@@ -136,27 +393,208 @@ const config = JSON.stringify({ tool, palette, presets, background });
       createMapEditor = mod.createMapEditor;
       storage = await import('../scripts/storage');
     } catch (err) {
-      console.error('[MapEditor] Erreur de chargement du module:', err);
+      console.error('[MapEditor] Erreur de chargement:', err);
       canvas.textContent = 'Erreur de chargement de l\'éditeur. Voir la console.';
       return;
     }
 
+    // ── UI refs ──────────────────────────────────────────────────────────────
+    const linkHint    = root.querySelector<HTMLElement>('[data-link-hint]')!;
+    const cancelLink  = root.querySelector<HTMLButtonElement>('[data-cancel-link]')!;
+    const editPanel   = root.querySelector<HTMLElement>('[data-edit-panel]')!;
+    const editName    = root.querySelector<HTMLInputElement>('[data-edit-name]')!;
+
+    // Desk section
+    const deskSection = root.querySelector<HTMLElement>('[data-desk-section]')!;
+    const orientSeg   = root.querySelector<HTMLElement>('[data-orient-seg]')!;
+    const genRows     = root.querySelector<HTMLInputElement>('[data-gen-rows]')!;
+    const genCols     = root.querySelector<HTMLInputElement>('[data-gen-cols]')!;
+    const genSubmit   = root.querySelector<HTMLButtonElement>('[data-gen-submit]')!;
+
+    // Human section
+    const humanSection = root.querySelector<HTMLElement>('[data-human-section]')!;
+    const groupChips   = root.querySelector<HTMLElement>('[data-group-chips]')!;
+    const addGroupBtn  = root.querySelector<HTMLButtonElement>('[data-add-group]')!;
+    const linkFromBtn  = root.querySelector<HTMLButtonElement>('[data-link-from]')!;
+    const newGroupForm = root.querySelector<HTMLElement>('[data-new-group-form]')!;
+    const newGroupName = root.querySelector<HTMLInputElement>('[data-new-group-name]')!;
+    const colorSwatches= root.querySelector<HTMLElement>('[data-color-swatches]')!;
+    const confirmGroup = root.querySelector<HTMLButtonElement>('[data-confirm-group]')!;
+    const cancelGroup  = root.querySelector<HTMLButtonElement>('[data-cancel-group]')!;
+
+    let currentId: string | null = null;
+    let currentItemType: ItemType | null = null;
+    let selectedGroupColor: string | null = null;
+
+    // ── Color swatches ────────────────────────────────────────────────────────
+    for (const color of groupColors) {
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'map-editor__color-swatch';
+      sw.style.background = color;
+      sw.addEventListener('click', () => {
+        colorSwatches.querySelectorAll('.map-editor__color-swatch').forEach((s) => s.classList.remove('is-selected'));
+        sw.classList.add('is-selected');
+        selectedGroupColor = color;
+      });
+      colorSwatches.appendChild(sw);
+    }
+
+    // ── Editor ────────────────────────────────────────────────────────────────
     const editor: MapEditor = createMapEditor(canvas, {
       palette: config.palette,
       presets: config.presets,
       background: config.background,
+
+      onChange: (state) => {
+        if (currentId) refreshPanel(state, currentId, currentItemType);
+      },
+
+      onSelect: (id, itemType) => {
+        currentId = id;
+        currentItemType = itemType;
+        if (id && itemType) {
+          editPanel.hidden = false;
+          deskSection.hidden = itemType !== 'desk';
+          humanSection.hidden = itemType !== 'human';
+          refreshPanel(editor.getState(), id, itemType);
+        } else {
+          editPanel.hidden = true;
+        }
+      },
+
+      onLinkModeChange: (active) => {
+        linkHint.hidden = !active;
+      },
     });
 
-    // Palette : clic pour ajouter au centre, drag&drop pour positionner.
+    // ── Panel refresh ─────────────────────────────────────────────────────────
+    function refreshPanel(state: MapState, itemId: string, itemType: ItemType | null): void {
+      const item = state.items.find((i) => i.id === itemId);
+      if (!item) return;
+      editName.value = item.label ?? '';
+
+      if (itemType === 'desk') {
+        const palette = config.palette.find((p) => p.id === item.paletteId);
+        const wUnits = item.widthUnits ?? palette?.widthUnits ?? 2;
+        const hUnits = item.heightUnits ?? palette?.heightUnits ?? 2;
+        const size = Math.max(wUnits, hUnits) / 2; // 1, 2 or 3
+        const isH = wUnits >= hUnits;
+
+        // Highlight size buttons
+        root.querySelectorAll<HTMLButtonElement>('[data-desk-size]').forEach((btn) => {
+          btn.classList.toggle('is-active', Number(btn.dataset.deskSize) === size);
+        });
+        // Show/hide orientation
+        orientSeg.hidden = size === 1;
+        root.querySelectorAll<HTMLButtonElement>('[data-desk-orient]').forEach((btn) => {
+          btn.classList.toggle('is-active', btn.dataset.deskOrient === (isH ? 'h' : 'v'));
+        });
+      }
+
+      if (itemType === 'human') {
+        groupChips.innerHTML = '';
+        const noG = document.createElement('button');
+        noG.type = 'button';
+        noG.className = 'map-editor__group-chip' + (!item.groupId ? ' is-active' : '');
+        noG.style.setProperty('--chip-color', '#3a3150');
+        noG.textContent = 'Aucun';
+        noG.addEventListener('click', () => editor.setItemGroup(itemId, undefined));
+        groupChips.appendChild(noG);
+
+        for (const group of state.groups ?? []) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'map-editor__group-chip' + (item.groupId === group.id ? ' is-active' : '');
+          chip.style.setProperty('--chip-color', group.couleur);
+          chip.textContent = group.nom;
+          chip.addEventListener('click', () => editor.setItemGroup(itemId, group.id));
+          groupChips.appendChild(chip);
+        }
+      }
+    }
+
+    // ── Name input ────────────────────────────────────────────────────────────
+    editName.addEventListener('input', () => {
+      if (currentId) editor.setLabel(currentId, editName.value);
+    });
+
+    // ── Desk size/orient ──────────────────────────────────────────────────────
+    root.querySelectorAll<HTMLButtonElement>('[data-desk-size]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!currentId) return;
+        const newSize = Number(btn.dataset.deskSize);
+        const item = editor.getState().items.find((i) => i.id === currentId);
+        const palette = config.palette.find((p) => p.id === item?.paletteId);
+        const wUnits = item?.widthUnits ?? palette?.widthUnits ?? 2;
+        const hUnits = item?.heightUnits ?? palette?.heightUnits ?? 2;
+        const isH = wUnits >= hUnits;
+        const [w, h] = newSize === 1 ? [2, 2] : isH ? [newSize * 2, 2] : [2, newSize * 2];
+        editor.setItemDims(currentId, w, h);
+      });
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('[data-desk-orient]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!currentId) return;
+        const item = editor.getState().items.find((i) => i.id === currentId);
+        const palette = config.palette.find((p) => p.id === item?.paletteId);
+        const wUnits = item?.widthUnits ?? palette?.widthUnits ?? 2;
+        const hUnits = item?.heightUnits ?? palette?.heightUnits ?? 2;
+        const size = Math.max(wUnits, hUnits) / 2;
+        const toH = btn.dataset.deskOrient === 'h';
+        const [w, h] = size === 1 ? [2, 2] : toH ? [size * 2, 2] : [2, size * 2];
+        editor.setItemDims(currentId, w, h);
+      });
+    });
+
+    // ── Generate grid ─────────────────────────────────────────────────────────
+    genSubmit.addEventListener('click', () => {
+      const rows = Math.max(1, Math.min(12, Number(genRows.value) || 4));
+      const cols = Math.max(1, Math.min(12, Number(genCols.value) || 5));
+      const { width: canvasW, height: canvasH } = editor.getCanvasDims();
+      // Dispatch event for the host page to handle (classroom-specific generation)
+      root.dispatchEvent(new CustomEvent('map-editor:request-generate', {
+        detail: { rows, cols, canvasW, canvasH },
+        bubbles: true,
+      }));
+    });
+
+    // ── Group creation ────────────────────────────────────────────────────────
+    addGroupBtn.addEventListener('click', () => { newGroupForm.hidden = false; newGroupName.focus(); });
+
+    cancelGroup.addEventListener('click', () => {
+      newGroupForm.hidden = true;
+      newGroupName.value = '';
+      selectedGroupColor = null;
+      colorSwatches.querySelectorAll('.map-editor__color-swatch').forEach((s) => s.classList.remove('is-selected'));
+    });
+
+    confirmGroup.addEventListener('click', () => {
+      const nom = newGroupName.value.trim();
+      if (!nom || !selectedGroupColor) return;
+      const group: Group = { id: `grp-${Date.now()}`, nom, couleur: selectedGroupColor };
+      editor.addGroup(group);
+      if (currentId) editor.setItemGroup(currentId, group.id);
+      newGroupForm.hidden = true;
+      newGroupName.value = '';
+      selectedGroupColor = null;
+      colorSwatches.querySelectorAll('.map-editor__color-swatch').forEach((s) => s.classList.remove('is-selected'));
+      if (currentId) refreshPanel(editor.getState(), currentId, currentItemType);
+    });
+
+    // ── Ascendant ─────────────────────────────────────────────────────────────
+    linkFromBtn.addEventListener('click', () => editor.startLinkMode());
+    cancelLink.addEventListener('click', () => editor.cancelLinkMode());
+
+    // ── Palette ───────────────────────────────────────────────────────────────
     root.querySelectorAll<HTMLButtonElement>('[data-palette-id]').forEach((btn) => {
       const paletteId = btn.dataset.paletteId!;
       btn.draggable = true;
       btn.addEventListener('click', () => {
         editor.addFromPalette(paletteId, canvas.clientWidth / 2, canvas.clientHeight / 2);
       });
-      btn.addEventListener('dragstart', (e) => {
-        e.dataTransfer?.setData('text/palette-id', paletteId);
-      });
+      btn.addEventListener('dragstart', (e) => e.dataTransfer?.setData('text/palette-id', paletteId));
     });
 
     canvas.addEventListener('dragover', (e) => e.preventDefault());
@@ -168,19 +606,16 @@ const config = JSON.stringify({ tool, palette, presets, background });
       editor.addFromPalette(paletteId, e.clientX - rect.left, e.clientY - rect.top);
     });
 
+    // ── Actions ───────────────────────────────────────────────────────────────
     function action(name: string, fn: () => void): void {
       root.querySelector<HTMLButtonElement>(`[data-action="${name}"]`)?.addEventListener('click', fn);
     }
 
     const storageKey = `map:${config.tool}`;
 
-    action('new', () => editor.loadState({ schemaVersion: 1, items: [] }));
+    action('new', () => editor.loadState({ schemaVersion: 1, items: [], groups: [], relations: [] }));
     action('delete', () => editor.removeSelected());
-
-    action('save', () => {
-      storage.saveData(storageKey, editor.getState());
-    });
-
+    action('save', () => storage.saveData(storageKey, editor.getState()));
     action('load', () => {
       const loaded = storage.loadData<MapState>(storageKey);
       if (loaded) editor.loadState(loaded);
@@ -189,43 +624,28 @@ const config = JSON.stringify({ tool, palette, presets, background });
     action('export-png', () => {
       const url = editor.exportPNG();
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `${config.tool}.png`;
-      a.click();
+      a.href = url; a.download = `${config.tool}.png`; a.click();
     });
 
-    action('export-json', () => {
-      const blob = storage.exportData(editor.getState());
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${config.tool}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+    action('export-pdf', () => {
+      const dataUrl = editor.exportPNG();
+      const w = window.open('', '_blank');
+      if (!w) { alert('Autorisez les popups pour exporter en PDF.'); return; }
+      w.document.write(`<!DOCTYPE html><html lang="fr"><head>
+        <meta charset="utf-8"><title>${config.tool}</title>
+        <style>
+          *{margin:0;padding:0;box-sizing:border-box}
+          body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
+          img{max-width:100%;max-height:100vh;object-fit:contain}
+          @media print{body{display:block}img{width:100%;max-height:none}}
+        </style></head><body><img src="${dataUrl}"></body></html>`);
+      w.document.close();
+      setTimeout(() => { if (!w.closed) w.print(); }, 400);
     });
 
-    // Permet à la page hôte de charger un état (ex. ébauche générée) via
-    // un CustomEvent 'map-editor:load-state' dispatché sur le conteneur.
     root.addEventListener('map-editor:load-state', (event) => {
       const detail = (event as CustomEvent<MapState>).detail;
-      if (detail && Array.isArray(detail.items)) {
-        editor.loadState(detail);
-      }
-    });
-
-    const input = root.querySelector<HTMLInputElement>('[data-import-input]');
-    action('import-json', () => input?.click());
-    input?.addEventListener('change', async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text) as MapState;
-        editor.loadState(data);
-      } catch (err) {
-        alert(err instanceof Error ? err.message : 'Import impossible : fichier JSON invalide.');
-      }
-      input.value = '';
+      if (detail?.items) editor.loadState(detail);
     });
   }
 
