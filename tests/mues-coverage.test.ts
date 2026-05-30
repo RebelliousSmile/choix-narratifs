@@ -47,7 +47,7 @@ describe('couverture du questionnaire des mues', () => {
   });
 
   it('toutes les mues du catalogue sont distinctes et non vides', () => {
-    expect(jeu.mues.length).toBe(28);
-    expect(new Set(jeu.mues.map((m) => m.id)).size).toBe(28);
+    expect(jeu.mues.length).toBe(29);
+    expect(new Set(jeu.mues.map((m) => m.id)).size).toBe(29);
   });
 });
