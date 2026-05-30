@@ -1,0 +1,79 @@
+[
+  {
+    "id": "powered-by-the-apocalypse",
+    "titre": "Powered by the Apocalypse",
+    "url": "https://lumpley.games/apocalypse-world/",
+    "description": "Le site de Lumpley Games autour d'Apocalypse World, le jeu fondateur du courant PbtA.",
+    "categorie": "Théorie"
+  },
+  {
+    "id": "monsterhearts",
+    "titre": "Monsterhearts",
+    "url": "https://buriedwithoutceremony.com/monsterhearts",
+    "description": "Le site officiel de Monsterhearts, jeu d'adolescents monstrueux et de drames romantiques.",
+    "categorie": "Jeux"
+  },
+  {
+    "id": "monster-of-the-week",
+    "titre": "Monster of the Week",
+    "url": "https://www.evilhat.com/home/monster-of-the-week/",
+    "description": "La page d'Evil Hat pour Monster of the Week, la chasse aux monstres façon série télé.",
+    "categorie": "Jeux"
+  },
+  {
+    "id": "ironsworn",
+    "titre": "Ironsworn",
+    "url": "https://www.ironswornrpg.com/",
+    "description": "Jeu PbtA jouable en solo, coopératif ou avec meneur, oracles intégrés.",
+    "categorie": "Jeux"
+  },
+  {
+    "id": "the-gauntlet",
+    "titre": "The Gauntlet",
+    "url": "https://www.gauntlet-rpg.com/",
+    "description": "Communauté et éditeur centrés sur les jeux narratifs et le jeu en ligne convivial.",
+    "categorie": "Communautés"
+  },
+  {
+    "id": "reddit-rpg",
+    "titre": "r/rpg",
+    "url": "https://www.reddit.com/r/rpg/",
+    "description": "Forum généraliste où se discutent régulièrement les jeux narratifs et le jeu solo.",
+    "categorie": "Communautés"
+  },
+  {
+    "id": "itch-io-solo-rpg",
+    "titre": "Jeux de rôle solo sur itch.io",
+    "url": "https://itch.io/physical-games/genre-rpg/tag-solo",
+    "description": "Sélection de jeux de rôle solo et journaux de bord d'autrices et auteurs indépendants.",
+    "categorie": "Outils tiers"
+  },
+  {
+    "id": "mythic-gme",
+    "titre": "Mythic Game Master Emulator",
+    "url": "https://www.wordmillgames.com/mythic.html",
+    "description": "Système d'émulation de meneur par oracles, référence du jeu de rôle solo.",
+    "categorie": "Outils tiers"
+  },
+  {
+    "id": "perchance",
+    "titre": "Perchance",
+    "url": "https://perchance.org/",
+    "description": "Plateforme de générateurs aléatoires personnalisables, pratique pour bâtir ses propres oracles.",
+    "categorie": "Outils tiers"
+  },
+  {
+    "id": "the-alexandrian",
+    "titre": "The Alexandrian",
+    "url": "https://thealexandrian.net/",
+    "description": "Blog d'analyse approfondie sur la structure des scénarios et la conduite de partie.",
+    "categorie": "Théorie"
+  },
+  {
+    "id": "gnome-stew",
+    "titre": "Gnome Stew",
+    "url": "https://gnomestew.com/",
+    "description": "Blog collectif de conseils pour meneuses et meneurs de jeu, toutes approches confondues.",
+    "categorie": "Théorie"
+  }
+]

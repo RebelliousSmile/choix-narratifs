@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ToolCard from '../components/ToolCard.astro';
+import {
+  validateLiens,
+  CATEGORIES_LIENS,
+  type Lien,
+  type CategorieLien,
+} from '../scripts/liens-schema';
+import liensData from '../data/liens.json';
+
+const result = validateLiens(liensData);
+const liens: Lien[] = result.ok ? result.value : [];
+
+// Regroupement par catégorie, dans l'ordre déclaré, en ignorant les vides.
+const groupes = CATEGORIES_LIENS.map((categorie) => ({
+  categorie,
+  liens: liens.filter((lien) => lien.categorie === categorie),
+})).filter(
+  (groupe): groupe is { categorie: CategorieLien; liens: Lien[] } =>
+    groupe.liens.length > 0,
+);
+---
+
+<BaseLayout
+  title="Liens & ressources"
+  description="Une sélection de ressources du jeu de rôle narratif et PbtA : théorie, outils tiers, communautés et jeux."
+>
+  <article class="liens">
+    <header class="liens__header">
+      <h1>Liens &amp; ressources</h1>
+      <p class="liens__intro">
+        Quelques points de départ pour approfondir le jeu de rôle narratif, le
+        courant PbtA et le jeu en solo : théorie, outils, communautés et jeux.
+        Tous les liens s'ouvrent dans un nouvel onglet.
+      </p>
+    </header>
+
+    {
+      groupes.length > 0 ? (
+        groupes.map((groupe) => (
+          <section class="liens__section" aria-labelledby={`cat-${groupe.categorie}`}>
+            <h2 id={`cat-${groupe.categorie}`}>{groupe.categorie}</h2>
+            <div class="liens__grid">
+              {groupe.liens.map((lien) => (
+                <ToolCard nom={lien.titre} description={lien.description} url={lien.url} />
+              ))}
+            </div>
+          </section>
+        ))
+      ) : (
+        <p>Aucun lien disponible pour le moment.</p>
+      )
+    }
+  </article>
+
+  <style>
+    .liens__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-5);
+    }
+    .liens__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .liens__section {
+      margin-bottom: var(--space-5);
+    }
+    .liens__grid {
+      display: grid;
+      gap: var(--space-4);
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
+  </style>
+</BaseLayout>
