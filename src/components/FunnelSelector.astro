@@ -1,0 +1,248 @@
+---
+import type { JeuMues } from '../scripts/mues-schema';
+
+export interface Props {
+  jeu: JeuMues;
+}
+
+const { jeu } = Astro.props;
+const jeuJson = JSON.stringify(jeu);
+const total = jeu.questions.length;
+---
+
+<section class="funnel" aria-labelledby="funnel-title" data-jeu={jeuJson}>
+  <h2 id="funnel-title" class="visually-hidden">Sélecteur de mues — {jeu.jeu}</h2>
+
+  <p class="funnel__progress" aria-live="polite" data-progress>
+    Étape 1 / {total}
+  </p>
+
+  <!-- Écran question -->
+  <div class="funnel__question" data-question-screen>
+    <h3 class="funnel__question-text" data-question-text></h3>
+    <ul class="funnel__options" role="group" aria-label="Réponses possibles" data-options></ul>
+  </div>
+
+  <!-- Écran résultat -->
+  <div class="funnel__result" data-result-screen hidden>
+    <h3>Notre recommandation</h3>
+    <div data-result-main></div>
+    <div data-result-alts></div>
+  </div>
+
+  <div class="funnel__nav">
+    <button type="button" data-prev disabled>Précédent</button>
+    <button type="button" data-restart hidden>Recommencer</button>
+  </div>
+</section>
+
+<style>
+  .funnel {
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+  .funnel__progress {
+    font-weight: 600;
+    color: #555;
+  }
+  .funnel__options {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .funnel__options button {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font: inherit;
+  }
+  .funnel__options button:hover,
+  .funnel__options button:focus-visible {
+    border-color: #555;
+    outline: 2px solid #555;
+    outline-offset: 1px;
+  }
+  .funnel__options button[aria-pressed='true'] {
+    border-color: #222;
+    background: #f0f0f0;
+    font-weight: 600;
+  }
+  .funnel__nav {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .funnel__nav button {
+    padding: 0.5rem 1rem;
+    font: inherit;
+    cursor: pointer;
+  }
+  .funnel__nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .funnel__result article {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.75rem 0;
+  }
+  .funnel__result .is-main {
+    border-color: #222;
+    border-width: 2px;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  import {
+    createFunnelState,
+    setReponse,
+    nextStep,
+    previousStep,
+    isComplete,
+    resetFunnel,
+    topRecommendations,
+    type FunnelState,
+  } from '../scripts/funnel';
+  import { scoreMues, type JeuMues, type Mue } from '../scripts/mues-schema';
+  import { saveData } from '../scripts/storage';
+
+  function initFunnel(root: HTMLElement): void {
+    const raw = root.dataset.jeu;
+    if (!raw) return;
+    const jeu = JSON.parse(raw) as JeuMues;
+    const total = jeu.questions.length;
+
+    const progress = root.querySelector<HTMLElement>('[data-progress]')!;
+    const questionScreen = root.querySelector<HTMLElement>('[data-question-screen]')!;
+    const questionText = root.querySelector<HTMLElement>('[data-question-text]')!;
+    const optionsList = root.querySelector<HTMLElement>('[data-options]')!;
+    const resultScreen = root.querySelector<HTMLElement>('[data-result-screen]')!;
+    const resultMain = root.querySelector<HTMLElement>('[data-result-main]')!;
+    const resultAlts = root.querySelector<HTMLElement>('[data-result-alts]')!;
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const restartBtn = root.querySelector<HTMLButtonElement>('[data-restart]')!;
+
+    let state: FunnelState = createFunnelState();
+
+    function escapeHtml(value: string): string {
+      const div = document.createElement('div');
+      div.textContent = value;
+      return div.innerHTML;
+    }
+
+    function renderMueCard(mue: Mue, isMain: boolean): string {
+      const lien = mue.lienOfficiel
+        ? `<p><a href="${escapeHtml(mue.lienOfficiel)}" rel="noopener noreferrer">Fiche officielle</a></p>`
+        : '';
+      const role = isMain ? '<p class="funnel__badge">Recommandation principale</p>' : '';
+      return `<article class="${isMain ? 'is-main' : 'is-alt'}">
+        ${role}
+        <h4>${escapeHtml(mue.nom)}</h4>
+        <p>${escapeHtml(mue.resume)}</p>
+        ${lien}
+      </article>`;
+    }
+
+    function renderResult(): void {
+      const scored = scoreMues(jeu, state.reponses);
+      const recos = topRecommendations(scored, 3);
+
+      questionScreen.hidden = true;
+      resultScreen.hidden = false;
+      restartBtn.hidden = false;
+      prevBtn.disabled = false;
+      progress.textContent = 'Résultat';
+
+      if (recos.length === 0) {
+        resultMain.innerHTML = '<p>Aucune recommandation disponible.</p>';
+        resultAlts.innerHTML = '';
+        return;
+      }
+
+      resultMain.innerHTML = renderMueCard(recos[0].mue, true);
+      const alts = recos.slice(1);
+      resultAlts.innerHTML = alts.length
+        ? `<h4>Alternatives proches</h4>${alts
+            .map((r) => renderMueCard(r.mue, false))
+            .join('')}`
+        : '';
+
+      try {
+        saveData(`funnel:${jeu.jeu}:last`, {
+          reponses: state.reponses,
+          recommandations: recos.map((r) => r.mue.id),
+        });
+      } catch {
+        /* localStorage indisponible : on ignore silencieusement. */
+      }
+    }
+
+    function renderQuestion(): void {
+      const question = jeu.questions[state.index];
+      questionScreen.hidden = false;
+      resultScreen.hidden = true;
+      restartBtn.hidden = true;
+      prevBtn.disabled = state.index === 0;
+      progress.textContent = `Étape ${state.index + 1} / ${total}`;
+      questionText.textContent = question.texte;
+
+      optionsList.innerHTML = '';
+      const chosen = state.reponses[question.id];
+      for (const option of question.options) {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = option.texte;
+        btn.setAttribute('aria-pressed', String(chosen === option.id));
+        btn.addEventListener('click', () => {
+          state = setReponse(state, question.id, option.id);
+          state = nextStep(state, total);
+          render();
+        });
+        li.appendChild(btn);
+        optionsList.appendChild(li);
+      }
+    }
+
+    function render(): void {
+      if (isComplete(state, total)) {
+        renderResult();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      state = previousStep(state);
+      render();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      state = resetFunnel();
+      render();
+    });
+
+    render();
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.funnel[data-jeu]')) {
+    initFunnel(root);
+  }
+</script>
