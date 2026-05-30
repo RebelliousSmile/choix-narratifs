@@ -1,0 +1,205 @@
+---
+import type { PaletteItem, PlacedItem } from '../scripts/map-state';
+
+export interface Props {
+  tool: string;
+  palette: PaletteItem[];
+  presets?: PlacedItem[];
+  background?: string;
+}
+
+const { tool, palette, presets = [], background } = Astro.props;
+
+const config = JSON.stringify({ tool, palette, presets, background });
+---
+
+<section class="map-editor" aria-label={`Éditeur de carte (${tool})`} data-config={config}>
+  <div class="map-editor__toolbar" role="toolbar" aria-label="Outils de la carte">
+    <div class="map-editor__palette" data-palette aria-label="Palette d'éléments">
+      {
+        palette.map((item) => (
+          <button
+            type="button"
+            class="map-editor__palette-item"
+            data-palette-id={item.id}
+            style={item.color ? `--swatch:${item.color}` : undefined}
+          >
+            {item.label}
+          </button>
+        ))
+      }
+    </div>
+    <div class="map-editor__actions">
+      <button type="button" data-action="new">Nouveau</button>
+      <button type="button" data-action="save">Sauvegarder</button>
+      <button type="button" data-action="load">Charger</button>
+      <button type="button" data-action="export-png">Exporter PNG</button>
+      <button type="button" data-action="export-json">Exporter JSON</button>
+      <button type="button" data-action="import-json">Importer JSON</button>
+      <button type="button" data-action="delete">Supprimer</button>
+    </div>
+  </div>
+
+  <div class="map-editor__canvas" data-canvas tabindex="0" aria-label="Zone d'édition de la carte"></div>
+
+  <input type="file" accept="application/json" data-import-input hidden />
+</section>
+
+<style>
+  .map-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .map-editor__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .map-editor__palette,
+  .map-editor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .map-editor button {
+    font: inherit;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .map-editor button:hover,
+  .map-editor button:focus-visible {
+    border-color: #555;
+    outline: 2px solid #555;
+    outline-offset: 1px;
+  }
+  .map-editor__palette-item {
+    border-left: 6px solid var(--swatch, #4477aa);
+  }
+  .map-editor__canvas {
+    width: 100%;
+    min-height: 60vh;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fafafa;
+  }
+  .map-editor__canvas:focus-visible {
+    outline: 2px solid #555;
+    outline-offset: 2px;
+  }
+</style>
+
+<script>
+  // konva ne doit JAMAIS être importé côté serveur : tout est dynamique ici.
+  import type { MapEditor } from '../scripts/map-editor';
+  import type { MapState, PaletteItem, PlacedItem } from '../scripts/map-state';
+
+  interface MapConfig {
+    tool: string;
+    palette: PaletteItem[];
+    presets: PlacedItem[];
+    background?: string;
+  }
+
+  async function initEditor(root: HTMLElement): Promise<void> {
+    const raw = root.dataset.config;
+    if (!raw) return;
+    const config = JSON.parse(raw) as MapConfig;
+
+    const canvas = root.querySelector<HTMLElement>('[data-canvas]');
+    if (!canvas) return;
+
+    // Imports dynamiques : konva + storage chargés uniquement dans le navigateur.
+    const [{ createMapEditor }, storage] = await Promise.all([
+      import('../scripts/map-editor'),
+      import('../scripts/storage'),
+    ]);
+
+    const storageKey = `map:${config.tool}`;
+
+    const editor: MapEditor = createMapEditor(canvas, {
+      palette: config.palette,
+      presets: config.presets,
+      background: config.background,
+    });
+
+    // Palette : clic pour ajouter au centre, drag&drop pour positionner.
+    root.querySelectorAll<HTMLButtonElement>('[data-palette-id]').forEach((btn) => {
+      const paletteId = btn.dataset.paletteId!;
+      btn.draggable = true;
+      btn.addEventListener('click', () => {
+        editor.addFromPalette(paletteId, canvas.clientWidth / 2, canvas.clientHeight / 2);
+      });
+      btn.addEventListener('dragstart', (e) => {
+        e.dataTransfer?.setData('text/palette-id', paletteId);
+      });
+    });
+
+    canvas.addEventListener('dragover', (e) => e.preventDefault());
+    canvas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const paletteId = e.dataTransfer?.getData('text/palette-id');
+      if (!paletteId) return;
+      const rect = canvas.getBoundingClientRect();
+      editor.addFromPalette(paletteId, e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    function action(name: string, fn: () => void): void {
+      root.querySelector<HTMLButtonElement>(`[data-action="${name}"]`)?.addEventListener('click', fn);
+    }
+
+    action('new', () => editor.loadState({ schemaVersion: 1, items: [] }));
+    action('delete', () => editor.removeSelected());
+
+    action('save', () => {
+      storage.saveData(storageKey, editor.getState());
+    });
+
+    action('load', () => {
+      const loaded = storage.loadData<MapState>(storageKey);
+      if (loaded) editor.loadState(loaded);
+    });
+
+    action('export-png', () => {
+      const url = editor.exportPNG();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${config.tool}.png`;
+      a.click();
+    });
+
+    action('export-json', () => {
+      const blob = storage.exportData(editor.getState());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${config.tool}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    const input = root.querySelector<HTMLInputElement>('[data-import-input]');
+    action('import-json', () => input?.click());
+    input?.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const data = await storage.importData<MapState>(file);
+        editor.loadState(data);
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Import impossible.');
+      }
+      input.value = '';
+    });
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.map-editor[data-config]')) {
+    void initEditor(root);
+  }
+</script>
