@@ -1,0 +1,193 @@
+{
+  "jeu": "Monster of the Week",
+  "mues": [
+    {
+      "id": "limier",
+      "nom": "Le Limier",
+      "resume": "Enquêteur né, il flaire les indices et reconstitue la vérité que d'autres préfèrent ignorer.",
+      "themes": ["enquete", "verite", "obsession"],
+      "tags": ["investigation", "deduction", "tenace"]
+    },
+    {
+      "id": "brute",
+      "nom": "La Brute",
+      "resume": "Quand les choses tournent mal, elle est celle qui se met entre le danger et les autres.",
+      "themes": ["combat", "protection", "colere"],
+      "tags": ["bagarre", "courage", "force"]
+    },
+    {
+      "id": "elu",
+      "nom": "L'Élu",
+      "resume": "Une prophétie ou un destin l'a désigné pour affronter une menace particulière.",
+      "themes": ["destin", "devoir", "sacrifice"],
+      "tags": ["combat", "mission", "arme"]
+    },
+    {
+      "id": "expert",
+      "nom": "L'Expert",
+      "resume": "Savant des choses étranges, il sait ce que sont vraiment les monstres et comment les arrêter.",
+      "themes": ["savoir", "preparation", "curiosite"],
+      "tags": ["recherche", "rituels", "intellect"]
+    },
+    {
+      "id": "initie",
+      "nom": "L'Initié",
+      "resume": "Membre d'un ordre secret, il a des ressources et des règles qui ne sont pas les siennes.",
+      "themes": ["loyaute", "secret", "ordre"],
+      "tags": ["organisation", "ressources", "missions"]
+    },
+    {
+      "id": "mortel",
+      "nom": "Le Mortel",
+      "resume": "Sans don ni entraînement particulier, il chasse les monstres par simple obstination humaine.",
+      "themes": ["fragilite", "courage", "humanite"],
+      "tags": ["ordinaire", "lien", "tenace"]
+    },
+    {
+      "id": "spectral",
+      "nom": "Le Spectral",
+      "resume": "Revenu d'entre les morts, il garde un pied dans l'au-delà et des dons qui vont avec.",
+      "themes": ["mort", "frontiere", "mystere"],
+      "tags": ["surnaturel", "fantome", "pouvoirs"]
+    },
+    {
+      "id": "divin",
+      "nom": "Le Divin",
+      "resume": "Envoyé par une puissance supérieure, il sert une cause qui le dépasse, avec des dons à la clé.",
+      "themes": ["foi", "mission", "pouvoir"],
+      "tags": ["surnaturel", "celeste", "devoir"]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1-pourquoi",
+      "texte": "Pourquoi te retrouves-tu à chasser des monstres ?",
+      "options": [
+        {
+          "id": "q1-a",
+          "texte": "Parce que c'est mon destin, qu'il me plaise ou non.",
+          "poids": { "elu": 3, "divin": 2 }
+        },
+        {
+          "id": "q1-b",
+          "texte": "Parce qu'une organisation m'y a formé et m'y envoie.",
+          "poids": { "initie": 3, "expert": 1 }
+        },
+        {
+          "id": "q1-c",
+          "texte": "Parce que j'ai vu l'horreur en face et je ne peux plus l'ignorer.",
+          "poids": { "mortel": 3, "limier": 1 }
+        },
+        {
+          "id": "q1-d",
+          "texte": "Parce que ma propre nature me lie déjà à l'étrange.",
+          "poids": { "spectral": 3, "divin": 1 }
+        }
+      ]
+    },
+    {
+      "id": "q2-methode",
+      "texte": "Face à une affaire, ta première réaction ?",
+      "options": [
+        {
+          "id": "q2-a",
+          "texte": "Rassembler les indices et comprendre ce qui se passe.",
+          "poids": { "limier": 3, "expert": 2 }
+        },
+        {
+          "id": "q2-b",
+          "texte": "Me documenter sur la créature pour trouver sa faiblesse.",
+          "poids": { "expert": 3 }
+        },
+        {
+          "id": "q2-c",
+          "texte": "Foncer protéger les gens, on réfléchira après.",
+          "poids": { "brute": 3, "elu": 1 }
+        },
+        {
+          "id": "q2-d",
+          "texte": "Suivre mon intuition ou mes visions.",
+          "poids": { "spectral": 2, "divin": 2 }
+        }
+      ]
+    },
+    {
+      "id": "q3-atout",
+      "texte": "Quel est ton plus grand atout ?",
+      "options": [
+        {
+          "id": "q3-a",
+          "texte": "Ma force et mon courage au corps-à-corps.",
+          "poids": { "brute": 3, "elu": 2 }
+        },
+        {
+          "id": "q3-b",
+          "texte": "Mon savoir et ma capacité à préparer le terrain.",
+          "poids": { "expert": 3, "initie": 1 }
+        },
+        {
+          "id": "q3-c",
+          "texte": "Mes contacts et les ressources de mon ordre.",
+          "poids": { "initie": 3 }
+        },
+        {
+          "id": "q3-d",
+          "texte": "Des dons qui dépassent l'ordinaire.",
+          "poids": { "spectral": 2, "divin": 2 }
+        }
+      ]
+    },
+    {
+      "id": "q4-faiblesse",
+      "texte": "Quelle est ta plus grande faiblesse ?",
+      "options": [
+        {
+          "id": "q4-a",
+          "texte": "Je ne suis qu'un humain face à des forces énormes.",
+          "poids": { "mortel": 3 }
+        },
+        {
+          "id": "q4-b",
+          "texte": "Mon obsession à tout élucider me fait prendre des risques.",
+          "poids": { "limier": 3 }
+        },
+        {
+          "id": "q4-c",
+          "texte": "Je dois rendre des comptes à plus grand que moi.",
+          "poids": { "initie": 2, "divin": 2 }
+        },
+        {
+          "id": "q4-d",
+          "texte": "Mon lien avec l'au-delà me fragilise autant qu'il m'aide.",
+          "poids": { "spectral": 3 }
+        }
+      ]
+    },
+    {
+      "id": "q5-role",
+      "texte": "Dans l'équipe, quel rôle prends-tu naturellement ?",
+      "options": [
+        {
+          "id": "q5-a",
+          "texte": "Le bouclier : je tiens la ligne de front.",
+          "poids": { "brute": 3, "elu": 1 }
+        },
+        {
+          "id": "q5-b",
+          "texte": "Le cerveau : j'apporte le savoir et le plan.",
+          "poids": { "expert": 2, "limier": 2 }
+        },
+        {
+          "id": "q5-c",
+          "texte": "Le cœur : je garde tout le monde humain et soudé.",
+          "poids": { "mortel": 3 }
+        },
+        {
+          "id": "q5-d",
+          "texte": "Le mystère : j'apporte ce qu'on ne peut expliquer.",
+          "poids": { "spectral": 2, "divin": 2, "elu": 1 }
+        }
+      ]
+    }
+  ]
+}
