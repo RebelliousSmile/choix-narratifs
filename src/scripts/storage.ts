@@ -67,18 +67,29 @@ function isValidEnvelope(value: unknown): value is ExportEnvelope {
   );
 }
 
-function readFileAsText(file: File | Blob): Promise<string> {
-  // Privilegie Blob.text() / File.text() quand disponible (Node 18+, navigateurs
-  // modernes). Plus robuste que FileReader sous jsdom / Node recent.
+async function readFileAsText(file: File | Blob): Promise<string> {
+  // 1) Privilegie Blob.text() / File.text() quand disponible (navigateurs
+  //    modernes, Node 18+). C'est le chemin nominal en production.
   if (typeof (file as { text?: unknown }).text === 'function') {
     return (file as Blob).text();
   }
 
-  // Fallback FileReader (environnements sans Blob.text()).
-  return new Promise((resolve, reject) => {
+  // 2) Fallback robuste : le Blob de jsdom n'expose pas .text(), mais il reste
+  //    consommable via l'API Response (Node 18+ / undici). On evite ainsi le
+  //    FileReader de jsdom, instable sous Node recent.
+  if (typeof Response === 'function') {
+    try {
+      return await new Response(file as Blob).text();
+    } catch {
+      // On bascule sur FileReader ci-dessous.
+    }
+  }
+
+  // 3) Dernier recours : FileReader (environnements sans Blob.text() ni Response).
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(reader.error ?? new Error('Lecture du fichier impossible.'));
     reader.readAsText(file);
   });
 }

@@ -2,9 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { exportData, importData, saveData, loadData, clearData } from '../src/scripts/storage';
 
 describe('storage', () => {
+  // Lit un Blob de maniere portable : le Blob de jsdom n'expose pas .text(),
+  // mais reste consommable via Response (Node 18+), sans FileReader.
+  function readBlob(blob: Blob): Promise<string> {
+    return new Response(blob).text();
+  }
+
   it('exporte une enveloppe avec schemaVersion et tool', async () => {
     const blob = exportData({ hello: 'world' });
-    const text = await blob.text();
+    const text = await readBlob(blob);
     const parsed = JSON.parse(text);
     expect(parsed.schemaVersion).toBe(1);
     expect(parsed.tool).toBe('choix-narratifs');
