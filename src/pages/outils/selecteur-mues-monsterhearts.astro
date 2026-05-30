@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FunnelSelector from '../../components/FunnelSelector.astro';
+import jeu from '../../data/mues-monsterhearts.json';
+import type { JeuMues } from '../../scripts/mues-schema';
+
+const jeuMues = jeu as JeuMues;
+---
+
+<BaseLayout
+  title="Sélecteur de mues — Monsterhearts"
+  description="Questionnaire en entonnoir pour trouver la mue Monsterhearts qui correspond le mieux à votre personnage."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Sélecteur de mues — Monsterhearts</h1>
+      <p class="outil__intro">
+        Répondez à quelques questions sur votre personnage : à chaque étape,
+        choisissez l'option qui lui ressemble le plus. À la fin, l'outil propose
+        une mue principale et une ou deux alternatives proches, pour vous aider à
+        démarrer sans rien vous imposer.
+      </p>
+    </header>
+
+    <FunnelSelector jeu={jeuMues} client:visible />
+
+    <footer class="outil__footer">
+      <p class="outil__source">
+        Les mues sont reformulées de façon synthétique : reportez-vous au livre
+        officiel de <em>Monsterhearts</em> pour leurs règles complètes et leur
+        ambiance détaillée.
+      </p>
+      <p>
+        <a href="/">&larr; Retour à l'accueil</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 40rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      max-width: 40rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .outil__source {
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+    }
+  </style>
+</BaseLayout>
