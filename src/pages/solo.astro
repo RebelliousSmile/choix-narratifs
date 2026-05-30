@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ToolEmbed from '../components/ToolEmbed.astro';
+import { validateEmbeds, type EmbedEntry } from '../scripts/embeds-schema';
+import embedsData from '../data/embeds.json';
+
+// embeds.json est lu en SEULE LECTURE et filtré ici — jamais modifié.
+const result = validateEmbeds(embedsData);
+const entries: EmbedEntry[] = result.ok ? result.value : [];
+
+function pick(ids: string[]): EmbedEntry[] {
+  // Conserve l'ordre demandé et ignore proprement les ids absents.
+  return ids
+    .map((id) => entries.find((entry) => entry.id === id))
+    .filter((entry): entry is EmbedEntry => entry !== undefined);
+}
+
+const soloTools = pick(['jauges-et-tarots', 'parallaxe', 'cinerio', 'muses-et-oracles']);
+const autresTools = pick(['suddenly']);
+---
+
+<BaseLayout
+  title="Outils pour le jeu en solo"
+  description="Une sélection d'outils pour nourrir et structurer vos récits en jeu de rôle solo : oracles, jauges narratives, perspectives et générateurs de scènes."
+>
+  <article class="solo">
+    <header class="solo__header">
+      <h1>Outils pour le jeu en solo</h1>
+      <p class="solo__intro">
+        Jouer en solo, c'est mener et vivre l'histoire en même temps. Ces outils
+        donnent le coup de pouce qui manque : poser des questions au récit,
+        suivre une tension, changer de point de vue ou faire surgir une scène.
+      </p>
+    </header>
+
+    {
+      soloTools.length > 0 ? (
+        <section class="solo__section" aria-labelledby="creation-titre">
+          <h2 id="creation-titre">Création narrative solo</h2>
+          <div class="solo__grid">
+            {soloTools.map((entry) => (
+              <ToolEmbed entry={entry} />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <p>Les outils de création solo seront bientôt disponibles.</p>
+      )
+    }
+
+    {
+      autresTools.length > 0 && (
+        <section class="solo__section" aria-labelledby="autres-titre">
+          <h2 id="autres-titre">Autres outils</h2>
+          <div class="solo__grid">
+            {autresTools.map((entry) => (
+              <ToolEmbed entry={entry} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </article>
+
+  <style>
+    .solo__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-5);
+    }
+    .solo__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .solo__section {
+      margin-bottom: var(--space-5);
+    }
+    .solo__grid {
+      display: grid;
+      gap: var(--space-4);
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    }
+  </style>
+</BaseLayout>
