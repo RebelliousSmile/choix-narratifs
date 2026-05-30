@@ -2,7 +2,7 @@
   {
     "id": "jauges-et-tarots",
     "nom": "Jauges et Tarots",
-    "url": "https://rebellioussmile.itch.io/jauges-et-tarots",
+    "url": "https://tnnka.itch.io/jauges-et-tarots",
     "embeddable": false,
     "description": "Outil de jeu solo mêlant jauges narratives et tirages de tarot pour faire évoluer une histoire.",
     "tags": ["solo", "oracle", "tarot"]
@@ -10,7 +10,7 @@
   {
     "id": "parallaxe",
     "nom": "Parallaxe",
-    "url": "https://rebellioussmile.itch.io/parallaxe",
+    "url": "https://tnnka.itch.io/parallaxe",
     "embeddable": false,
     "description": "Aide à la création narrative solo en jouant sur les points de vue et les perspectives.",
     "tags": ["solo", "narration", "perspective"]
@@ -18,7 +18,7 @@
   {
     "id": "cinerio",
     "nom": "Cinerio",
-    "url": "https://rebellioussmile.itch.io/cinerio",
+    "url": "https://tnnka.itch.io/cinerio",
     "embeddable": false,
     "description": "Générateur de matière narrative pour construire des scènes façon cinéma.",
     "tags": ["solo", "scenes", "inspiration"]
@@ -26,7 +26,7 @@
   {
     "id": "muses-et-oracles",
     "nom": "Muses et Oracles",
-    "url": "https://rebellioussmile.itch.io/muses-et-oracles",
+    "url": "https://tnnka.itch.io/muses-et-oracles",
     "embeddable": false,
     "description": "Collection d'oracles pour répondre aux questions de votre récit en solo.",
     "tags": ["solo", "oracle", "generateur"]
@@ -34,7 +34,7 @@
   {
     "id": "suddenly",
     "nom": "Suddenly",
-    "url": "https://rebellioussmile.itch.io/suddenly",
+    "url": "https://tnnka.itch.io/suddenly",
     "embeddable": false,
     "description": "Outil de relances et de rebondissements pour relancer une scène qui s'enlise.",
     "tags": ["solo", "rebondissement", "outil"]
@@ -42,7 +42,7 @@
   {
     "id": "conversational-cards",
     "nom": "Conversational Cards",
-    "url": "https://rebellioussmile.itch.io/conversational-cards",
+    "url": "https://tnnka.itch.io/conversational-cards",
     "embeddable": false,
     "description": "Cartes pour animer des dialogues interactifs et donner du relief aux échanges.",
     "tags": ["dialogue", "cartes", "social"]
