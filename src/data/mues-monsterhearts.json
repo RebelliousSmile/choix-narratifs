@@ -1,218 +1,118 @@
 {
   "jeu": "Monsterhearts",
   "mues": [
-    {
-      "id": "elue",
-      "nom": "L'Élue",
-      "resume": "Désignée pour combattre les ténèbres, elle porte un fardeau qu'elle n'a pas choisi.",
-      "themes": ["destin", "devoir", "violence"],
-      "tags": ["combat", "responsabilite", "solitaire"]
-    },
-    {
-      "id": "spectre",
-      "nom": "Le Fantôme",
-      "resume": "Mort mais pas parti, il s'accroche au monde des vivants par une rancune tenace.",
-      "themes": ["deuil", "vengeance", "memoire"],
-      "tags": ["surnaturel", "passe", "intangible"]
-    },
-    {
-      "id": "goule",
-      "nom": "La Goule",
-      "resume": "Affamée d'une chair qui la dégoûte autant qu'elle l'attire, elle lutte contre ses pulsions.",
-      "themes": ["faim", "honte", "controle"],
-      "tags": ["appetit", "secret", "interieur"]
-    },
-    {
-      "id": "fee",
-      "nom": "La Fée",
-      "resume": "Liée par ses promesses, elle marchande charme et faveurs sans jamais pouvoir mentir tout à fait.",
-      "themes": ["pacte", "seduction", "regles"],
-      "tags": ["charme", "manipulation", "social"]
-    },
-    {
-      "id": "mortelle",
-      "nom": "Le Mortel",
-      "resume": "Sans pouvoir surnaturel, elle attire pourtant les monstres comme une flamme attire les phalènes.",
-      "themes": ["fragilite", "desir", "obsession"],
-      "tags": ["humaine", "vulnerable", "amour"]
-    },
-    {
-      "id": "infernale",
-      "nom": "L'Âme damnée",
-      "resume": "Elle a signé avec un Maître obscur et lui doit des services qu'elle préférerait oublier.",
-      "themes": ["pacte", "pouvoir", "dette"],
-      "tags": ["surnaturel", "ambition", "danger"]
-    },
-    {
-      "id": "loup-garou",
-      "nom": "Le Loup-garou",
-      "resume": "Une bête vit sous sa peau et la rage menace de prendre le dessus au pire moment.",
-      "themes": ["rage", "nature", "perte de controle"],
-      "tags": ["bete", "instinct", "violence"]
-    },
-    {
-      "id": "sorciere",
-      "nom": "La Sorcière",
-      "resume": "Elle tisse des sorts et des rancunes, et fait payer cher ceux qui la blessent.",
-      "themes": ["pouvoir", "rancune", "secret"],
-      "tags": ["magie", "manipulation", "vengeance"]
-    },
-    {
-      "id": "vampire",
-      "nom": "Le Vampire",
-      "resume": "Élégant et glacial, il collectionne les âmes qu'il fascine et finit par consumer.",
-      "themes": ["soif", "domination", "eternite"],
-      "tags": ["seduction", "predateur", "ancien"]
-    },
-    { "id": "ombre",       "nom": "L'Ombre",        "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "reine",       "nom": "La Reine",       "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "bakeneko",    "nom": "Le Bakeneko",    "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "cerbere",     "nom": "Le Cerbère",     "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "detraquante", "nom": "La Détraquante", "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "diable",      "nom": "Le Diable",      "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "disciple",    "nom": "Le Disciple",    "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "dragon",      "nom": "Le Dragon",      "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "fomoire",     "nom": "Le Fomoire",     "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "furet",       "nom": "Le Furet",       "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "immortelle",  "nom": "L'Immortelle",   "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "leshy",       "nom": "Le Leshy",       "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "ophidien",    "nom": "L'Ophidien",     "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "promethee",   "nom": "Le Prométhée",   "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "sirene",      "nom": "La Sirène",      "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "tengu",       "nom": "Le Tengu",       "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "vila",        "nom": "La Vila",        "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "meduse",      "nom": "La Méduse",      "resume": "À compléter.", "themes": [], "tags": [] },
-    { "id": "momie",       "nom": "La Momie",       "resume": "À compléter.", "themes": [], "tags": [] }
+    { "id": "ame-damnee", "nom": "L'Âme damnée", "resume": "Elle a scellé un pacte avec une puissance obscure et lui doit des faveurs qu'elle préférerait oublier.", "themes": ["pacte", "dette", "pouvoir"], "tags": ["surnaturel", "ambition", "danger"] },
+    { "id": "fantome", "nom": "Le Fantôme", "resume": "Mort mais pas parti, il s'accroche au monde des vivants par une affaire qu'il n'arrive pas à laisser derrière lui.", "themes": ["deuil", "memoire", "vengeance"], "tags": ["surnaturel", "passe", "intangible"] },
+    { "id": "fee", "nom": "La Fée", "resume": "Liée par ses promesses, elle marchande charme et faveurs sans jamais pouvoir tout à fait mentir.", "themes": ["pacte", "seduction", "regles"], "tags": ["charme", "manipulation", "social"] },
+    { "id": "goule", "nom": "La Goule", "resume": "Affamée d'une chair qui la dégoûte autant qu'elle l'attire, elle lutte sans cesse contre ses pulsions.", "themes": ["faim", "honte", "controle"], "tags": ["appetit", "secret", "interieur"] },
+    { "id": "loup-garou", "nom": "Le Loup-garou", "resume": "Une bête vit sous sa peau et la rage menace de tout emporter au pire moment.", "themes": ["rage", "nature", "perte de controle"], "tags": ["bete", "instinct", "violence"] },
+    { "id": "mortel", "nom": "Le Mortel", "resume": "Sans aucun pouvoir, il attire pourtant les monstres comme une flamme attire les phalènes.", "themes": ["fragilite", "desir", "obsession"], "tags": ["humain", "vulnerable", "amour"] },
+    { "id": "ombre", "nom": "L'Ombre", "resume": "On la remarque à peine : elle observe, se faufile et apprend les secrets que les autres croient cachés.", "themes": ["dissimulation", "doute", "surveillance"], "tags": ["discret", "mystere", "insaisissable"] },
+    { "id": "reine", "nom": "La Reine", "resume": "Elle règne sur sa cour, exige la loyauté et fait payer cher la moindre trahison.", "themes": ["pouvoir", "loyaute", "cour"], "tags": ["social", "domination", "popularite"] },
+    { "id": "sorciere", "nom": "La Sorcière", "resume": "Elle tisse sorts et rancunes, et fait regretter à ceux qui la blessent de s'y être risqués.", "themes": ["pouvoir", "rancune", "secret"], "tags": ["magie", "manipulation", "vengeance"] },
+    { "id": "vampire", "nom": "Le Vampire", "resume": "Élégant et glacial, il collectionne les âmes qu'il fascine et finit par consumer.", "themes": ["soif", "domination", "eternite"], "tags": ["seduction", "predateur", "ancien"] },
+    { "id": "bakeneko", "nom": "Le Bakeneko", "resume": "Esprit-chat capricieux, il change de forme, joue des tours et n'oublie jamais une offense.", "themes": ["metamorphose", "malice", "rancune"], "tags": ["surnaturel", "felin", "farceur"] },
+    { "id": "cerbere", "nom": "Le Cerbère", "resume": "Gardien jusqu'au bout des crocs, il s'est lié à un seuil ou à un être qu'il défendra coûte que coûte.", "themes": ["garde", "loyaute", "menace"], "tags": ["protecteur", "bete", "frontiere"] },
+    { "id": "detraquante", "nom": "La Détraquante", "resume": "Sa perception du monde vacille : on ne sait jamais ce qu'elle voit ni ce qu'elle va faire.", "themes": ["folie", "perception", "chaos"], "tags": ["instable", "imprevisible", "interieur"] },
+    { "id": "diable", "nom": "Le Diable", "resume": "Tentateur né, il propose toujours le marché parfait — et toi seul·e en paieras le prix.", "themes": ["tentation", "marche", "corruption"], "tags": ["charme", "pouvoir", "danger"] },
+    { "id": "disciple", "nom": "Le Disciple", "resume": "Voué corps et âme à une figure ou à une cause, il puise sa force dans une foi qui le dévore.", "themes": ["foi", "devotion", "service"], "tags": ["croyance", "soumission", "zele"] },
+    { "id": "dragon", "nom": "Le Dragon", "resume": "Orgueilleux et avide, il veille sur ce qui lui appartient et ne tolère aucune atteinte à son trésor.", "themes": ["orgueil", "avidite", "puissance"], "tags": ["ancien", "possessif", "dominateur"] },
+    { "id": "elue", "nom": "L'Élue", "resume": "Désignée pour combattre les ténèbres, elle porte un fardeau qu'elle n'a pas choisi.", "themes": ["destin", "devoir", "violence"], "tags": ["combat", "responsabilite", "solitaire"] },
+    { "id": "fomoire", "nom": "Le Fomoire", "resume": "Créature difforme venue des marges, il fait peur autant qu'il souffre d'être rejeté.", "themes": ["monstruosite", "marge", "force"], "tags": ["difforme", "ancien", "rejete"] },
+    { "id": "furet", "nom": "Le Furet", "resume": "Petit, vif et fouineur, il survit en dérobant secrets et objets sous le nez de plus grands que lui.", "themes": ["ruse", "survie", "curiosite"], "tags": ["agile", "voleur", "discret"] },
+    { "id": "immortelle", "nom": "L'Immortelle", "resume": "Les siècles l'ont lassée : rien ne peut la tuer, et plus grand-chose ne parvient à l'émouvoir.", "themes": ["eternite", "lassitude", "distance"], "tags": ["ancien", "detache", "endurant"] },
+    { "id": "leshy", "nom": "Le Leshy", "resume": "Esprit de la forêt, il protège son territoire, égare les imprudents et parle la langue des bois.", "themes": ["nature", "territoire", "mystere"], "tags": ["vegetal", "sauvage", "gardien"] },
+    { "id": "ophidien", "nom": "L'Ophidien", "resume": "Sous des écailles froides, il séduit, mue et distille son venin avec une patience de serpent.", "themes": ["transformation", "seduction", "venin"], "tags": ["reptilien", "sournois", "hypnotique"] },
+    { "id": "promethee", "nom": "Le Prométhée", "resume": "Assemblé de pièces qui n'étaient pas les siennes, il cherche désespérément à être reconnu comme humain.", "themes": ["creation", "humanite", "rejet"], "tags": ["artificiel", "quete", "marginal"] },
+    { "id": "sirene", "nom": "La Sirène", "resume": "Son chant attire et noie : elle incarne le désir et le danger d'une même voix.", "themes": ["seduction", "desir", "danger"], "tags": ["charme", "aquatique", "predateur"] },
+    { "id": "tengu", "nom": "Le Tengu", "resume": "Esprit ailé et fier, maître d'un art qu'il enseigne ou refuse selon son humeur changeante.", "themes": ["orgueil", "maitrise", "malice"], "tags": ["aile", "fier", "farceur"] },
+    { "id": "vila", "nom": "La Vila", "resume": "Esprit du vent et des prés, belle et libre, sa colère s'abat sur ceux qui brisent leur serment.", "themes": ["nature", "serment", "colere"], "tags": ["aerien", "vengeur", "seduisant"] },
+    { "id": "meduse", "nom": "La Méduse", "resume": "Son regard peut figer qui la dévisage : elle vit dans la peur de blesser ce qu'elle approche.", "themes": ["monstruosite", "regard", "solitude"], "tags": ["dangereux", "isole", "malediction"] },
+    { "id": "momie", "nom": "La Momie", "resume": "Revenue d'un autre âge, liée par un serment ancien, elle impose l'autorité d'un monde disparu.", "themes": ["passe", "malediction", "devoir"], "tags": ["ancien", "lie", "autoritaire"] }
   ],
   "questions": [
     {
       "id": "q1-source",
       "texte": "D'où vient ce qui te rend différent·e des autres ?",
       "options": [
-        {
-          "id": "q1-a",
-          "texte": "D'une mission ou d'un héritage qui me dépasse.",
-          "poids": { "elue": 3, "infernale": 1 }
-        },
-        {
-          "id": "q1-b",
-          "texte": "D'un pacte ou d'une promesse que j'ai scellée.",
-          "poids": { "infernale": 3, "fee": 2 }
-        },
-        {
-          "id": "q1-c",
-          "texte": "D'une faim ou d'une bête que je porte en moi.",
-          "poids": { "goule": 3, "loup-garou": 2 }
-        },
-        {
-          "id": "q1-d",
-          "texte": "De rien : je suis simplement humain·e, et c'est déjà compliqué.",
-          "poids": { "mortelle": 3 }
-        }
+        { "id": "q1-a", "texte": "D'une mission ou d'un destin qu'on m'a imposé.", "poids": { "elue": 3, "cerbere": 2, "disciple": 1 } },
+        { "id": "q1-b", "texte": "D'un pacte ou d'une promesse scellée avec une puissance.", "poids": { "ame-damnee": 3, "diable": 3, "fee": 2, "disciple": 2 } },
+        { "id": "q1-c", "texte": "D'une faim ou d'une bête que je porte en moi.", "poids": { "goule": 3, "loup-garou": 3, "ophidien": 2, "sirene": 1 } },
+        { "id": "q1-d", "texte": "Je suis revenu·e d'entre les morts.", "poids": { "fantome": 3, "momie": 3, "immortelle": 2, "promethee": 2 } },
+        { "id": "q1-e", "texte": "Je viens d'un autre monde : contes, folklore, nature.", "poids": { "leshy": 3, "vila": 3, "bakeneko": 3, "tengu": 3, "fomoire": 2, "dragon": 2 } },
+        { "id": "q1-f", "texte": "De rien de surnaturel : je suis juste moi.", "poids": { "mortel": 3, "furet": 1, "detraquante": 1 } }
       ]
     },
     {
       "id": "q2-rapport-autres",
       "texte": "Comment obtiens-tu ce que tu veux des autres ?",
       "options": [
-        {
-          "id": "q2-a",
-          "texte": "Par le charme et les promesses bien tournées.",
-          "poids": { "fee": 3, "vampire": 2 }
-        },
-        {
-          "id": "q2-b",
-          "texte": "Par la peur et la force quand il le faut.",
-          "poids": { "loup-garou": 2, "elue": 2 }
-        },
-        {
-          "id": "q2-c",
-          "texte": "Par des manigances et des sorts discrets.",
-          "poids": { "sorciere": 3, "infernale": 1 }
-        },
-        {
-          "id": "q2-d",
-          "texte": "Je n'y arrive pas vraiment : on me veut, pas l'inverse.",
-          "poids": { "mortelle": 3, "spectre": 1 }
-        }
+        { "id": "q2-a", "texte": "Par le charme et les promesses bien tournées.", "poids": { "fee": 3, "vampire": 3, "sirene": 3, "diable": 2, "reine": 1 } },
+        { "id": "q2-b", "texte": "Par la peur et la force quand il le faut.", "poids": { "loup-garou": 3, "dragon": 3, "fomoire": 2, "cerbere": 2, "elue": 1 } },
+        { "id": "q2-c", "texte": "Par des manigances et des secrets.", "poids": { "sorciere": 3, "furet": 2, "ombre": 3, "bakeneko": 2 } },
+        { "id": "q2-d", "texte": "Je n'y arrive pas : on me veut, pas l'inverse.", "poids": { "mortel": 3, "meduse": 1 } },
+        { "id": "q2-e", "texte": "En servant, par dévotion.", "poids": { "disciple": 3, "cerbere": 2, "momie": 1 } },
+        { "id": "q2-f", "texte": "De façon imprévisible : on ne sait jamais à quoi s'attendre.", "poids": { "detraquante": 3, "tengu": 2, "ophidien": 1 } }
       ]
     },
     {
       "id": "q3-peur",
       "texte": "Qu'est-ce qui te terrifie le plus ?",
       "options": [
-        {
-          "id": "q3-a",
-          "texte": "Perdre le contrôle et blesser ceux que j'aime.",
-          "poids": { "loup-garou": 3, "goule": 2 }
-        },
-        {
-          "id": "q3-b",
-          "texte": "Être oublié·e ou rester seul·e pour toujours.",
-          "poids": { "spectre": 3, "vampire": 1 }
-        },
-        {
-          "id": "q3-c",
-          "texte": "Devoir payer ce que je dois à plus puissant que moi.",
-          "poids": { "infernale": 3, "fee": 1 }
-        },
-        {
-          "id": "q3-d",
-          "texte": "Échouer là où l'on compte sur moi.",
-          "poids": { "elue": 3 }
-        }
+        { "id": "q3-a", "texte": "Perdre le contrôle et blesser ceux que j'aime.", "poids": { "loup-garou": 3, "goule": 3, "detraquante": 2, "meduse": 2 } },
+        { "id": "q3-b", "texte": "Être oublié·e ou rester seul·e pour toujours.", "poids": { "fantome": 3, "immortelle": 2, "promethee": 2, "vampire": 1 } },
+        { "id": "q3-c", "texte": "Devoir payer ce que je dois à plus puissant que moi.", "poids": { "ame-damnee": 3, "diable": 2, "disciple": 2, "fee": 1 } },
+        { "id": "q3-d", "texte": "Échouer là où l'on compte sur moi.", "poids": { "elue": 3, "cerbere": 3, "reine": 1 } },
+        { "id": "q3-e", "texte": "Perdre mon territoire ou ce qui m'appartient.", "poids": { "dragon": 3, "leshy": 3, "reine": 2, "vila": 1 } },
+        { "id": "q3-f", "texte": "Qu'on découvre ce que je suis vraiment.", "poids": { "ombre": 3, "ophidien": 2, "bakeneko": 2, "meduse": 1, "furet": 1 } }
       ]
     },
     {
       "id": "q4-desir",
       "texte": "Au fond, qu'est-ce que tu cherches ?",
       "options": [
-        {
-          "id": "q4-a",
-          "texte": "Être aimé·e pour de vrai, sans condition.",
-          "poids": { "mortelle": 3, "spectre": 2 }
-        },
-        {
-          "id": "q4-b",
-          "texte": "Le pouvoir, ou au moins l'illusion de maîtrise.",
-          "poids": { "sorciere": 2, "infernale": 2, "vampire": 1 }
-        },
-        {
-          "id": "q4-c",
-          "texte": "Apaiser une faim qui ne me lâche jamais.",
-          "poids": { "goule": 3, "vampire": 2 }
-        },
-        {
-          "id": "q4-d",
-          "texte": "Réparer une injustice ou venger un tort.",
-          "poids": { "spectre": 2, "sorciere": 2, "elue": 1 }
-        }
+        { "id": "q4-a", "texte": "Être aimé·e pour de vrai, sans condition.", "poids": { "mortel": 3, "promethee": 3, "fantome": 2, "sirene": 1 } },
+        { "id": "q4-b", "texte": "Le pouvoir, ou au moins l'illusion de maîtrise.", "poids": { "sorciere": 3, "reine": 3, "dragon": 2, "diable": 2, "ame-damnee": 1 } },
+        { "id": "q4-c", "texte": "Apaiser une faim qui ne me lâche jamais.", "poids": { "goule": 3, "vampire": 3, "ophidien": 2, "sirene": 2 } },
+        { "id": "q4-d", "texte": "Réparer une injustice ou me venger.", "poids": { "vila": 3, "momie": 2, "fantome": 2, "sorciere": 2, "meduse": 1 } },
+        { "id": "q4-e", "texte": "Un sens, une cause à laquelle me vouer.", "poids": { "disciple": 3, "elue": 2, "cerbere": 2, "momie": 1 } },
+        { "id": "q4-f", "texte": "La liberté, m'échapper de tout ça.", "poids": { "furet": 3, "tengu": 2, "bakeneko": 2, "immortelle": 2, "ombre": 1 } }
       ]
     },
     {
       "id": "q5-image",
       "texte": "Quelle image te ressemble le plus ?",
       "options": [
-        {
-          "id": "q5-a",
-          "texte": "Un prédateur élégant qui sourit dans l'ombre.",
-          "poids": { "vampire": 3, "fee": 1 }
-        },
-        {
-          "id": "q5-b",
-          "texte": "Une présence froide qu'on devine plus qu'on ne voit.",
-          "poids": { "spectre": 3 }
-        },
-        {
-          "id": "q5-c",
-          "texte": "Une arme vivante, tendue, prête à frapper.",
-          "poids": { "elue": 2, "loup-garou": 2 }
-        },
-        {
-          "id": "q5-d",
-          "texte": "Quelqu'un de presque ordinaire, qui cache bien son jeu.",
-          "poids": { "mortelle": 2, "goule": 1, "sorciere": 1 }
-        }
+        { "id": "q5-a", "texte": "Un prédateur élégant qui sourit dans l'ombre.", "poids": { "vampire": 3, "ophidien": 2, "ombre": 2, "fee": 1 } },
+        { "id": "q5-b", "texte": "Une présence froide qu'on devine plus qu'on ne voit.", "poids": { "fantome": 3, "ombre": 3, "immortelle": 2, "meduse": 1 } },
+        { "id": "q5-c", "texte": "Une arme vivante, tendue, prête à frapper.", "poids": { "elue": 3, "loup-garou": 2, "cerbere": 2, "dragon": 1 } },
+        { "id": "q5-d", "texte": "Quelqu'un de presque ordinaire, qui cache bien son jeu.", "poids": { "mortel": 2, "furet": 2, "sorciere": 1, "bakeneko": 1, "detraquante": 1 } },
+        { "id": "q5-e", "texte": "Une créature de légende, belle et dangereuse.", "poids": { "sirene": 3, "vila": 3, "tengu": 2, "dragon": 2, "fee": 2 } },
+        { "id": "q5-f", "texte": "Une chose brisée ou difforme, tenue à l'écart.", "poids": { "fomoire": 3, "promethee": 3, "meduse": 2, "momie": 1, "goule": 1 } }
+      ]
+    },
+    {
+      "id": "q6-corps",
+      "texte": "Quel est ton rapport à ton corps, à ta forme ?",
+      "options": [
+        { "id": "q6-a", "texte": "Il m'échappe, il change malgré moi.", "poids": { "loup-garou": 3, "bakeneko": 3, "ophidien": 3, "detraquante": 2 } },
+        { "id": "q6-b", "texte": "Il est figé, marqué par la mort.", "poids": { "momie": 3, "immortelle": 3, "fantome": 2, "goule": 2 } },
+        { "id": "q6-c", "texte": "Il est une arme, un danger pour les autres.", "poids": { "meduse": 3, "dragon": 2, "cerbere": 2, "fomoire": 2 } },
+        { "id": "q6-d", "texte": "Il fascine et attire.", "poids": { "fee": 3, "sirene": 2, "vampire": 2, "vila": 2, "reine": 1 } },
+        { "id": "q6-e", "texte": "Il est fragile, trop humain.", "poids": { "mortel": 3, "promethee": 2, "furet": 1 } },
+        { "id": "q6-f", "texte": "Il est lié à quelque chose en dehors de moi.", "poids": { "leshy": 3, "ame-damnee": 2, "disciple": 2, "elue": 1, "vila": 1 } }
+      ]
+    },
+    {
+      "id": "q7-conflit",
+      "texte": "Face à une menace, quel est ton premier réflexe ?",
+      "options": [
+        { "id": "q7-a", "texte": "Frapper avant d'être frappé·e.", "poids": { "cerbere": 3, "elue": 3, "loup-garou": 2, "dragon": 2 } },
+        { "id": "q7-b", "texte": "Manipuler, retourner la situation.", "poids": { "diable": 3, "ame-damnee": 3, "sorciere": 3, "fee": 2, "reine": 2 } },
+        { "id": "q7-c", "texte": "Disparaître, me fondre dans le décor.", "poids": { "ombre": 3, "furet": 2, "bakeneko": 2, "fantome": 1 } },
+        { "id": "q7-d", "texte": "Séduire pour désamorcer.", "poids": { "fee": 3, "vampire": 2, "sirene": 2, "vila": 2, "ophidien": 2 } },
+        { "id": "q7-e", "texte": "Endurer, attendre mon heure.", "poids": { "immortelle": 3, "momie": 2, "goule": 2, "promethee": 2 } },
+        { "id": "q7-f", "texte": "Réagir de façon imprévisible.", "poids": { "detraquante": 3, "meduse": 2, "fomoire": 2, "mortel": 2, "tengu": 2 } }
       ]
     }
   ]
