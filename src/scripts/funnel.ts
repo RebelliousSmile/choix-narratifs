@@ -105,58 +105,73 @@ export interface FunnelEligibility {
 }
 
 /**
- * Entonnoir éliminatoire MONOTONE.
+ * Entonnoir éliminatoire à PLANNING.
  *
- * Une mue est éliminée dès qu'elle ne peut plus rattraper la tête, même en
- * obtenant le maximum de points sur toutes les questions restantes :
+ * À chaque réponse, on resserre l'ensemble des mues encore en lice vers un
+ * effectif cible qui décroît linéairement de `M` (toutes les mues) à `1` :
  *
- *     score_actuel + max_atteignable_restant < score_du_leader
+ *     cible(k) = round(M - (M - 1) * k / nbQuestions)
  *
- * Propriétés (démontrables) :
- * - le nombre d'éligibles ne fait que DÉCROÎTRE au fil des réponses (le plafond
- *   `score + maxRestant` est non croissant, le seuil `leader` non décroissant) ;
- * - la gagnante n'est JAMAIS éliminée (son plafond ≥ son score = le leader) ;
- * - sans aucune réponse, toutes les mues sont éligibles.
+ * Les mues les moins bien classées (score cumulé, départage par id) au-delà de
+ * cet effectif sont éliminées DÉFINITIVEMENT (jamais ressuscitées).
  *
- * Renvoie les mues dans l'ordre du catalogue (stable, pas de réagencement).
+ * Propriétés :
+ * - le décompte descend régulièrement dès la 1re question (≈ M/nbQuestions
+ *   éliminations par étape) ;
+ * - une mue éliminée le reste (monotone) ;
+ * - la recommandation principale (meilleur score final) n'est JAMAIS barrée ;
+ * - sans réponse, toutes les mues sont éligibles.
+ *
+ * Renvoie les mues dans l'ordre du catalogue (stable).
  */
 export function funnelEligibility(
   jeu: JeuMues,
   reponses: Record<string, string>,
 ): FunnelEligibility[] {
-  // Questions effectivement répondues (réponse valide).
-  const answered = new Set(
-    jeu.questions
-      .filter((q) => q.options.some((o) => o.id === reponses[q.id]))
-      .map((q) => q.id),
+  const total = jeu.questions.length || 1;
+  const M = jeu.mues.length;
+
+  // Questions répondues, dans l'ordre du questionnaire.
+  const answeredQs = jeu.questions.filter((q) =>
+    q.options.some((o) => o.id === reponses[q.id]),
   );
-  const hasAnswers = answered.size > 0;
 
   const scored = scoreMues(jeu, reponses);
   const scoreById = new Map(scored.map((s) => [s.mue.id, s.score]));
-  const leader = scored.length ? scored[0].score : 0; // scoreMues trie par score décroissant
 
-  // Maximum de points encore atteignables sur les questions NON répondues.
-  const maxRemaining = new Map<string, number>();
-  for (const mue of jeu.mues) maxRemaining.set(mue.id, 0);
-  for (const q of jeu.questions) {
-    if (answered.has(q.id)) continue;
-    for (const mue of jeu.mues) {
-      let best = 0;
-      for (const opt of q.options) {
-        const w = opt.poids[mue.id] ?? 0;
-        if (w > best) best = w;
+  /** Effectif cible après k réponses. */
+  const cible = (k: number) => Math.max(1, Math.round(M - (M - 1) * (k / total)));
+
+  const eliminated = new Set<string>();
+  const cumul = new Map<string, number>(jeu.mues.map((m) => [m.id, 0]));
+
+  let step = 0;
+  for (const q of answeredQs) {
+    step += 1;
+    const opt = q.options.find((o) => o.id === reponses[q.id]);
+    if (opt) {
+      for (const [id, w] of Object.entries(opt.poids)) {
+        if (cumul.has(id)) cumul.set(id, (cumul.get(id) ?? 0) + w);
       }
-      maxRemaining.set(mue.id, (maxRemaining.get(mue.id) ?? 0) + best);
     }
+    const garde = cible(step);
+    const alive = jeu.mues
+      .filter((m) => !eliminated.has(m.id))
+      .sort((a, b) => {
+        const d = (cumul.get(b.id) ?? 0) - (cumul.get(a.id) ?? 0);
+        return d !== 0 ? d : a.id.localeCompare(b.id);
+      });
+    for (let i = garde; i < alive.length; i += 1) eliminated.add(alive[i].id);
   }
 
-  return jeu.mues.map((mue) => {
-    const score = scoreById.get(mue.id) ?? 0;
-    const ceiling = score + (maxRemaining.get(mue.id) ?? 0);
-    const eligible = !hasAnswers || ceiling >= leader;
-    return { mue, score, eligible };
-  });
+  // La recommandation principale ne peut jamais être barrée.
+  if (scored.length) eliminated.delete(scored[0].mue.id);
+
+  return jeu.mues.map((mue) => ({
+    mue,
+    score: scoreById.get(mue.id) ?? 0,
+    eligible: !eliminated.has(mue.id),
+  }));
 }
 
 /** Nombre de mues encore en lice dans l'entonnoir. */

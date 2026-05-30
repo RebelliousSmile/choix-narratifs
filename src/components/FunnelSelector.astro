@@ -338,7 +338,7 @@ const totalMues = jeu.mues.length;
       restartBtn.hidden = false;
       prevBtn.disabled = false;
       progress.textContent = 'Résultat';
-      countNum.textContent = String(recos.length);
+      updateCount();
 
       if (recos.length === 0) {
         resultMain.innerHTML = '<p>Aucune recommandation disponible.</p>';

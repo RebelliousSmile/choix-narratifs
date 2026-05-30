@@ -163,12 +163,21 @@ describe('funnelEligibility — entonnoir éliminatoire', () => {
     expect(countEligible(jeu, {})).toBe(3);
   });
 
-  it('élimine ce qui ne peut plus rattraper la tête', () => {
-    // q1a : a=3 (leader). b plafonne à 0+1=1 < 3 -> éliminée. c plafonne à 0+3=3 -> reste.
+  it('élimine les moins bien classées selon le planning', () => {
+    // 3 mues, 2 questions -> cible(1) = round(3 - 2*1/2) = 2 : on garde les 2 meilleures.
+    // q1a : a=3, b=0, c=0 -> a et b gardées (b<c à l'id), c éliminée.
     const e = funnelEligibility(jeu, { q1: 'q1a' });
     const elig = Object.fromEntries(e.map((x) => [x.mue.id, x.eligible]));
-    expect(elig).toEqual({ a: true, b: false, c: true });
+    expect(elig).toEqual({ a: true, b: true, c: false });
     expect(countEligible(jeu, { q1: 'q1a' })).toBe(2);
+  });
+
+  it('une mue éliminée le reste (monotone)', () => {
+    // c éliminée dès q1 ; elle ne réapparaît pas après q2.
+    const after1 = funnelEligibility(jeu, { q1: 'q1a' });
+    const after2 = funnelEligibility(jeu, { q1: 'q1a', q2: 'q2b' });
+    expect(after1.find((x) => x.mue.id === 'c')?.eligible).toBe(false);
+    expect(after2.find((x) => x.mue.id === 'c')?.eligible).toBe(false);
   });
 
   it('le compte est monotone décroissant', () => {
