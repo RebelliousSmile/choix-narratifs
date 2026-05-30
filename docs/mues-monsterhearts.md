@@ -42,71 +42,68 @@
 
 Pour chaque **option de réponse**, poids attribué à chaque mue. Une case vide = aucun poids (0). Le score final d'un·e mue est la somme des poids des options choisies.
 
-### Quel genre de monstre as-tu envie d'incarner ?
+### Le désir — Le désir et l'attirance, dans ta vie de monstre, c'est…
 
 | Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Un prédateur qui se nourrit des autres. |  |  |  | 3 |  |  |  |  |  |  | 3 |  |  |  |  |  | 2 |  |  |  |  |  | 2 |  | 3 | 1 |  |  |  |
-| Quelqu'un qui lutte contre une part monstrueuse incontrôlable. | 2 |  |  | 2 | 3 | 3 |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  | 1 |  |  |  |  |  |  |
-| Un être fragile, trop humain au milieu des monstres. |  |  |  |  |  |  | 3 |  |  |  |  |  |  | 1 |  |  |  |  |  | 2 |  |  |  | 3 |  |  |  |  |  |
-| Une créature de légende, belle et étrange. |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  | 1 |  |  |  |  | 3 |  |  | 2 | 3 | 3 |  |  |
-| Un revenant marqué par la mort et le passé. |  | 3 |  | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  | 2 | 2 |
+| Une arme : je m'en sers pour avoir prise sur les autres. |  |  | 2 |  |  |  |  |  |  |  | 3 |  |  |  |  |  | 2 |  |  |  |  |  | 2 |  | 3 |  | 3 |  |  |
+| Une faiblesse : il me dévore et je le subis. |  | 2 |  | 2 | 2 |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Un danger : je le fuis, j'ai peur de blesser. |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  | 2 |  |  |  |  | 3 |  |  |  | 3 |  |
+| Un marché : donnant-donnant, rien n'est gratuit. |  |  | 2 |  |  |  |  |  | 2 |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |
 
-### Dans le groupe, tu te verrais plutôt…
-
-| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Au sommet, à régner et tout contrôler. |  |  |  |  |  |  |  |  | 3 | 2 | 2 |  |  |  | 1 |  | 3 |  |  |  |  |  |  |  |  |  |  |  | 3 |
-| En marge, rejeté·e ou incompris·e. |  |  |  |  |  |  |  | 3 |  |  |  | 2 |  |  |  |  |  |  | 3 |  |  | 1 |  | 2 |  |  |  | 3 |  |
-| Au service d'une personne ou d'une cause. | 1 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 3 |  | 2 |  |  |  |  |  |  |  |  |  |  | 1 |
-| Électron libre, sans attaches. |  |  |  |  |  |  |  | 1 |  |  |  |  |  | 3 |  |  |  |  |  | 3 | 2 |  |  |  |  | 2 |  |  |  |
-
-### Ton arme de prédilection sur les autres perso ?
+### Le contrôle de soi — Ton rapport au contrôle de toi-même ?
 
 | Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| La séduction et le désir. |  |  | 2 |  |  |  |  |  |  |  | 3 |  |  |  |  |  | 2 |  |  |  |  |  | 2 |  | 3 |  | 2 |  |  |
-| La peur et la violence. |  |  |  |  | 3 | 2 |  |  |  |  |  |  | 2 |  |  |  | 1 | 2 | 3 |  |  |  |  |  |  |  |  | 2 |  |
-| La ruse, les secrets, la manipulation. |  |  | 2 |  |  |  |  | 3 |  | 3 |  | 2 |  |  | 3 |  |  |  |  | 2 |  |  |  |  |  |  |  |  | 2 |
-| Rien : c'est moi qu'on convoite ou qu'on protège. |  | 1 |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |
+| Une bête ou une pulsion menace toujours de m'échapper. |  |  |  | 3 | 3 | 3 |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |
+| Je me maîtrise froidement, en toutes circonstances. |  |  |  |  |  |  |  |  | 3 | 2 | 2 |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  | 2 |
+| Je suis lié·e par des règles ou un serment qui me dépassent. | 3 |  | 3 |  |  |  |  |  |  |  |  |  | 2 |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  | 1 |
+| Je suis imprévisible, même pour moi-même. |  |  |  |  |  | 2 |  |  |  |  |  | 3 |  | 3 |  |  |  |  |  |  |  |  |  |  |  | 2 |  | 2 |  |
 
-### Qu'est-ce qui rend ton perso tragique ?
-
-| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Une dette, un pacte, un serment qui m'enchaîne. | 3 |  | 2 |  |  |  |  |  |  |  |  |  | 1 |  | 3 | 3 |  |  |  |  |  |  |  |  |  |  |  |  | 1 |
-| Une faim ou une pulsion que je ne maîtrise pas. |  |  |  | 3 | 2 | 3 |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  | 3 |  | 1 |  |  |  |  |
-| Un amour ou un manque qui me dévore. |  | 3 |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 | 2 |  |  |  |  |
-| Un devoir ou une vengeance qui me dépasse. |  | 1 |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  | 3 | 3 | 3 |
-
-### L'ambiance de jeu que tu recherches ?
+### Le secret — Derrière ton masque, qu'est-ce que tu caches ?
 
 | Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Glamour cruel et manipulation froide. |  |  | 2 |  |  |  |  |  | 3 | 2 | 3 |  |  |  | 2 |  |  |  |  |  |  |  | 1 |  |  |  |  |  | 2 |
-| Rage, instinct et perte de contrôle. |  |  |  | 2 | 3 | 3 |  |  |  |  |  | 1 |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |
-| Mélancolie, deuil, romance tragique. |  | 3 |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  | 3 | 1 |  |  |  |  |
-| Mystère, folklore et étrangeté. |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  | 3 | 1 |  |  | 2 | 2 | 2 |  |
-| Aventure, panache et héroïsme. |  |  |  |  |  |  |  |  |  |  |  |  | 3 | 3 |  |  | 3 | 3 |  | 2 |  |  |  |  |  |  |  |  |  |
+| Une nature monstrueuse qui me fait honte. |  |  |  | 2 | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  | 2 |  |  |  |  | 2 |  |
+| Un pacte ou une dette inavouable. | 3 |  |  |  |  |  |  |  |  | 2 |  |  |  |  | 2 | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Une blessure, un deuil que je ne digère pas. |  | 3 |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  | 2 |  |  |  | 2 |  |
+| Le vide : je ne sais pas vraiment qui je suis. |  |  |  |  |  |  |  | 3 |  |  |  | 3 |  | 2 |  |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |
 
-### Et ton corps dans tout ça ?
-
-| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Il change, il m'échappe. |  |  |  |  | 3 | 2 |  |  |  |  |  | 3 |  | 1 |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |
-| Il est mort, figé, ancien. |  | 2 |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  | 1 |
-| Il est une arme, un danger pour les autres. |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  | 2 |  | 2 |  |  |  |  |  |  |  |  | 3 |  |
-| Il fascine et attire. |  |  | 3 |  |  |  |  |  | 1 |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  | 2 |  |  |
-| Il est fragile, humain. |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  | 2 |  |  |  |  |  |
-| Il me lie à quelque chose hors de moi. | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |  | 1 |  |  |  | 3 |  |  |  |  | 1 |  |  |
-
-### Face au danger, ton premier réflexe ?
+### Le pouvoir social — Dans la hiérarchie du lycée, tu es…
 
 | Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Frapper avant d'être frappé·e. |  |  |  |  | 2 |  |  |  |  |  |  |  | 3 |  |  |  | 2 | 3 |  |  |  |  |  |  |  |  |  |  |  |
-| Manipuler, retourner la situation. | 3 |  | 2 |  |  |  |  |  | 2 | 3 |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 |
-| Disparaître, me fondre dans le décor. |  | 1 |  |  |  |  |  | 3 |  |  |  | 2 |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |
-| Séduire pour désamorcer. |  |  | 2 |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  | 2 |  | 2 |  | 2 |  |  |
-| Endurer, attendre mon heure. |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 2 |  |  |  |  | 2 |
-| Réagir de façon imprévisible. |  |  |  |  |  | 3 | 2 |  |  |  |  |  |  | 3 |  |  |  |  | 2 |  |  |  |  |  |  | 2 |  | 2 |  |
+| Au sommet : je règne et on me suit. |  |  |  |  |  |  |  |  | 3 |  | 2 |  |  |  |  |  | 3 |  |  |  |  |  |  |  | 2 |  |  |  | 3 |
+| Dans l'ombre : je tire les ficelles sans qu'on me voie. |  |  | 2 |  |  |  |  | 3 |  | 3 |  |  |  |  | 2 |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |
+| En marge : outsider, rejeté·e ou incompris·e. |  |  |  |  |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  | 3 |  |  | 3 |  | 2 |  |  |  | 2 |  |
+| Au service : je protège ou je sers quelqu'un de plus haut. | 2 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |
+
+### La part monstrueuse — Ta part de monstre, celle qui te définit, c'est…
+
+| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Une faim, un appétit qu'on n'assouvit jamais. |  |  |  | 3 |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  |  | 3 |  | 2 | 2 |  |  |  |
+| Une rage, une violence qui déborde. |  |  |  |  | 3 | 3 |  |  |  |  |  |  | 2 |  |  |  |  | 2 | 2 |  |  |  |  |  |  |  |  |  |  |
+| Un pouvoir qui blesse ceux que j'approche. | 2 |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  | 3 |  |
+| Rien de visible — et c'est ça qui me ronge. |  | 3 |  |  |  |  | 2 | 2 |  |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |
+
+### Les liens (les Cordes) — Pour avoir de l'emprise sur les autres, tu mises sur…
+
+| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| La séduction et le charme. |  |  | 3 |  |  |  |  |  |  |  | 3 |  |  |  |  |  | 2 |  |  |  |  | 2 |  |  | 3 |  | 2 |  |  |
+| La peur et l'intimidation. |  |  |  |  | 3 | 2 |  |  |  |  |  |  | 3 |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  | 2 |  |
+| Les faveurs, les dettes, les marchés. | 2 |  | 2 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 2 |
+| La loyauté et le dévouement. |  |  |  |  |  |  | 2 |  |  |  |  |  | 2 |  |  | 3 |  | 3 |  |  |  |  |  |  |  |  |  |  |  |
+| Rien : je préfère garder mes distances. |  |  |  |  |  |  |  | 2 |  |  |  | 2 |  | 2 |  |  |  |  |  | 3 | 3 |  |  |  |  |  |  |  |  |
+
+### Le devenir — Au fond, ce qui te pousse, c'est…
+
+| Question / Option | L'Âme damnée | Le Fantôme | La Fée | La Goule | Le Loup-garou | L'Infecté | Le Mortel | L'Ombre | La Reine | La Sorcière | Le Vampire | Le Bakeneko | Le Cerbère | La Détraquante | Le Diable | Le Disciple | Le Dragon | L'Élue | Le Fomoire | Le Furet | L'Immortelle | Le Leshy | L'Ophidien | Le Prométhée | La Sirène | Le Tengu | La Vila | La Méduse | La Momie |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Être enfin aimé·e et accepté·e. |  | 2 |  |  |  |  | 3 |  |  |  |  | 2 |  |  |  |  |  |  | 2 |  |  |  |  | 3 |  |  |  |  |  |
+| Dominer, briller, régner. |  |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  | 3 |  |  |  |  |  |  |  | 2 |  | 3 |  | 2 |
+| Me venger, réparer un tort. |  | 2 |  |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 2 | 3 | 3 |
+| Assouvir ma faim ou mon désir. |  |  |  | 3 |  |  |  |  |  |  | 2 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 2 |  |  |  |
+| Une cause, un destin plus grand que moi. | 2 |  |  |  |  |  |  |  |  |  |  |  | 3 |  |  | 3 |  | 3 |  |  |  | 3 |  |  |  |  |  |  |  |
+| Juste survivre et m'amuser tant que ça dure. |  |  |  |  |  |  |  | 3 |  |  |  |  |  | 3 |  |  |  |  |  | 3 | 2 |  |  |  |  |  |  |  |  |

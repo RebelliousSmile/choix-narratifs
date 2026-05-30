@@ -30,12 +30,13 @@ const totalMues = jeu.mues.length;
   </div>
 
   <div class="funnel__mues-panel" id="funnel-mues-panel" data-mues-panel hidden>
-    <p class="funnel__mues-panel-hint">Les <span class="funnel__mues-panel-eliminated">barrés</span> ont un score nul sur les réponses données.</p>
+    <p class="funnel__mues-panel-hint">Les <span class="funnel__mues-panel-eliminated">barrées</span> ne peuvent plus arriver en tête, vu tes réponses.</p>
     <ul class="funnel__mues-list" data-mues-list></ul>
   </div>
 
   <!-- Écran question -->
   <div class="funnel__question" data-question-screen>
+    <p class="funnel__question-theme" data-question-theme hidden></p>
     <h3 class="funnel__question-text" data-question-text></h3>
     <ul class="funnel__options" role="group" aria-label="Réponses possibles" data-options></ul>
   </div>
@@ -133,6 +134,14 @@ const totalMues = jeu.mues.length;
     color: var(--color-text-muted);
   }
 
+  .funnel__question-theme {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-strong);
+  }
   .funnel__question-text {
     margin: 0 0 1rem;
     font-size: 1.15rem;
@@ -235,36 +244,26 @@ const totalMues = jeu.mues.length;
     isComplete,
     resetFunnel,
     topRecommendations,
+    funnelEligibility,
     type FunnelState,
   } from '../scripts/funnel';
   import { scoreMues, type JeuMues, type Mue } from '../scripts/mues-schema';
   import { saveData } from '../scripts/storage';
 
-  /** Calcule les mues encore éligibles (score partiel > 0) et les éliminées. */
+  /**
+   * Mues encore en lice vs éliminées, via l'entonnoir éliminatoire MONOTONE
+   * (une mue est éliminée dès qu'elle ne peut plus rattraper la tête). Le
+   * nombre d'éligibles ne fait donc que décroître au fil des réponses.
+   */
   function computeEligible(
     jeu: JeuMues,
     reponses: Record<string, string>,
   ): { eligible: Mue[]; eliminated: Mue[] } {
-    const answered = Object.keys(reponses);
-    if (answered.length === 0) {
-      return { eligible: jeu.mues, eliminated: [] };
-    }
-
-    const scores: Record<string, number> = {};
-    for (const mue of jeu.mues) scores[mue.id] = 0;
-
-    for (const [questionId, optionId] of Object.entries(reponses)) {
-      const question = jeu.questions.find((q) => q.id === questionId);
-      const option = question?.options.find((o) => o.id === optionId);
-      if (!option) continue;
-      for (const [mueId, points] of Object.entries(option.poids)) {
-        if (mueId in scores) scores[mueId] += points;
-      }
-    }
-
-    const eligible = jeu.mues.filter((m) => scores[m.id] > 0);
-    const eliminated = jeu.mues.filter((m) => scores[m.id] <= 0);
-    return { eligible, eliminated };
+    const elig = funnelEligibility(jeu, reponses);
+    return {
+      eligible: elig.filter((e) => e.eligible).map((e) => e.mue),
+      eliminated: elig.filter((e) => !e.eligible).map((e) => e.mue),
+    };
   }
 
   function initFunnel(root: HTMLElement): void {
@@ -297,7 +296,7 @@ const totalMues = jeu.mues.length;
 
     function updateCount(): void {
       const { eligible, eliminated } = computeEligible(jeu, state.reponses);
-      countNum.textContent = String(eligible.length);
+      countNum.textContent = `${eligible.length} / ${jeu.mues.length}`;
 
       muesList.innerHTML = '';
       for (const mue of jeu.mues) {
@@ -371,6 +370,12 @@ const totalMues = jeu.mues.length;
       prevBtn.disabled = state.index === 0;
       progress.textContent = `Étape ${state.index + 1} / ${total}`;
       questionText.textContent = question.texte;
+      const themeEl = root.querySelector<HTMLElement>('[data-question-theme]');
+      if (themeEl) {
+        const theme = (question as { theme?: string }).theme ?? '';
+        themeEl.textContent = theme;
+        themeEl.hidden = theme.length === 0;
+      }
 
       updateCount();
       if (!muesPanel.hidden) updateCount();

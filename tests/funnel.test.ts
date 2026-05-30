@@ -182,7 +182,7 @@ describe('funnelEligibility — entonnoir éliminatoire', () => {
 
   it('la gagnante reste toujours éligible (données réelles)', () => {
     const jeuReel = monsterhearts as unknown as JeuMues;
-    const reponses = { 'q4-tragique': 'q4-d', 'q5-ambiance': 'q5-e', 'q7-conflit': 'q7-a' };
+    const reponses = { 'q5-monstre': 'q5-b', 'q6-liens': 'q6-d', 'q7-devenir': 'q7-e' };
     const e = funnelEligibility(jeuReel, reponses);
     const elue = e.find((x) => x.mue.id === 'elue');
     expect(elue?.eligible).toBe(true);

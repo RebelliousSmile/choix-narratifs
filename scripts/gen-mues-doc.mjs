@@ -65,7 +65,8 @@ for (const game of GAMES) {
   const sep = header.map(() => '---');
 
   for (const q of questions) {
-    lines.push(`### ${esc(q.texte)}`);
+    const titre = q.theme ? `${esc(q.theme)} — ${esc(q.texte)}` : esc(q.texte);
+    lines.push(`### ${titre}`);
     lines.push('');
     lines.push('| ' + header.map(esc).join(' | ') + ' |');
     lines.push('| ' + sep.join(' | ') + ' |');

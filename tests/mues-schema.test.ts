@@ -89,7 +89,7 @@ describe('scoreMues — déterminisme & ordre stable', () => {
   const jeu = monsterhearts as unknown as JeuMues;
 
   it('produit le même résultat pour les mêmes réponses', () => {
-    const reponses = { 'q1-monstre': 'q1-a', 'q4-tragique': 'q4-d' };
+    const reponses = { 'q1-desir': 'q1-a', 'q7-devenir': 'q7-e' };
     const run1 = scoreMues(jeu, reponses);
     const run2 = scoreMues(jeu, reponses);
     expect(run1).toEqual(run2);
@@ -105,11 +105,11 @@ describe('scoreMues — déterminisme & ordre stable', () => {
   });
 
   it('place la mue attendue en tête sur un profil marqué', () => {
-    // Profil « héroïne du devoir » : vengeance + aventure + frappe la première.
+    // Profil « héroïne dévouée » : part de rage + loyauté + cause plus grande.
     const reponses = {
-      'q4-tragique': 'q4-d',
-      'q5-ambiance': 'q5-e',
-      'q7-conflit': 'q7-a',
+      'q5-monstre': 'q5-b',
+      'q6-liens': 'q6-d',
+      'q7-devenir': 'q7-e',
     };
     const result = scoreMues(jeu, reponses);
     expect(result[0]?.mue.id).toBe('elue');

@@ -24,6 +24,8 @@ export interface Option {
 export interface Question {
   id: string;
   texte: string;
+  /** Thème de la question (enjeu Monsterhearts), affiché au joueur. */
+  theme?: string;
   options: Option[];
 }
 
@@ -120,6 +122,9 @@ export function validateJeuMues(data: unknown): ValidationResult<JeuMues> {
       }
       if (typeof question.texte !== 'string' || question.texte.length === 0) {
         errors.push(`${qPrefix}.texte doit être une chaîne non vide.`);
+      }
+      if (question.theme !== undefined && typeof question.theme !== 'string') {
+        errors.push(`${qPrefix}.theme doit être une chaîne si présent.`);
       }
       if (!Array.isArray(question.options)) {
         errors.push(`${qPrefix}.options doit être un tableau.`);
