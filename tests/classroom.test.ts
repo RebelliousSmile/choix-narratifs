@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateClassroom, CLASSROOM_DESK_PALETTE_ID } from '../scripts/classroom';
+import { generateClassroom, CLASSROOM_DESK_PALETTE_ID } from '../src/scripts/classroom';
 
 describe('generateClassroom', () => {
   it('produit exactement rows * cols éléments', () => {
@@ -14,13 +14,13 @@ describe('generateClassroom', () => {
 
   it('ne produit aucun doublon de coordonnées', () => {
     const items = generateClassroom(4, 5);
-    const coords = items.map((it) => `${it.x},${it.y}`);
+    const coords = items.map((placed) => `${placed.x},${placed.y}`);
     expect(new Set(coords).size).toBe(items.length);
   });
 
   it('ne produit aucun doublon d\'identifiant', () => {
     const items = generateClassroom(4, 5);
-    const ids = items.map((it) => it.id);
+    const ids = items.map((placed) => placed.id);
     expect(new Set(ids).size).toBe(items.length);
   });
 
