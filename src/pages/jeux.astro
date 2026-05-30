@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Card from '../components/Card.astro';
+---
+
+<BaseLayout
+  title="Outils pour les jeux"
+  description="Sélecteurs de mues et éditeurs de cartes pour Monsterhearts et Monster of the Week."
+>
+  <main id="main-content">
+    <section class="hero">
+      <h1>Outils pour les jeux</h1>
+      <p>Des outils interactifs pour deux jeux de rôle narratifs : <strong>Monsterhearts</strong> et <strong>Monster of the Week</strong>.</p>
+    </section>
+
+    <section class="game-section">
+      <h2>Monsterhearts</h2>
+      <p class="game-desc">Un lycée hanté par des monstres adolescents. Jeu de rôle sur les désirs, les blessures et les relations au bord du précipice.</p>
+      <div class="cards-grid">
+        <Card
+          title="Sélecteur de mues"
+          description="Réponds à quelques questions pour trouver la mue qui te correspond le mieux."
+          href="/monsterhearts/selecteur-de-mues"
+          badge="Monsterhearts"
+        />
+        <Card
+          title="Plan de classe"
+          description="Génère et édite un plan de ta salle de classe pour visualiser les positions de chaque personnage."
+          href="/monsterhearts/plan-de-classe"
+          badge="Monsterhearts"
+        />
+        <Card
+          title="Plan de Snake Bay"
+          description="Compose une carte de la ville de Snake Bay en plaçant lieux et personnages."
+          href="/monsterhearts/snake-bay"
+          badge="Monsterhearts S2"
+        />
+      </div>
+    </section>
+
+    <section class="game-section">
+      <h2>Monster of the Week</h2>
+      <p class="game-desc">Des chasseurs de monstres qui sauvent le monde, une créature à la fois. Jeu d'action et de mystère inspiré des séries télé.</p>
+      <div class="cards-grid">
+        <Card
+          title="Sélecteur de playbooks"
+          description="Réponds à quelques questions pour trouver le playbook qui correspond à ton chasseur."
+          href="/monster-of-the-week/selecteur-de-playbooks"
+          badge="Monster of the Week"
+        />
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    max-width: var(--content-width, 1100px);
+    margin: 0 auto;
+    padding: var(--space-8, 2rem) var(--space-4, 1rem);
+  }
+
+  .hero {
+    margin-bottom: var(--space-10, 3rem);
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    margin-bottom: var(--space-2, 0.5rem);
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--color-text-muted, #555);
+    max-width: 60ch;
+  }
+
+  .game-section {
+    margin-bottom: var(--space-12, 4rem);
+  }
+
+  .game-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2, 0.5rem);
+  }
+
+  .game-desc {
+    color: var(--color-text-muted, #555);
+    max-width: 65ch;
+    margin-bottom: var(--space-6, 1.5rem);
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4, 1rem);
+  }
+</style>

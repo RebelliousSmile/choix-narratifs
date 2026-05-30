@@ -67,15 +67,17 @@ const config = JSON.stringify({ tool, palette, presets, background });
   .map-editor button {
     font: inherit;
     padding: 0.4rem 0.8rem;
-    border: 1px solid #ccc;
+    border: 1px solid #555;
     border-radius: 6px;
-    background: #fff;
+    background: #2a2440;
+    color: #ece8f5;
     cursor: pointer;
   }
   .map-editor button:hover,
   .map-editor button:focus-visible {
-    border-color: #555;
-    outline: 2px solid #555;
+    background: #3a3460;
+    border-color: #ece8f5;
+    outline: 2px solid #ffd34d;
     outline-offset: 1px;
   }
   .map-editor__palette-item {
@@ -83,11 +85,13 @@ const config = JSON.stringify({ tool, palette, presets, background });
   }
   .map-editor__canvas {
     width: 100%;
-    min-height: 60vh;
-    border: 1px solid #ccc;
+    height: 60vh;
+    min-height: 400px;
+    border: 1px solid #555;
     border-radius: 8px;
     overflow: hidden;
     background: #fafafa;
+    position: relative;
   }
   .map-editor__canvas:focus-visible {
     outline: 2px solid #555;
@@ -110,18 +114,32 @@ const config = JSON.stringify({ tool, palette, presets, background });
   async function initEditor(root: HTMLElement): Promise<void> {
     const raw = root.dataset.config;
     if (!raw) return;
-    const config = JSON.parse(raw) as MapConfig;
+
+    let config: MapConfig;
+    try {
+      config = JSON.parse(raw) as MapConfig;
+    } catch {
+      console.error('[MapEditor] Impossible de parser la config JSON');
+      return;
+    }
 
     const canvas = root.querySelector<HTMLElement>('[data-canvas]');
     if (!canvas) return;
 
-    // Imports dynamiques : konva + storage chargés uniquement dans le navigateur.
-    const [{ createMapEditor }, storage] = await Promise.all([
-      import('../scripts/map-editor'),
-      import('../scripts/storage'),
-    ]);
+    // Attendre que le layout soit stabilisé avant d'initialiser Konva.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-    const storageKey = `map:${config.tool}`;
+    let createMapEditor: (typeof import('../scripts/map-editor'))['createMapEditor'];
+    let storage: typeof import('../scripts/storage');
+    try {
+      const mod = await import('../scripts/map-editor');
+      createMapEditor = mod.createMapEditor;
+      storage = await import('../scripts/storage');
+    } catch (err) {
+      console.error('[MapEditor] Erreur de chargement du module:', err);
+      canvas.textContent = 'Erreur de chargement de l\'éditeur. Voir la console.';
+      return;
+    }
 
     const editor: MapEditor = createMapEditor(canvas, {
       palette: config.palette,
@@ -154,6 +172,8 @@ const config = JSON.stringify({ tool, palette, presets, background });
       root.querySelector<HTMLButtonElement>(`[data-action="${name}"]`)?.addEventListener('click', fn);
     }
 
+    const storageKey = `map:${config.tool}`;
+
     action('new', () => editor.loadState({ schemaVersion: 1, items: [] }));
     action('delete', () => editor.removeSelected());
 
@@ -184,10 +204,8 @@ const config = JSON.stringify({ tool, palette, presets, background });
       URL.revokeObjectURL(url);
     });
 
-    // Permet à la page hôte de charger un état (ex. ébauche générée) sans
-    // dépendre de l'instance : on écoute un CustomEvent sur le conteneur.
-    // Rétrocompatible : les pages qui ne déclenchent pas l'événement ne sont
-    // pas affectées.
+    // Permet à la page hôte de charger un état (ex. ébauche générée) via
+    // un CustomEvent 'map-editor:load-state' dispatché sur le conteneur.
     root.addEventListener('map-editor:load-state', (event) => {
       const detail = (event as CustomEvent<MapState>).detail;
       if (detail && Array.isArray(detail.items)) {
@@ -201,16 +219,17 @@ const config = JSON.stringify({ tool, palette, presets, background });
       const file = input.files?.[0];
       if (!file) return;
       try {
-        const data = await storage.importData<MapState>(file);
+        const text = await file.text();
+        const data = JSON.parse(text) as MapState;
         editor.loadState(data);
       } catch (err) {
-        alert(err instanceof Error ? err.message : 'Import impossible.');
+        alert(err instanceof Error ? err.message : 'Import impossible : fichier JSON invalide.');
       }
       input.value = '';
     });
   }
 
   for (const root of document.querySelectorAll<HTMLElement>('.map-editor[data-config]')) {
-    void initEditor(root);
+    initEditor(root).catch((err) => console.error('[MapEditor] Erreur init:', err));
   }
 </script>

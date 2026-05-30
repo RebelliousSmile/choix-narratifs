@@ -8,14 +8,31 @@ export interface Props {
 const { jeu } = Astro.props;
 const jeuJson = JSON.stringify(jeu);
 const total = jeu.questions.length;
+const totalMues = jeu.mues.length;
 ---
 
 <section class="funnel" aria-labelledby="funnel-title" data-jeu={jeuJson}>
-  <h2 id="funnel-title" class="visually-hidden">Sélecteur de mues — {jeu.jeu}</h2>
+  <h2 id="funnel-title" class="visually-hidden">Sélecteur — {jeu.jeu}</h2>
 
-  <p class="funnel__progress" aria-live="polite" data-progress>
-    Étape 1 / {total}
-  </p>
+  <div class="funnel__meta">
+    <p class="funnel__progress" aria-live="polite" data-progress>
+      Étape 1 / {total}
+    </p>
+    <button
+      type="button"
+      class="funnel__count-btn"
+      data-count-btn
+      aria-expanded="false"
+      aria-controls="funnel-mues-panel"
+    >
+      <span data-count-num>{totalMues}</span> {jeu.jeu.toLowerCase().includes('monsterhearts') ? 'mues' : 'playbooks'}
+    </button>
+  </div>
+
+  <div class="funnel__mues-panel" id="funnel-mues-panel" data-mues-panel hidden>
+    <p class="funnel__mues-panel-hint">Les <span class="funnel__mues-panel-eliminated">barrés</span> ont un score nul sur les réponses données.</p>
+    <ul class="funnel__mues-list" data-mues-list></ul>
+  </div>
 
   <!-- Écran question -->
   <div class="funnel__question" data-question-screen>
@@ -41,10 +58,87 @@ const total = jeu.questions.length;
     max-width: 40rem;
     margin: 0 auto;
   }
-  .funnel__progress {
-    font-weight: 600;
-    color: #555;
+
+  .funnel__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
   }
+
+  .funnel__progress {
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  .funnel__count-btn {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface-alt);
+    color: var(--color-accent-strong);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .funnel__count-btn:hover,
+  .funnel__count-btn:focus-visible {
+    background: var(--color-border);
+    border-color: var(--color-accent-strong);
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  .funnel__count-btn[aria-expanded='true'] {
+    background: var(--color-surface-alt);
+    border-color: var(--color-accent-strong);
+  }
+
+  .funnel__mues-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .funnel__mues-panel-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  .funnel__mues-panel-eliminated {
+    text-decoration: line-through;
+    opacity: 0.55;
+  }
+  .funnel__mues-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .funnel__mues-list li {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+  }
+  .funnel__mues-list li.is-eliminated {
+    text-decoration: line-through;
+    opacity: 0.4;
+    color: var(--color-text-muted);
+  }
+
+  .funnel__question-text {
+    margin: 0 0 1rem;
+    font-size: 1.15rem;
+    color: var(--color-text);
+  }
+
   .funnel__options {
     list-style: none;
     padding: 0;
@@ -55,23 +149,27 @@ const total = jeu.questions.length;
     width: 100%;
     text-align: left;
     padding: 0.75rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--color-surface);
+    color: var(--color-text);
     cursor: pointer;
     font: inherit;
+    transition: border-color 0.15s, background 0.15s;
   }
   .funnel__options button:hover,
   .funnel__options button:focus-visible {
-    border-color: #555;
-    outline: 2px solid #555;
+    border-color: var(--color-accent-strong);
+    background: var(--color-surface-alt);
+    outline: 2px solid var(--color-focus);
     outline-offset: 1px;
   }
   .funnel__options button[aria-pressed='true'] {
-    border-color: #222;
-    background: #f0f0f0;
+    border-color: var(--color-accent-strong);
+    background: var(--color-surface-alt);
     font-weight: 600;
   }
+
   .funnel__nav {
     margin-top: 1rem;
     display: flex;
@@ -81,21 +179,40 @@ const total = jeu.questions.length;
     padding: 0.5rem 1rem;
     font: inherit;
     cursor: pointer;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    transition: background 0.15s;
+  }
+  .funnel__nav button:hover:not(:disabled) {
+    background: var(--color-border);
   }
   .funnel__nav button:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
+
   .funnel__result article {
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 8px);
     padding: 1rem;
     margin: 0.75rem 0;
+    background: var(--color-surface);
   }
   .funnel__result .is-main {
-    border-color: #222;
+    border-color: var(--color-accent-strong);
     border-width: 2px;
   }
+  .funnel__badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-accent-strong);
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   .visually-hidden {
     position: absolute;
     width: 1px;
@@ -123,6 +240,33 @@ const total = jeu.questions.length;
   import { scoreMues, type JeuMues, type Mue } from '../scripts/mues-schema';
   import { saveData } from '../scripts/storage';
 
+  /** Calcule les mues encore éligibles (score partiel > 0) et les éliminées. */
+  function computeEligible(
+    jeu: JeuMues,
+    reponses: Record<string, string>,
+  ): { eligible: Mue[]; eliminated: Mue[] } {
+    const answered = Object.keys(reponses);
+    if (answered.length === 0) {
+      return { eligible: jeu.mues, eliminated: [] };
+    }
+
+    const scores: Record<string, number> = {};
+    for (const mue of jeu.mues) scores[mue.id] = 0;
+
+    for (const [questionId, optionId] of Object.entries(reponses)) {
+      const question = jeu.questions.find((q) => q.id === questionId);
+      const option = question?.options.find((o) => o.id === optionId);
+      if (!option) continue;
+      for (const [mueId, points] of Object.entries(option.poids)) {
+        if (mueId in scores) scores[mueId] += points;
+      }
+    }
+
+    const eligible = jeu.mues.filter((m) => scores[m.id] > 0);
+    const eliminated = jeu.mues.filter((m) => scores[m.id] <= 0);
+    return { eligible, eliminated };
+  }
+
   function initFunnel(root: HTMLElement): void {
     const raw = root.dataset.jeu;
     if (!raw) return;
@@ -130,6 +274,10 @@ const total = jeu.questions.length;
     const total = jeu.questions.length;
 
     const progress = root.querySelector<HTMLElement>('[data-progress]')!;
+    const countBtn = root.querySelector<HTMLButtonElement>('[data-count-btn]')!;
+    const countNum = root.querySelector<HTMLElement>('[data-count-num]')!;
+    const muesPanel = root.querySelector<HTMLElement>('[data-mues-panel]')!;
+    const muesList = root.querySelector<HTMLElement>('[data-mues-list]')!;
     const questionScreen = root.querySelector<HTMLElement>('[data-question-screen]')!;
     const questionText = root.querySelector<HTMLElement>('[data-question-text]')!;
     const optionsList = root.querySelector<HTMLElement>('[data-options]')!;
@@ -146,6 +294,28 @@ const total = jeu.questions.length;
       div.textContent = value;
       return div.innerHTML;
     }
+
+    function updateCount(): void {
+      const { eligible, eliminated } = computeEligible(jeu, state.reponses);
+      countNum.textContent = String(eligible.length);
+
+      muesList.innerHTML = '';
+      for (const mue of jeu.mues) {
+        const li = document.createElement('li');
+        li.textContent = mue.nom;
+        if (eliminated.some((e) => e.id === mue.id)) {
+          li.classList.add('is-eliminated');
+        }
+        muesList.appendChild(li);
+      }
+    }
+
+    countBtn.addEventListener('click', () => {
+      const expanded = countBtn.getAttribute('aria-expanded') === 'true';
+      countBtn.setAttribute('aria-expanded', String(!expanded));
+      muesPanel.hidden = expanded;
+      if (!expanded) updateCount();
+    });
 
     function renderMueCard(mue: Mue, isMain: boolean): string {
       const lien = mue.lienOfficiel
@@ -169,6 +339,7 @@ const total = jeu.questions.length;
       restartBtn.hidden = false;
       prevBtn.disabled = false;
       progress.textContent = 'Résultat';
+      countNum.textContent = String(recos.length);
 
       if (recos.length === 0) {
         resultMain.innerHTML = '<p>Aucune recommandation disponible.</p>';
@@ -179,9 +350,7 @@ const total = jeu.questions.length;
       resultMain.innerHTML = renderMueCard(recos[0].mue, true);
       const alts = recos.slice(1);
       resultAlts.innerHTML = alts.length
-        ? `<h4>Alternatives proches</h4>${alts
-            .map((r) => renderMueCard(r.mue, false))
-            .join('')}`
+        ? `<h4>Alternatives proches</h4>${alts.map((r) => renderMueCard(r.mue, false)).join('')}`
         : '';
 
       try {
@@ -190,7 +359,7 @@ const total = jeu.questions.length;
           recommandations: recos.map((r) => r.mue.id),
         });
       } catch {
-        /* localStorage indisponible : on ignore silencieusement. */
+        /* localStorage indisponible */
       }
     }
 
@@ -202,6 +371,9 @@ const total = jeu.questions.length;
       prevBtn.disabled = state.index === 0;
       progress.textContent = `Étape ${state.index + 1} / ${total}`;
       questionText.textContent = question.texte;
+
+      updateCount();
+      if (!muesPanel.hidden) updateCount();
 
       optionsList.innerHTML = '';
       const chosen = state.reponses[question.id];
@@ -230,7 +402,11 @@ const total = jeu.questions.length;
     }
 
     prevBtn.addEventListener('click', () => {
-      state = previousStep(state);
+      if (isComplete(state, total)) {
+        state = { ...state, index: total - 1 };
+      } else {
+        state = previousStep(state);
+      }
       render();
     });
 
