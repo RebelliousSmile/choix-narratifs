@@ -2,9 +2,10 @@
   {
     "id": "jauges-et-tarots",
     "nom": "Jauges et Tarots",
-    "url": "https://tnnka.itch.io/jauges-et-tarots",
+    "url": "/solo/jauges-et-tarots",
     "embeddable": false,
-    "description": "Outil de jeu solo mêlant jauges narratives et tirages de tarot pour faire évoluer une histoire.",
+    "internal": true,
+    "description": "Tableau de bord d'un moteur de campagne solo : Jauge Narrative, Charge Mentale, Points de Destin et fiches — directement en ligne.",
     "tags": ["solo", "oracle", "tarot"]
   },
   {

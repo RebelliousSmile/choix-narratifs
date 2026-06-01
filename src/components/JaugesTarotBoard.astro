@@ -1,0 +1,909 @@
+---
+// Tableau de bord de campagne « Jauges & Tarot ». Toute l'interactivité est
+// côté client (voir <script>). L'état est persisté en localStorage.
+---
+
+<section class="jt" aria-labelledby="jt-title">
+  <h2 id="jt-title" class="visually-hidden">Tableau de bord Jauges &amp; Tarot</h2>
+
+  <!-- Statut dérivé -->
+  <div class="jt__status" data-status aria-live="polite"></div>
+
+  <div class="jt__cols">
+    <!-- Jauge Narrative -->
+    <article class="jt__panel">
+      <h3>Jauge Narrative</h3>
+      <p class="jt__panel-hint">L'aventure avance de la position courante vers 1 (dénouement). Elle se contracte, jamais ne grandit.</p>
+      <div class="jt__jauge-line" data-jauge-line></div>
+      <div class="jt__jauge-ctl">
+        <button type="button" data-act="avancer">Avancer (scène jouée)</button>
+        <button type="button" data-act="pd-plus">+1 Point de Destin (scène résolue)</button>
+        <button type="button" data-act="pd-depenser">Dépenser un Point de Destin</button>
+        <button type="button" class="jt__rerempl" data-act="reremplir">Re-remplissage</button>
+      </div>
+      <details class="jt__manual">
+        <summary>Ajustement manuel</summary>
+        <div class="jt__manual-grid">
+          <label>Plafond <input type="number" min="1" max="12" data-field="plafond" /></label>
+          <label>Position <input type="number" min="1" max="12" data-field="position" /></label>
+          <label>Cartes retournées <input type="number" min="0" data-field="retournees" /></label>
+          <label>Points de Destin <input type="number" min="0" data-field="pointsDestin" /></label>
+        </div>
+      </details>
+    </article>
+
+    <!-- Aides -->
+    <article class="jt__panel">
+      <h3>Aides de lecture</h3>
+      <div class="jt__helper">
+        <p class="jt__panel-hint">Aiguillage : combien d'éléments dans la zone ciblée ?</p>
+        <label>Éléments <input type="number" min="0" value="0" data-aig-input /></label>
+        <p class="jt__helper-out" data-aig-out></p>
+      </div>
+      <div class="jt__helper">
+        <p class="jt__panel-hint">Résonance : quel est le signe de la carte N ?</p>
+        <div class="jt__signe" role="group" aria-label="Signe de la carte N">
+          <button type="button" data-signe="+">+</button>
+          <button type="button" data-signe="=">=</button>
+          <button type="button" data-signe="-">−</button>
+        </div>
+        <p class="jt__helper-out" data-reso-out>Choisis un signe.</p>
+      </div>
+    </article>
+  </div>
+
+  <!-- Charge Mentale -->
+  <article class="jt__panel">
+    <div class="jt__panel-head">
+      <h3>Charge Mentale — Échos <span class="jt__badge" data-echos-count>0</span></h3>
+      <button type="button" data-add="echo">+ Ajouter un écho</button>
+    </div>
+    <p class="jt__panel-hint">Fils ouverts. Coche une case de Progression à chaque résonance ; à 4, l'écho est mûr. « Résolu » envoie la carte à la Pile de Résolues.</p>
+    <div class="jt__list" data-list="echos"></div>
+  </article>
+
+  <!-- Challenges -->
+  <article class="jt__panel">
+    <div class="jt__panel-head">
+      <h3>Fiches de Challenge <span class="jt__badge" data-chal-count>0</span></h3>
+      <button type="button" data-add="challenge">+ Ajouter un challenge</button>
+    </div>
+    <p class="jt__panel-hint">Obstacles actifs (max 12). Vitalité 4 cases : chaque coup porté coche une case ; à 4, l'obstacle est vaincu.</p>
+    <div class="jt__list" data-list="challenges"></div>
+  </article>
+
+  <div class="jt__cols">
+    <!-- Descriptions -->
+    <article class="jt__panel">
+      <div class="jt__panel-head">
+        <h3>Fiches de Description <span class="jt__badge" data-desc-count>0</span></h3>
+        <button type="button" data-add="description">+ Ajouter</button>
+      </div>
+      <p class="jt__panel-hint">Mémoire du monde : lieux, PNJ, objets, factions (max 12).</p>
+      <div class="jt__list" data-list="descriptions"></div>
+    </article>
+
+    <!-- Compagnons -->
+    <article class="jt__panel">
+      <div class="jt__panel-head">
+        <h3>Fiches Compagnon <span class="jt__badge" data-comp-count>0</span></h3>
+        <button type="button" data-add="compagnon">+ Ajouter</button>
+      </div>
+      <p class="jt__panel-hint">Compagnons récurrents (max 4). Concurrence : d100 ≤ seuil → spotlight compagnon.</p>
+      <div class="jt__list" data-list="compagnons"></div>
+    </article>
+  </div>
+
+  <!-- Intention -->
+  <article class="jt__panel">
+    <h3>Fiche d'Intention</h3>
+    <p class="jt__panel-hint">Cadrage de la campagne. Relis-la (2–3 min) en début de session.</p>
+    <div class="jt__intention" data-intention></div>
+  </article>
+
+  <!-- Données -->
+  <article class="jt__panel jt__data">
+    <h3>Sauvegarde</h3>
+    <p class="jt__panel-hint">La campagne est sauvegardée automatiquement dans ce navigateur.</p>
+    <div class="jt__data-ctl">
+      <button type="button" data-act="exporter">Exporter (.json)</button>
+      <label class="jt__import">Importer<input type="file" accept="application/json" data-import hidden /></label>
+      <button type="button" class="jt__danger" data-act="reset">Réinitialiser la campagne</button>
+    </div>
+    <p class="jt__data-msg" aria-live="polite" data-data-msg></p>
+  </article>
+</section>
+
+<!--
+  is:global requis : toutes les fiches/listes sont générées en JS et n'ont pas
+  le marqueur de portée data-astro-cid-* exigé par les <style> scopés d'Astro.
+  Sélecteurs préfixés `.jt` (classe unique) : aucune fuite vers le reste du site.
+-->
+<style is:global>
+  .jt {
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+  .jt__cols {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+  .jt__panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+  .jt__panel h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+  }
+  .jt__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .jt__panel-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  .jt__badge {
+    font-size: 0.8rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--color-surface-alt);
+    color: var(--color-accent-strong);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Statut */
+  .jt__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .jt__stat {
+    flex: 1 1 7rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 8px);
+    padding: 0.5rem 0.75rem;
+  }
+  .jt__stat-num {
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .jt__stat-lbl {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+  .jt__alert {
+    flex: 1 1 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm, 8px);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .jt__alert--reremplir {
+    background: #4a3a10;
+    border: 1px solid var(--color-focus);
+    color: #ffe9a8;
+  }
+  .jt__alert--denouement {
+    background: #4a1320;
+    border: 1px solid var(--color-accent);
+    color: #ffd0df;
+  }
+
+  /* Jauge */
+  .jt__jauge-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.75rem;
+  }
+  .jt__cell {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+  }
+  .jt__cell--courant {
+    border-color: var(--color-accent-strong);
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .jt__cell--passe {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+  .jt__cell--denouement {
+    border-color: var(--color-focus);
+  }
+  .jt__jauge-ctl,
+  .jt__data-ctl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .jt button {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .jt button:hover,
+  .jt button:focus-visible {
+    border-color: var(--color-accent-strong);
+    background: var(--color-border);
+  }
+  .jt__rerempl {
+    border-color: var(--color-focus) !important;
+    color: var(--color-focus);
+  }
+  .jt__danger {
+    border-color: var(--color-accent) !important;
+    color: var(--color-accent-strong);
+  }
+  .jt__manual {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+  }
+  .jt__manual summary {
+    cursor: pointer;
+    color: var(--color-text-muted);
+  }
+  .jt__manual-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    margin-top: 0.5rem;
+  }
+  .jt label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .jt input,
+  .jt select,
+  .jt textarea {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-bg);
+    color: var(--color-text);
+    width: 100%;
+  }
+  .jt textarea {
+    resize: vertical;
+    min-height: 2.5rem;
+  }
+
+  .jt__helper {
+    margin-bottom: 0.75rem;
+  }
+  .jt__signe {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .jt__signe button {
+    width: 2.4rem;
+    font-weight: 700;
+  }
+  .jt__signe button[aria-pressed='true'] {
+    border-color: var(--color-accent-strong);
+    background: var(--color-accent);
+    color: #fff;
+  }
+  .jt__helper-out {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text);
+  }
+
+  /* Listes de fiches */
+  .jt__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .jt__empty {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+  .jt__fiche {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 8px);
+    padding: 0.75rem;
+    background: var(--color-surface-alt);
+  }
+  .jt__fiche-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+  .jt__fiche-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .jt__boxes {
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+  .jt__box {
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    cursor: pointer;
+    padding: 0;
+  }
+  .jt__box--on {
+    background: var(--color-accent);
+    border-color: var(--color-accent-strong);
+  }
+  .jt__fiche-suppr {
+    margin-left: auto;
+    border-color: var(--color-accent) !important;
+    color: var(--color-accent-strong);
+  }
+  .jt__resolu {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .jt__resolu input {
+    width: auto;
+  }
+
+  .jt__intention {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .jt__data-msg {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-accent-strong);
+    min-height: 1.2em;
+  }
+
+  .jt .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  import {
+    creerEtatInitial,
+    chargeActive,
+    emplacementsRestants,
+    aiguillage,
+    resonance,
+    doitReRemplir,
+    denouementNormal,
+    reRemplissage,
+    validateState,
+    CAVALIER_LABEL,
+    POSTURE_LABEL,
+    TYPE_DESCRIPTION_LABEL,
+    MAX_FICHES,
+    MAX_COMPAGNONS,
+    type JaugeTarotState,
+    type Signe,
+    type Posture,
+    type Cavalier,
+    type TypeDescription,
+  } from '../scripts/jauges-tarot-schema';
+  import { saveData, loadData, exportData, importData } from '../scripts/storage';
+
+  const STORAGE_KEY = 'jauges-tarot:campagne';
+
+  function uid(): string {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function esc(v: string): string {
+    const d = document.createElement('div');
+    d.textContent = v;
+    return d.innerHTML;
+  }
+
+  function initBoard(root: HTMLElement): void {
+    let state: JaugeTarotState = loadData<JaugeTarotState>(STORAGE_KEY) ?? creerEtatInitial();
+    {
+      const v = validateState(state);
+      if (v.ok) state = v.value;
+    }
+    let signe: Signe | null = null;
+
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const statusEl = $('[data-status]');
+    const jaugeLine = $('[data-jauge-line]');
+    const dataMsg = $('[data-data-msg]');
+
+    function save(): void {
+      try {
+        saveData(STORAGE_KEY, state);
+      } catch {
+        /* localStorage indisponible */
+      }
+    }
+
+    /* ---- Statut dérivé + jauge ---- */
+    function renderStatus(): void {
+      const charge = chargeActive(state);
+      const restants = emplacementsRestants(state);
+      const stat = (num: number | string, lbl: string) =>
+        `<div class="jt__stat"><div class="jt__stat-num">${num}</div><div class="jt__stat-lbl">${lbl}</div></div>`;
+      let html =
+        stat(`${state.position}/${state.plafond}`, 'Position / plafond') +
+        stat(charge, 'Charge (échos)') +
+        stat(state.pointsDestin, 'Points de Destin') +
+        stat(state.retournees, 'Cartes retournées');
+      if (denouementNormal(state)) {
+        html += `<p class="jt__alert jt__alert--denouement">Dénouement : la Jauge a atteint l'emplacement 1. Tous les échos actifs sont les ingrédients de la scène finale.</p>`;
+      } else if (doitReRemplir(state)) {
+        html += `<p class="jt__alert jt__alert--reremplir">Re-remplissage conseillé (position ≤ 3 ou Charge ${charge} &gt; ${restants} restants).</p>`;
+      }
+      statusEl.innerHTML = html;
+
+      // Ligne de jauge : plafond → 1
+      let cells = '';
+      for (let n = state.plafond; n >= 1; n--) {
+        const cls =
+          n === state.position
+            ? 'jt__cell jt__cell--courant'
+            : n > state.position
+              ? 'jt__cell jt__cell--passe'
+              : n === 1
+                ? 'jt__cell jt__cell--denouement'
+                : 'jt__cell';
+        cells += `<span class="${cls}" title="Emplacement ${n}">${n}</span>`;
+      }
+      jaugeLine.innerHTML = cells;
+
+      // La résonance dépend de la Charge et des emplacements restants : la
+      // maintenir à jour à chaque changement d'état.
+      renderResonance();
+    }
+
+    function syncManual(): void {
+      ($('[data-field="plafond"]') as HTMLInputElement).value = String(state.plafond);
+      ($('[data-field="position"]') as HTMLInputElement).value = String(state.position);
+      ($('[data-field="retournees"]') as HTMLInputElement).value = String(state.retournees);
+      ($('[data-field="pointsDestin"]') as HTMLInputElement).value = String(state.pointsDestin);
+    }
+
+    /* ---- Helpers ---- */
+    function renderAiguillage(): void {
+      const n = Math.max(0, Math.round(Number(($('[data-aig-input]') as HTMLInputElement).value) || 0));
+      $('[data-aig-out]').textContent = aiguillage(n).texte;
+    }
+    function renderResonance(): void {
+      const out = $('[data-reso-out]');
+      if (!signe) {
+        out.textContent = 'Choisis un signe.';
+        return;
+      }
+      out.textContent = resonance(signe, state).texte;
+    }
+
+    /* ---- Listes ---- */
+    function boxes(n: number, total: number, onToggle: (i: number) => void): HTMLElement {
+      const wrap = document.createElement('span');
+      wrap.className = 'jt__boxes';
+      for (let i = 1; i <= total; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'jt__box' + (i <= n ? ' jt__box--on' : '');
+        b.setAttribute('aria-label', `case ${i}`);
+        b.addEventListener('click', () => onToggle(i));
+        wrap.appendChild(b);
+      }
+      return wrap;
+    }
+
+    function field(label: string, value: string, onInput: (v: string) => void, textarea = false): HTMLElement {
+      const l = document.createElement('label');
+      l.innerHTML = `${esc(label)}`;
+      const input = document.createElement(textarea ? 'textarea' : 'input');
+      (input as HTMLInputElement).value = value;
+      input.addEventListener('input', () => onInput((input as HTMLInputElement).value));
+      l.appendChild(input);
+      return l;
+    }
+
+    function select<T extends string>(
+      label: string,
+      value: T,
+      options: { v: T; t: string }[],
+      onChange: (v: T) => void,
+    ): HTMLElement {
+      const l = document.createElement('label');
+      l.textContent = label;
+      const sel = document.createElement('select');
+      for (const o of options) {
+        const opt = document.createElement('option');
+        opt.value = o.v;
+        opt.textContent = o.t;
+        if (o.v === value) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      sel.addEventListener('change', () => onChange(sel.value as T));
+      l.appendChild(sel);
+      return l;
+    }
+
+    function supprBtn(onClick: () => void): HTMLElement {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'jt__fiche-suppr';
+      b.textContent = 'Supprimer';
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    function renderEchos(): void {
+      const host = $('[data-list="echos"]');
+      host.innerHTML = '';
+      $('[data-echos-count]').textContent = String(chargeActive(state));
+      if (state.echos.length === 0) {
+        host.innerHTML = '<p class="jt__empty">Aucun écho. La Charge Mentale est vide.</p>';
+        return;
+      }
+      state.echos.forEach((e, idx) => {
+        const card = document.createElement('div');
+        card.className = 'jt__fiche';
+        const grid = document.createElement('div');
+        grid.className = 'jt__fiche-grid';
+        grid.append(
+          field('Titre', e.titre, (v) => { e.titre = v; save(); }),
+          field('Intrigue', e.intrigue, (v) => { e.intrigue = v; save(); }),
+          field('Lieu', e.lieu, (v) => { e.lieu = v; save(); }),
+          field('Acteur', e.acteur, (v) => { e.acteur = v; save(); }),
+        );
+        card.appendChild(grid);
+
+        const row = document.createElement('div');
+        row.className = 'jt__fiche-row';
+        const prog = document.createElement('label');
+        prog.textContent = 'Progression';
+        prog.appendChild(
+          boxes(e.progression, 4, (i) => {
+            e.progression = e.progression === i ? i - 1 : i;
+            save();
+            renderEchos();
+          }),
+        );
+        row.appendChild(prog);
+
+        const resolu = document.createElement('label');
+        resolu.className = 'jt__resolu';
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.checked = e.resolu;
+        chk.addEventListener('change', () => {
+          e.resolu = chk.checked;
+          if (e.resolu) state.pointsDestin += 1; // résolu → +1 PD
+          save();
+          renderEchos();
+          renderStatus();
+          syncManual();
+        });
+        resolu.append(chk, document.createTextNode('Résolu (+1 PD)'));
+        row.appendChild(resolu);
+
+        row.appendChild(
+          supprBtn(() => {
+            state.echos.splice(idx, 1);
+            save();
+            renderEchos();
+            renderStatus();
+          }),
+        );
+        card.appendChild(row);
+        host.appendChild(card);
+      });
+    }
+
+    function renderChallenges(): void {
+      const host = $('[data-list="challenges"]');
+      host.innerHTML = '';
+      $('[data-chal-count]').textContent = String(state.challenges.length);
+      if (state.challenges.length === 0) {
+        host.innerHTML = '<p class="jt__empty">Aucun challenge actif.</p>';
+        return;
+      }
+      state.challenges.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = 'jt__fiche';
+        const grid = document.createElement('div');
+        grid.className = 'jt__fiche-grid';
+        grid.append(
+          field('Nom', c.nom, (v) => { c.nom = v; save(); }),
+          select<Posture>('Posture', c.posture, [
+            { v: 'H', t: POSTURE_LABEL.H }, { v: 'N', t: POSTURE_LABEL.N }, { v: 'A', t: POSTURE_LABEL.A },
+          ], (v) => { c.posture = v; save(); }),
+          field('Impulsion', c.impulsion, (v) => { c.impulsion = v; save(); }),
+          field('Danger', c.danger, (v) => { c.danger = v; save(); }),
+          field('Faiblesse', c.faiblesse, (v) => { c.faiblesse = v; save(); }),
+          field('Menace', c.menace, (v) => { c.menace = v; save(); }),
+        );
+        card.appendChild(grid);
+
+        const row = document.createElement('div');
+        row.className = 'jt__fiche-row';
+        const vit = document.createElement('label');
+        vit.textContent = 'Vitalité';
+        vit.appendChild(
+          boxes(c.vitalite, 4, (i) => {
+            c.vitalite = c.vitalite === i ? i - 1 : i;
+            save();
+            renderChallenges();
+          }),
+        );
+        row.appendChild(vit);
+        if (c.vitalite >= 4) {
+          const v = document.createElement('span');
+          v.className = 'jt__badge';
+          v.textContent = 'Vaincu';
+          row.appendChild(v);
+        }
+        row.appendChild(
+          supprBtn(() => {
+            state.challenges.splice(idx, 1);
+            save();
+            renderChallenges();
+          }),
+        );
+        card.appendChild(row);
+        host.appendChild(card);
+      });
+    }
+
+    function renderDescriptions(): void {
+      const host = $('[data-list="descriptions"]');
+      host.innerHTML = '';
+      $('[data-desc-count]').textContent = String(state.descriptions.length);
+      if (state.descriptions.length === 0) {
+        host.innerHTML = '<p class="jt__empty">Aucune fiche de description.</p>';
+        return;
+      }
+      state.descriptions.forEach((d, idx) => {
+        const card = document.createElement('div');
+        card.className = 'jt__fiche';
+        const grid = document.createElement('div');
+        grid.className = 'jt__fiche-grid';
+        grid.append(
+          select<TypeDescription>('Type', d.type, [
+            { v: 'lieu', t: TYPE_DESCRIPTION_LABEL.lieu }, { v: 'pnj', t: TYPE_DESCRIPTION_LABEL.pnj },
+            { v: 'objet', t: TYPE_DESCRIPTION_LABEL.objet }, { v: 'faction', t: TYPE_DESCRIPTION_LABEL.faction },
+          ], (v) => { d.type = v; save(); }),
+          field('Nom', d.nom, (v) => { d.nom = v; save(); }),
+          field('Trait 1', d.trait1, (v) => { d.trait1 = v; save(); }),
+          field('Trait 2', d.trait2, (v) => { d.trait2 = v; save(); }),
+        );
+        card.appendChild(grid);
+        const row = document.createElement('div');
+        row.className = 'jt__fiche-row';
+        row.appendChild(supprBtn(() => { state.descriptions.splice(idx, 1); save(); renderDescriptions(); }));
+        card.appendChild(row);
+        host.appendChild(card);
+      });
+    }
+
+    function renderCompagnons(): void {
+      const host = $('[data-list="compagnons"]');
+      host.innerHTML = '';
+      $('[data-comp-count]').textContent = String(state.compagnons.length);
+      if (state.compagnons.length === 0) {
+        host.innerHTML = '<p class="jt__empty">Aucun compagnon actif.</p>';
+        return;
+      }
+      state.compagnons.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = 'jt__fiche';
+        const grid = document.createElement('div');
+        grid.className = 'jt__fiche-grid';
+        grid.append(
+          select<Cavalier>('Cavalier', c.cavalier, [
+            { v: 'pique', t: CAVALIER_LABEL.pique }, { v: 'coeur', t: CAVALIER_LABEL.coeur },
+            { v: 'trefle', t: CAVALIER_LABEL.trefle }, { v: 'carreau', t: CAVALIER_LABEL.carreau },
+          ], (v) => { c.cavalier = v; save(); }),
+          field('Nom', c.nom, (v) => { c.nom = v; save(); }),
+          field('Concurrence (domaine)', c.concurrenceDomaine, (v) => { c.concurrenceDomaine = v; save(); }),
+        );
+        const seuil = document.createElement('label');
+        seuil.textContent = 'Concurrence (seuil %)';
+        const inp = document.createElement('input');
+        inp.type = 'number';
+        inp.min = '0';
+        inp.max = '100';
+        inp.value = String(c.concurrenceSeuil);
+        inp.addEventListener('input', () => { c.concurrenceSeuil = Math.max(0, Math.min(100, Math.round(Number(inp.value) || 0))); save(); });
+        seuil.appendChild(inp);
+        grid.append(
+          seuil,
+          field('Complémentarité', c.complementarite, (v) => { c.complementarite = v; save(); }),
+          field('Caractère', c.caractere, (v) => { c.caractere = v; save(); }),
+        );
+        card.appendChild(grid);
+        const row = document.createElement('div');
+        row.className = 'jt__fiche-row';
+        row.appendChild(supprBtn(() => { state.compagnons.splice(idx, 1); save(); renderCompagnons(); }));
+        card.appendChild(row);
+        host.appendChild(card);
+      });
+    }
+
+    function renderIntention(): void {
+      const host = $('[data-intention]');
+      host.innerHTML = '';
+      const champs: { key: keyof typeof state.intention; label: string }[] = [
+        { key: 'themes', label: 'Thèmes (1–3 mots)' },
+        { key: 'ton', label: 'Ton (1–2 adjectifs)' },
+        { key: 'verites', label: 'Vérités sur le monde' },
+        { key: 'vivre', label: 'Ce que je veux vivre' },
+        { key: 'eviter', label: 'Ce que je veux éviter (X-card)' },
+        { key: 'question', label: 'Question viscérale' },
+        { key: 'filsRouges', label: 'Fils rouges (continuité)' },
+      ];
+      for (const c of champs) {
+        host.appendChild(
+          field(c.label, state.intention[c.key], (v) => { state.intention[c.key] = v; save(); }, true),
+        );
+      }
+    }
+
+    /* ---- Actions ---- */
+    function renderAll(): void {
+      renderStatus();
+      syncManual();
+      renderEchos();
+      renderChallenges();
+      renderDescriptions();
+      renderCompagnons();
+      renderIntention();
+      renderResonance();
+      renderAiguillage();
+    }
+
+    root.addEventListener('click', (ev) => {
+      const target = (ev.target as HTMLElement).closest('[data-act],[data-add],[data-signe]') as HTMLElement | null;
+      if (!target) return;
+
+      const act = target.dataset.act;
+      if (act === 'avancer') { state.position = Math.max(1, state.position - 1); save(); renderStatus(); syncManual(); }
+      else if (act === 'pd-plus') { state.pointsDestin += 1; save(); renderStatus(); syncManual(); }
+      else if (act === 'pd-depenser') {
+        if (state.pointsDestin > 0) {
+          state.pointsDestin -= 1;
+          state.retournees += 1;
+          state.position = Math.max(1, state.position - 1); // un emplacement contracté / scène sautée
+          save(); renderStatus(); syncManual();
+        }
+      } else if (act === 'reremplir') {
+        const r = reRemplissage(state);
+        state = r.state;
+        save(); renderStatus(); syncManual(); renderEchos();
+        dataMsg.textContent = r.denouementForce
+          ? `Re-remplissage : ${r.pdDepenses} PD dépensés → dénouement FORCÉ (plafond ${r.nouveauPlafond} ≤ Charge).`
+          : `Re-remplissage : ${r.pdDepenses} PD dépensés, nouveau plafond ${r.nouveauPlafond}.`;
+      } else if (act === 'exporter') {
+        const blob = exportData(state);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'jauges-tarot-campagne.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      } else if (act === 'reset') {
+        if (confirm('Réinitialiser toute la campagne ? Cette action est irréversible.')) {
+          state = creerEtatInitial();
+          save(); renderAll();
+          dataMsg.textContent = 'Campagne réinitialisée.';
+        }
+      }
+
+      const add = target.dataset.add;
+      if (add === 'echo') {
+        state.echos.push({ id: uid(), titre: '', intrigue: '', lieu: '', acteur: '', progression: 0, resolu: false });
+        save(); renderEchos(); renderStatus();
+      } else if (add === 'challenge') {
+        if (state.challenges.length >= MAX_FICHES) { dataMsg.textContent = `Maximum ${MAX_FICHES} challenges.`; return; }
+        state.challenges.push({ id: uid(), nom: '', posture: 'H', impulsion: '', danger: '', faiblesse: '', menace: '', vitalite: 0 });
+        save(); renderChallenges();
+      } else if (add === 'description') {
+        if (state.descriptions.length >= MAX_FICHES) { dataMsg.textContent = `Maximum ${MAX_FICHES} descriptions.`; return; }
+        state.descriptions.push({ id: uid(), type: 'lieu', nom: '', trait1: '', trait2: '' });
+        save(); renderDescriptions();
+      } else if (add === 'compagnon') {
+        if (state.compagnons.length >= MAX_COMPAGNONS) { dataMsg.textContent = `Maximum ${MAX_COMPAGNONS} compagnons.`; return; }
+        state.compagnons.push({ id: uid(), cavalier: 'pique', nom: '', concurrenceDomaine: '', concurrenceSeuil: 0, complementarite: '', caractere: '' });
+        save(); renderCompagnons();
+      }
+
+      const sg = target.dataset.signe as Signe | undefined;
+      if (sg) {
+        signe = signe === sg ? null : sg;
+        for (const b of root.querySelectorAll<HTMLButtonElement>('[data-signe]')) {
+          b.setAttribute('aria-pressed', String(b.dataset.signe === signe));
+        }
+        renderResonance();
+      }
+    });
+
+    // Champs manuels
+    for (const f of ['plafond', 'position', 'retournees', 'pointsDestin'] as const) {
+      $(`[data-field="${f}"]`).addEventListener('input', (ev) => {
+        const v = Math.max(0, Math.round(Number((ev.target as HTMLInputElement).value) || 0));
+        if (f === 'plafond') state.plafond = Math.min(12, Math.max(1, v));
+        else if (f === 'position') state.position = Math.min(state.plafond, Math.max(1, v));
+        else state[f] = v;
+        save(); renderStatus();
+      });
+    }
+
+    $('[data-aig-input]').addEventListener('input', renderAiguillage);
+
+    $('[data-import]').addEventListener('change', async (ev) => {
+      const file = (ev.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const data = await importData<JaugeTarotState>(file);
+        const v = validateState(data);
+        if (!v.ok) throw new Error('format');
+        state = v.value;
+        save(); renderAll();
+        dataMsg.textContent = 'Campagne importée.';
+      } catch {
+        dataMsg.textContent = 'Import impossible : fichier invalide.';
+      }
+    });
+
+    renderAll();
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.jt')) {
+    initBoard(root);
+  }
+</script>

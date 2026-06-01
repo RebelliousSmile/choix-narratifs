@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JaugesTarotBoard from '../../components/JaugesTarotBoard.astro';
+---
+
+<BaseLayout
+  title="Jauges & Tarot — tableau de bord solo"
+  description="Le tableau de bord en ligne de Jauges & Tarot : suivez la Jauge Narrative, la Charge Mentale, les Points de Destin et vos fiches de campagne pour jouer en solo sans MJ."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Jauges &amp; Tarot</h1>
+      <p class="outil__intro">
+        Un moteur de campagne solo qui se pose par-dessus n'importe quel jeu de
+        rôle : il décide du rythme des scènes (Jauge Narrative) et garde la
+        mémoire des fils ouverts (Charge Mentale). Ce tableau de bord suit pour
+        vous les jauges, les Points de Destin, les déclencheurs de re-remplissage
+        et de dénouement, et héberge vos fiches. Tout reste dans votre navigateur.
+      </p>
+      <p class="outil__note">
+        Le contenu des cartes (tarot à jouer, deck <em>Muses &amp; Oracles</em>)
+        et la résolution de votre jeu restent à la table : ce tableau de bord
+        gère la couche « Jauges &amp; Tarot », pas les autres.
+      </p>
+    </header>
+
+    <JaugesTarotBoard />
+
+    <aside class="parallaxe-cta">
+      <div class="parallaxe-cta__body">
+        <p class="parallaxe-cta__title">Le matériel physique de Jauges &amp; Tarot</p>
+        <p class="parallaxe-cta__text">
+          Règles complètes, gabarits d'impression et dos de cartes à annoter
+          sont disponibles sur itch.io pour jouer entièrement sur table.
+        </p>
+      </div>
+      <a
+        class="parallaxe-cta__btn"
+        href="https://tnnka.itch.io/jauges-et-tarots"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Récupérer Jauges &amp; Tarot sur itch.io
+        <span class="visually-hidden"> (nouvel onglet)</span>
+      </a>
+    </aside>
+
+    <footer class="outil__footer">
+      <p>
+        <a href="/solo">&larr; Retour aux outils solo</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 48rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .outil__note {
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+
+    .parallaxe-cta {
+      margin-top: var(--space-5);
+      max-width: 52rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md, 12px);
+    }
+    .parallaxe-cta__body {
+      flex: 1 1 18rem;
+    }
+    .parallaxe-cta__title {
+      margin: 0 0 0.25rem;
+      font-weight: 700;
+    }
+    .parallaxe-cta__text {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .parallaxe-cta__btn {
+      flex: none;
+      display: inline-block;
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-sm, 6px);
+      font-weight: 600;
+    }
+    .parallaxe-cta__btn:hover,
+    .parallaxe-cta__btn:focus-visible {
+      background: var(--color-accent-strong);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</BaseLayout>
