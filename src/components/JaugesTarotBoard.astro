@@ -12,18 +12,8 @@
   <!-- Statut dérivé -->
   <div class="jt__status" data-status aria-live="polite"></div>
 
-  <!-- Affectation des couleurs (choix permanent) -->
-  <details class="jt__setup">
-    <summary>Affectation des couleurs du tarot aux zones (choix permanent)</summary>
-    <p class="jt__panel-hint">
-      Chaque zone correspond à une couleur du tarot à jouer. Réassigner une zone
-      permute avec celle qui portait déjà la couleur (les 4 restent distinctes).
-    </p>
-    <div class="jt__couleurs" data-couleurs></div>
-  </details>
-
   <!-- ============ FAMILLE : LES 4 COULEURS ============ -->
-  <h3 class="jt__family">Les 4 couleurs <span>le tarot à jouer · une couleur par zone</span></h3>
+  <h3 class="jt__family">Les 4 couleurs <span>le tarot à jouer · une couleur fixe par zone</span></h3>
 
   <div class="jt__cols">
     <!-- Jauge Narrative (zone A) -->
@@ -269,24 +259,6 @@
   }
   .jt__figure {
     border-left: 5px dashed var(--color-text-muted);
-  }
-
-  .jt__setup {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md, 12px);
-    padding: var(--space-3) var(--space-4);
-    margin-bottom: var(--space-3);
-  }
-  .jt__setup summary {
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .jt__couleurs {
-    display: grid;
-    gap: 0.6rem;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    margin-top: 0.75rem;
   }
 
   /* Statut */
@@ -564,10 +536,10 @@
     denouementNormal,
     reRemplissage,
     validateState,
-    affecterCouleur,
     ouvrirLigne,
     retirerArcanes,
     etatLigne,
+    AFFECTATION_COULEURS,
     CAVALIER_LABEL,
     POSTURE_LABEL,
     TYPE_DESCRIPTION_LABEL,
@@ -596,8 +568,6 @@
     descriptions: 'C',
     challenges: 'D',
   };
-  const COULEURS: Couleur[] = ['pique', 'coeur', 'trefle', 'carreau'];
-
   function uid(): string {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
@@ -628,45 +598,13 @@
       }
     }
 
-    /* ---- Affectation des couleurs ---- */
+    /* ---- Couleurs (mapping FIXE, symbolique du système) ---- */
     function suitColor(c: Couleur): string {
       return COULEUR_ROUGE[c] ? '#e0697c' : '#cfc8e0';
     }
-    function renderCouleurs(): void {
-      const host = $('[data-couleurs]');
-      host.innerHTML = '';
-      (Object.keys(ZONE_LETTRE) as ZoneCouleur[]).forEach((zone) => {
-        const zoneLabel =
-          zone === 'jauge'
-            ? 'Jauge Narrative'
-            : zone === 'charge'
-              ? 'Charge Mentale'
-              : zone === 'descriptions'
-                ? 'Descriptions'
-                : 'Challenges';
-        const l = document.createElement('label');
-        l.textContent = `${zoneLabel} (zone ${ZONE_LETTRE[zone]})`;
-        const sel = document.createElement('select');
-        for (const c of COULEURS) {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = `${COULEUR_SYMBOLE[c]} ${COULEUR_LABEL[c]}`;
-          if (state.couleurs[zone] === c) opt.selected = true;
-          sel.appendChild(opt);
-        }
-        sel.addEventListener('change', () => {
-          state.couleurs = affecterCouleur(state.couleurs, zone, sel.value as Couleur);
-          save();
-          renderCouleurs();
-          applyZoneTags();
-        });
-        l.appendChild(sel);
-        host.appendChild(l);
-      });
-    }
     function applyZoneTags(): void {
       (Object.keys(ZONE_LETTRE) as ZoneCouleur[]).forEach((zone) => {
-        const c = state.couleurs[zone];
+        const c = AFFECTATION_COULEURS[zone];
         const tag = root.querySelector<HTMLElement>(`[data-zone-tag="${zone}"]`);
         if (tag) {
           tag.innerHTML = `<span class="jt__suit ${COULEUR_ROUGE[c] ? 'is-rouge' : ''}">${COULEUR_SYMBOLE[c]}</span> ${esc(COULEUR_LABEL[c])} · Couleur ${ZONE_LETTRE[zone]}`;
@@ -1043,7 +981,6 @@
     }
 
     function renderAll(): void {
-      renderCouleurs();
       applyZoneTags();
       renderStatus();
       syncManual();

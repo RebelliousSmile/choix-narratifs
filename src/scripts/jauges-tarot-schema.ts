@@ -110,8 +110,6 @@ export interface JaugeTarotState {
   compagnons: FicheCompagnon[];
   ressources: FicheRessource[];
   intention: FicheIntention;
-  /** Affectation des 4 couleurs du tarot aux 4 zones (choix permanent). */
-  couleurs: AffectationCouleurs;
   ligne: LigneTemps;
 }
 
@@ -176,12 +174,16 @@ export function creerIntentionVide(): FicheIntention {
 }
 
 /**
- * Affectation par défaut des couleurs (suit la suggestion du canon : Cœur →
- * Charge Mentale, Pique → Challenge). Reste une bijection zone ↔ couleur.
+ * Affectation FIXE des couleurs du tarot aux zones. C'est une part symbolique du
+ * système : le mapping ne se permute pas (Cœur → Charge Mentale, Pique →
+ * Challenge, Trèfle → Jauge Narrative, Carreau → Descriptions).
  */
-export function affectationParDefaut(): AffectationCouleurs {
-  return { jauge: 'trefle', charge: 'coeur', descriptions: 'carreau', challenges: 'pique' };
-}
+export const AFFECTATION_COULEURS: AffectationCouleurs = {
+  jauge: 'trefle',
+  charge: 'coeur',
+  descriptions: 'carreau',
+  challenges: 'pique',
+};
 
 export function creerEtatInitial(): JaugeTarotState {
   return {
@@ -195,7 +197,6 @@ export function creerEtatInitial(): JaugeTarotState {
     compagnons: [],
     ressources: [],
     intention: creerIntentionVide(),
-    couleurs: affectationParDefaut(),
     ligne: { ouverte: false, position: LIGNE_DEPART },
   };
 }
@@ -315,24 +316,6 @@ export function reRemplissage(state: JaugeTarotState): ResultatReRemplissage {
 
 export type ZoneCouleur = keyof AffectationCouleurs;
 
-/**
- * Assigne `couleur` à `zone` en conservant une bijection : si une autre zone
- * portait déjà cette couleur, elle reçoit en échange l'ancienne couleur de
- * `zone` (permutation). Renvoie une nouvelle affectation.
- */
-export function affecterCouleur(
-  couleurs: AffectationCouleurs,
-  zone: ZoneCouleur,
-  couleur: Couleur,
-): AffectationCouleurs {
-  const next: AffectationCouleurs = { ...couleurs };
-  const ancienne = next[zone];
-  const autre = (Object.keys(next) as ZoneCouleur[]).find((z) => z !== zone && next[z] === couleur);
-  next[zone] = couleur;
-  if (autre) next[autre] = ancienne;
-  return next;
-}
-
 export function ouvrirLigne(depart: number = LIGNE_DEPART): LigneTemps {
   return { ouverte: true, position: Math.max(1, Math.min(LIGNE_DEPART, Math.round(depart))) };
 }
@@ -404,9 +387,6 @@ export function validateState(data: unknown): ValidationResult<JaugeTarotState> 
     intention: isRecord(data.intention)
       ? { ...base.intention, ...(data.intention as Partial<FicheIntention>) }
       : base.intention,
-    couleurs: isRecord(data.couleurs)
-      ? { ...base.couleurs, ...(data.couleurs as Partial<AffectationCouleurs>) }
-      : base.couleurs,
     ligne,
   };
   return { ok: true, value };

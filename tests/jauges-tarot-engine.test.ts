@@ -9,8 +9,6 @@ import {
   denouementNormal,
   reRemplissage,
   validateState,
-  affectationParDefaut,
-  affecterCouleur,
   ouvrirLigne,
   retirerArcanes,
   etatLigne,
@@ -104,22 +102,6 @@ describe('reRemplissage (arcane 13)', () => {
     const s: JaugeTarotState = { ...creerEtatInitial(), retournees: 3 };
     reRemplissage(s);
     expect(s.retournees).toBe(3);
-  });
-});
-
-describe('affecterCouleur (bijection)', () => {
-  it('permute quand la couleur est déjà prise par une autre zone', () => {
-    const base = affectationParDefaut(); // jauge=trefle, charge=coeur, descriptions=carreau, challenges=pique
-    const next = affecterCouleur(base, 'jauge', 'pique'); // pique était sur challenges
-    expect(next.jauge).toBe('pique');
-    expect(next.challenges).toBe('trefle'); // a récupéré l'ancienne couleur de jauge
-    // reste une bijection : 4 couleurs distinctes
-    expect(new Set(Object.values(next)).size).toBe(4);
-  });
-  it('sans conflit, assigne simplement', () => {
-    const base = affectationParDefaut();
-    const next = affecterCouleur(base, 'jauge', 'trefle'); // déjà sa couleur
-    expect(next).toEqual(base);
   });
 });
 
