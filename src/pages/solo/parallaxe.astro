@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ParallaxeDraw from '../../components/ParallaxeDraw.astro';
+import { validateDeck, type DeckParallaxe } from '../../scripts/parallaxe-schema';
+import deckData from '../../data/parallaxe.json';
+
+const result = validateDeck(deckData);
+const deck: DeckParallaxe | null = result.ok ? result.value : null;
+---
+
+<BaseLayout
+  title="Parallaxe — tirage narratif solo"
+  description="Parallaxe en ligne : un deck de 54 cartes qui recadre la scène pour débloquer vos décisions narratives en jeu de rôle solo. Filtrez le pool, tirez, lisez."
+>
+  <article class="outil">
+    <header class="outil__header">
+      <h1>Parallaxe</h1>
+      <p class="outil__intro">
+        Parallaxe ne répond pas par oui ou non comme un oracle : il
+        <strong>recadre</strong> la situation pour que la décision se débloque
+        d'elle-même. Tirez quand une décision narrative se présente sans réponse
+        évidente. Filtrez d'abord le pool selon le contexte de la scène, puis
+        tirez une carte et lisez sa phrase, ses impulsions et son signe.
+      </p>
+    </header>
+
+    {
+      deck ? (
+        <ParallaxeDraw deck={deck} />
+      ) : (
+        <p>Le deck Parallaxe est momentanément indisponible.</p>
+      )
+    }
+
+    <footer class="outil__footer">
+      <p class="outil__source">
+        Parallaxe est une surcouche universelle pour le JdR solo : un deck de 54
+        cartes (53 thématiques + une carte Pause). Les impulsions sont des
+        angles, pas des consignes ; le signe est à inventer dans votre univers.
+        Aucune carte ne ferme : si elle ne fait pas sens, retirez ou décidez
+        sans elle.
+      </p>
+      <p>
+        <a href="/solo">&larr; Retour aux outils solo</a>
+      </p>
+    </footer>
+  </article>
+
+  <style>
+    .outil__header {
+      max-width: 44rem;
+      margin-bottom: var(--space-4);
+    }
+    .outil__intro {
+      color: var(--color-text-muted);
+      font-size: 1.05rem;
+    }
+    .outil__footer {
+      margin-top: var(--space-5);
+      max-width: 44rem;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .outil__source {
+      border-left: 3px solid var(--color-border);
+      padding-left: var(--space-3);
+    }
+  </style>
+</BaseLayout>

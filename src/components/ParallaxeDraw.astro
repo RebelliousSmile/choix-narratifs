@@ -1,0 +1,550 @@
+---
+import type { DeckParallaxe } from '../scripts/parallaxe-schema';
+
+export interface Props {
+  deck: DeckParallaxe;
+}
+
+const { deck } = Astro.props;
+const deckJson = JSON.stringify(deck);
+const total = deck.cartes.length;
+---
+
+<section class="parallaxe" aria-labelledby="parallaxe-title" data-deck={deckJson}>
+  <h2 id="parallaxe-title" class="visually-hidden">Tirage Parallaxe</h2>
+
+  <!-- Filtrage du pool -->
+  <div class="parallaxe__filtres">
+    <p class="parallaxe__filtres-intro">
+      Avant de tirer, écartez les cartes hors-contexte (dix secondes). Rien de
+      coché dans une colonne = tout est gardé.
+    </p>
+
+    <fieldset class="parallaxe__group" data-group="focales">
+      <legend>Focale <span class="parallaxe__hint">point de vue</span></legend>
+      <div class="parallaxe__chips" data-chips="focales"></div>
+    </fieldset>
+
+    <fieldset class="parallaxe__group" data-group="tonalites">
+      <legend>Tonalité <span class="parallaxe__hint">direction</span></legend>
+      <div class="parallaxe__chips" data-chips="tonalites"></div>
+    </fieldset>
+
+    <fieldset class="parallaxe__group" data-group="archetypes">
+      <legend>Archétype <span class="parallaxe__hint">plus rare</span></legend>
+      <div class="parallaxe__chips" data-chips="archetypes"></div>
+    </fieldset>
+
+    <label class="parallaxe__pause-toggle">
+      <input type="checkbox" data-pause checked />
+      Garder la carte <strong>Pause</strong> dans le pool (~2&nbsp;%)
+    </label>
+
+    <div class="parallaxe__actions">
+      <button type="button" class="parallaxe__draw" data-draw>
+        Tirer une carte
+      </button>
+      <button type="button" class="parallaxe__reset" data-reset>
+        Réinitialiser les filtres
+      </button>
+      <p class="parallaxe__pool" aria-live="polite" data-pool>
+        <span data-pool-count>{total}</span> / {total} cartes dans le pool
+      </p>
+    </div>
+  </div>
+
+  <!-- Résultat du tirage -->
+  <div class="parallaxe__result" data-result hidden></div>
+</section>
+
+<style>
+  .parallaxe {
+    max-width: 44rem;
+    margin: 0 auto;
+  }
+
+  .parallaxe__filtres-intro {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin: 0 0 1rem;
+  }
+
+  .parallaxe__group {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    padding: 0.75rem 1rem 1rem;
+    margin: 0 0 1rem;
+  }
+  .parallaxe__group legend {
+    font-weight: 700;
+    padding-inline: 0.4rem;
+  }
+  .parallaxe__hint {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .parallaxe__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .parallaxe__chip {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .parallaxe__chip:hover,
+  .parallaxe__chip:focus-visible {
+    border-color: var(--color-accent-strong);
+    background: var(--color-surface-alt);
+  }
+  .parallaxe__chip[aria-pressed='true'] {
+    border-color: var(--color-accent-strong);
+    background: var(--color-surface-alt);
+    font-weight: 600;
+  }
+  .parallaxe__chip-icone {
+    font-size: 0.85em;
+    opacity: 0.85;
+  }
+  .parallaxe__chip-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+    flex: none;
+  }
+
+  .parallaxe__pause-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .parallaxe__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .parallaxe__draw {
+    font: inherit;
+    font-weight: 700;
+    padding: 0.6rem 1.4rem;
+    border: 0;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .parallaxe__draw:hover,
+  .parallaxe__draw:focus-visible {
+    background: var(--color-accent-strong);
+  }
+  .parallaxe__draw:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .parallaxe__reset {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .parallaxe__reset:hover {
+    background: var(--color-border);
+  }
+  .parallaxe__pool {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Carte tirée */
+  .parallaxe__result {
+    margin-top: 1.75rem;
+  }
+  .parallaxe__carte {
+    border: 1px solid var(--color-border);
+    border-top: 6px solid var(--carte-couleur, var(--color-accent));
+    border-radius: var(--radius-md, 12px);
+    background: var(--color-surface);
+    padding: 1.5rem;
+  }
+  .parallaxe__carte--pause {
+    --carte-couleur: var(--color-focus);
+  }
+  .parallaxe__carte-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .parallaxe__carte-num {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+  .parallaxe__marqueur {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+  }
+  .parallaxe__marqueur-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+    flex: none;
+  }
+  .parallaxe__carte-nom {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 1.5rem;
+  }
+  .parallaxe__carte-phrase {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: var(--color-text);
+  }
+  .parallaxe__bloc {
+    margin: 0 0 0.85rem;
+  }
+  .parallaxe__bloc-titre {
+    margin: 0 0 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-strong);
+  }
+  .parallaxe__impulsions {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .parallaxe__impulsions li {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+  }
+  .parallaxe__signe {
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  .parallaxe__precise {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--color-border);
+  }
+  .parallaxe__precise-btn {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-accent-strong);
+    border-radius: var(--radius-sm, 6px);
+    background: transparent;
+    color: var(--color-accent-strong);
+    cursor: pointer;
+  }
+  .parallaxe__precise-btn:hover {
+    background: var(--color-surface-alt);
+  }
+  .parallaxe__precise-hint {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  .parallaxe__axes {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .parallaxe__axes li {
+    font-size: 0.85rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+  }
+  .parallaxe__axes-source {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  import {
+    validateDeck,
+    filtrerPool,
+    tirerCarte,
+    estPause,
+    filtreVide,
+    ARCHETYPES,
+    FOCALES,
+    TONALITES,
+    ARCHETYPE_LABEL,
+    ARCHETYPE_COULEUR,
+    FOCALE_LABEL,
+    FOCALE_ICONE,
+    TONALITE_LABEL,
+    TONALITE_SYMBOLE,
+    TANGIBLE_LABEL,
+    REGISTRE_LABEL,
+    TEMPS_LABEL,
+    RECURRENCE_LABEL,
+    type Carte,
+    type Filtre,
+    type Archetype,
+    type Focale,
+    type Tonalite,
+  } from '../scripts/parallaxe-schema';
+
+  function escapeHtml(value: string): string {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
+  }
+
+  function initParallaxe(root: HTMLElement): void {
+    const raw = root.dataset.deck;
+    if (!raw) return;
+    const parsed = validateDeck(JSON.parse(raw));
+    if (!parsed.ok) {
+      root.innerHTML = '<p>Le deck Parallaxe est indisponible.</p>';
+      return;
+    }
+    const deck = parsed.value;
+
+    const filtre: Filtre = filtreVide();
+
+    const poolCount = root.querySelector<HTMLElement>('[data-pool-count]')!;
+    const drawBtn = root.querySelector<HTMLButtonElement>('[data-draw]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const pauseInput = root.querySelector<HTMLInputElement>('[data-pause]')!;
+    const resultEl = root.querySelector<HTMLElement>('[data-result]')!;
+
+    // Carte principale en cours, pour le 2e tirage « préciser ».
+    let cartePrincipale: Carte | null = null;
+
+    function refreshPool(): void {
+      filtre.inclurePause = pauseInput.checked;
+      const pool = filtrerPool(deck.cartes, filtre);
+      poolCount.textContent = String(pool.length);
+      drawBtn.disabled = pool.length === 0;
+    }
+
+    type ChipDef<T extends string> = { value: T; label: string; render: (b: HTMLButtonElement) => void };
+
+    function buildChips<T extends string>(
+      key: 'focales' | 'tonalites' | 'archetypes',
+      defs: ChipDef<T>[],
+    ): void {
+      const host = root.querySelector<HTMLElement>(`[data-chips="${key}"]`)!;
+      const selected = filtre[key] as T[];
+      for (const def of defs) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'parallaxe__chip';
+        btn.setAttribute('aria-pressed', 'false');
+        def.render(btn);
+        btn.addEventListener('click', () => {
+          const i = selected.indexOf(def.value);
+          if (i >= 0) selected.splice(i, 1);
+          else selected.push(def.value);
+          btn.setAttribute('aria-pressed', String(selected.includes(def.value)));
+          refreshPool();
+        });
+        host.appendChild(btn);
+      }
+    }
+
+    buildChips<Focale>(
+      'focales',
+      FOCALES.map((value) => ({
+        value,
+        label: FOCALE_LABEL[value],
+        render: (b) => {
+          b.innerHTML = `<span class="parallaxe__chip-icone">${FOCALE_ICONE[value]}</span>${escapeHtml(FOCALE_LABEL[value])}`;
+        },
+      })),
+    );
+
+    buildChips<Tonalite>(
+      'tonalites',
+      TONALITES.map((value) => ({
+        value,
+        label: TONALITE_LABEL[value],
+        render: (b) => {
+          b.innerHTML = `<span class="parallaxe__chip-icone">${TONALITE_SYMBOLE[value]}</span>${escapeHtml(TONALITE_LABEL[value])}`;
+        },
+      })),
+    );
+
+    buildChips<Archetype>(
+      'archetypes',
+      ARCHETYPES.map((value) => ({
+        value,
+        label: ARCHETYPE_LABEL[value],
+        render: (b) => {
+          b.innerHTML = `<span class="parallaxe__chip-dot" style="background:${ARCHETYPE_COULEUR[value]}"></span>${escapeHtml(ARCHETYPE_LABEL[value])}`;
+        },
+      })),
+    );
+
+    function renderAxes(carte: Carte): string {
+      if (!carte.axes) return '';
+      const a = carte.axes;
+      const items = [
+        TANGIBLE_LABEL[a.tangible],
+        REGISTRE_LABEL[a.registre],
+        TEMPS_LABEL[a.temps],
+        RECURRENCE_LABEL[a.recurrence],
+      ];
+      return `<ul class="parallaxe__axes">${items
+        .map((t) => `<li>${escapeHtml(t)}</li>`)
+        .join('')}</ul>`;
+    }
+
+    function renderCarte(carte: Carte): void {
+      cartePrincipale = carte;
+      const impulsions = carte.impulsions
+        .map((m) => `<li>${escapeHtml(m)}</li>`)
+        .join('');
+
+      if (estPause(carte)) {
+        resultEl.innerHTML = `
+          <article class="parallaxe__carte parallaxe__carte--pause">
+            <div class="parallaxe__carte-meta">
+              <span class="parallaxe__carte-num">#${carte.num}</span>
+              <span class="parallaxe__marqueur">Pause</span>
+            </div>
+            <h3 class="parallaxe__carte-nom">${escapeHtml(carte.nom)}</h3>
+            <p class="parallaxe__carte-phrase">${escapeHtml(carte.phrase)}</p>
+            <div class="parallaxe__bloc">
+              <p class="parallaxe__bloc-titre">Impulsions</p>
+              <ul class="parallaxe__impulsions">${impulsions}</ul>
+            </div>
+            <div class="parallaxe__bloc">
+              <p class="parallaxe__bloc-titre">Signe</p>
+              <p class="parallaxe__signe">${escapeHtml(carte.signe)}</p>
+            </div>
+          </article>`;
+        return;
+      }
+
+      const couleur = ARCHETYPE_COULEUR[carte.archetype!];
+      resultEl.innerHTML = `
+        <article class="parallaxe__carte" style="--carte-couleur:${couleur}">
+          <div class="parallaxe__carte-meta">
+            <span class="parallaxe__carte-num">#${carte.num}</span>
+            <span class="parallaxe__marqueur">
+              <span class="parallaxe__marqueur-dot" style="background:${couleur}"></span>
+              ${escapeHtml(ARCHETYPE_LABEL[carte.archetype!])}
+            </span>
+            <span class="parallaxe__marqueur">${FOCALE_ICONE[carte.focale!]} ${escapeHtml(FOCALE_LABEL[carte.focale!])}</span>
+            <span class="parallaxe__marqueur">${TONALITE_SYMBOLE[carte.tonalite!]} ${escapeHtml(TONALITE_LABEL[carte.tonalite!])}</span>
+          </div>
+          <h3 class="parallaxe__carte-nom">${escapeHtml(carte.nom)}</h3>
+          <p class="parallaxe__carte-phrase">${escapeHtml(carte.phrase)}</p>
+          <div class="parallaxe__bloc">
+            <p class="parallaxe__bloc-titre">Impulsions</p>
+            <ul class="parallaxe__impulsions">${impulsions}</ul>
+          </div>
+          <div class="parallaxe__bloc">
+            <p class="parallaxe__bloc-titre">Signe</p>
+            <p class="parallaxe__signe">${escapeHtml(carte.signe)}</p>
+          </div>
+          <div class="parallaxe__precise" data-precise>
+            <p class="parallaxe__precise-hint">Trop large ? Tirez une 2<sup>e</sup> carte pour ne lire que ses axes secondaires (ils précisent la première).</p>
+            <button type="button" class="parallaxe__precise-btn" data-precise-btn>Préciser avec une 2<sup>e</sup> carte</button>
+          </div>
+        </article>`;
+
+      const preciseBtn = resultEl.querySelector<HTMLButtonElement>('[data-precise-btn]');
+      preciseBtn?.addEventListener('click', () => {
+        // 2e tirage : on lit UNIQUEMENT les axes secondaires (jamais la Pause).
+        const poolAxes = deck.cartes.filter((c) => !estPause(c) && c.num !== cartePrincipale?.num);
+        const seconde = tirerCarte(poolAxes);
+        const zone = resultEl.querySelector<HTMLElement>('[data-precise]');
+        if (!seconde || !zone) return;
+        zone.innerHTML = `
+          <p class="parallaxe__bloc-titre">Axes secondaires (précision)</p>
+          ${renderAxes(seconde)}
+          <p class="parallaxe__axes-source">Tirés de « ${escapeHtml(seconde.nom)} » — on ignore son thème, sa focale et sa tonalité.</p>`;
+      });
+    }
+
+    drawBtn.addEventListener('click', () => {
+      const pool = filtrerPool(deck.cartes, { ...filtre, inclurePause: pauseInput.checked });
+      const carte = tirerCarte(pool);
+      resultEl.hidden = false;
+      if (!carte) {
+        resultEl.innerHTML = '<p>Aucune carte dans le pool : élargissez les filtres.</p>';
+        return;
+      }
+      renderCarte(carte);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      // Vider en place : les chips conservent une référence vers ces tableaux.
+      filtre.focales.length = 0;
+      filtre.tonalites.length = 0;
+      filtre.archetypes.length = 0;
+      pauseInput.checked = true;
+      for (const btn of root.querySelectorAll<HTMLButtonElement>('.parallaxe__chip')) {
+        btn.setAttribute('aria-pressed', 'false');
+      }
+      refreshPool();
+    });
+
+    pauseInput.addEventListener('change', refreshPool);
+
+    refreshPool();
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.parallaxe[data-deck]')) {
+    initParallaxe(root);
+  }
+</script>

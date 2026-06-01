@@ -5,9 +5,11 @@ export interface Props {
   url: string;
   image?: string;
   tags?: string[];
+  /** true => outil interne : lien dans l'onglet courant, libellé « Utiliser ». */
+  internal?: boolean;
 }
 
-const { nom, description, url, image, tags = [] } = Astro.props;
+const { nom, description, url, image, tags = [], internal = false } = Astro.props;
 ---
 
 <article class="tool-card">
@@ -24,10 +26,18 @@ const { nom, description, url, image, tags = [] } = Astro.props;
         </ul>
       )
     }
-    <a class="tool-card__cta" href={url} target="_blank" rel="noopener noreferrer">
-      Ouvrir l'outil
-      <span class="visually-hidden"> (nouvel onglet)</span>
-    </a>
+    {
+      internal ? (
+        <a class="tool-card__cta" href={url}>
+          Utiliser l'outil
+        </a>
+      ) : (
+        <a class="tool-card__cta" href={url} target="_blank" rel="noopener noreferrer">
+          Ouvrir l'outil
+          <span class="visually-hidden"> (nouvel onglet)</span>
+        </a>
+      )
+    }
   </div>
 </article>
 

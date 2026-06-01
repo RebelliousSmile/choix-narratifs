@@ -9,6 +9,12 @@ export interface EmbedEntry {
   url: string;
   /** true => l'outil peut être affiché en iframe ; false => repli fiche + lien. */
   embeddable: boolean;
+  /**
+   * true => outil hébergé sur ce site (url interne) : la fiche ouvre la page
+   * dans l'onglet courant et invite à « Utiliser l'outil » plutôt que de
+   * renvoyer vers un site externe.
+   */
+  internal?: boolean;
   description: string;
   image?: string;
   tags: string[];
@@ -63,6 +69,9 @@ export function validateEmbeds(data: unknown): ValidationResult<EmbedEntry[]> {
     }
     if (typeof entry.embeddable !== 'boolean') {
       errors.push(`${prefix}.embeddable doit être un booléen.`);
+    }
+    if (entry.internal !== undefined && typeof entry.internal !== 'boolean') {
+      errors.push(`${prefix}.internal doit être un booléen si présent.`);
     }
     if (typeof entry.description !== 'string' || entry.description.length === 0) {
       errors.push(`${prefix}.description doit être une chaîne non vide.`);

@@ -10,9 +10,10 @@
   {
     "id": "parallaxe",
     "nom": "Parallaxe",
-    "url": "https://tnnka.itch.io/parallaxe",
+    "url": "/solo/parallaxe",
     "embeddable": false,
-    "description": "Aide à la création narrative solo en jouant sur les points de vue et les perspectives.",
+    "internal": true,
+    "description": "Deck de 54 cartes qui recadre la scène pour débloquer vos décisions narratives en solo. Filtrez le pool, tirez, lisez — directement en ligne.",
     "tags": ["solo", "narration", "perspective"]
   },
   {
