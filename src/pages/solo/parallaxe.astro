@@ -32,6 +32,25 @@ const deck: DeckParallaxe | null = result.ok ? result.value : null;
       )
     }
 
+    <aside class="parallaxe-cta">
+      <div class="parallaxe-cta__body">
+        <p class="parallaxe-cta__title">Envie de jouer Parallaxe sur table&nbsp;?</p>
+        <p class="parallaxe-cta__text">
+          Le deck physique (54 cartes à imprimer) est disponible sur itch.io —
+          idéal pour le manipuler en vrai à votre table de jeu.
+        </p>
+      </div>
+      <a
+        class="parallaxe-cta__btn"
+        href="https://tnnka.itch.io/parallaxe"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Récupérer le deck sur itch.io
+        <span class="visually-hidden"> (nouvel onglet)</span>
+      </a>
+    </aside>
+
     <footer class="outil__footer">
       <p class="outil__source">
         Parallaxe est une surcouche universelle pour le JdR solo : un deck de 54
@@ -64,6 +83,58 @@ const deck: DeckParallaxe | null = result.ok ? result.value : null;
     .outil__source {
       border-left: 3px solid var(--color-border);
       padding-left: var(--space-3);
+    }
+
+    .parallaxe-cta {
+      margin-top: var(--space-5);
+      max-width: 44rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md, 12px);
+    }
+    .parallaxe-cta__body {
+      flex: 1 1 18rem;
+    }
+    .parallaxe-cta__title {
+      margin: 0 0 0.25rem;
+      font-weight: 700;
+    }
+    .parallaxe-cta__text {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+    .parallaxe-cta__btn {
+      flex: none;
+      display: inline-block;
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-sm, 6px);
+      font-weight: 600;
+    }
+    .parallaxe-cta__btn:hover,
+    .parallaxe-cta__btn:focus-visible {
+      background: var(--color-accent-strong);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
   </style>
 </BaseLayout>

@@ -54,7 +54,13 @@ const totalMues = jeu.mues.length;
   </div>
 </section>
 
-<style>
+<!--
+  is:global est nécessaire : options, cartes de résultat et liste des mues sont
+  générées en JS (createElement / innerHTML) et ne portent donc pas le marqueur
+  de portée data-astro-cid-* que Astro exige sur les sélecteurs scopés. Tous les
+  sélecteurs sont préfixés `.funnel` (classe unique au composant) : aucune fuite.
+-->
+<style is:global>
   .funnel {
     max-width: 40rem;
     margin: 0 auto;
@@ -222,7 +228,7 @@ const totalMues = jeu.mues.length;
     letter-spacing: 0.05em;
   }
 
-  .visually-hidden {
+  .funnel .visually-hidden {
     position: absolute;
     width: 1px;
     height: 1px;

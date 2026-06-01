@@ -35,7 +35,7 @@ describe('parallaxe.json — intégrité', () => {
   });
 });
 
-describe('filtrerPool', () => {
+describe('filtrerPool (logique d\'exclusion : cocher = écarter)', () => {
   it('sans filtre, garde tout le deck (Pause incluse)', () => {
     expect(filtrerPool(deck.cartes, filtreVide()).length).toBe(54);
   });
@@ -46,22 +46,33 @@ describe('filtrerPool', () => {
     expect(pool.some((c) => estPause(c))).toBe(false);
   });
 
-  it('filtre par focale (Lieu) en gardant la Pause par défaut', () => {
+  it('écarte les cartes d\'une focale (Lieu) sans toucher à la Pause', () => {
     const pool = filtrerPool(deck.cartes, { ...filtreVide(), focales: ['lieu'] });
-    const lieux = pool.filter((c) => !estPause(c));
-    expect(lieux.every((c) => c.focale === 'lieu')).toBe(true);
+    expect(pool.some((c) => c.focale === 'lieu')).toBe(false);
+    expect(pool.some((c) => c.focale === 'compagnon')).toBe(true);
     expect(pool.some((c) => estPause(c))).toBe(true);
   });
 
-  it('combine focale et tonalité', () => {
+  it('cumule les exclusions de plusieurs axes', () => {
     const pool = filtrerPool(deck.cartes, {
       ...filtreVide(),
-      focales: ['pnj'],
-      tonalites: ['favorable'],
+      focales: ['moi'],
+      tonalites: ['hostile'],
       inclurePause: false,
     });
-    expect(pool.every((c) => c.focale === 'pnj' && c.tonalite === 'favorable')).toBe(true);
+    expect(pool.some((c) => c.focale === 'moi')).toBe(false);
+    expect(pool.some((c) => c.tonalite === 'hostile')).toBe(false);
     expect(pool.length).toBeGreaterThan(0);
+  });
+
+  it('vide le pool thématique si toutes les focales sont écartées', () => {
+    const pool = filtrerPool(deck.cartes, {
+      focales: ['moi', 'compagnon', 'pnj', 'tiers', 'lieu'],
+      tonalites: [],
+      archetypes: [],
+      inclurePause: false,
+    });
+    expect(pool.length).toBe(0);
   });
 });
 

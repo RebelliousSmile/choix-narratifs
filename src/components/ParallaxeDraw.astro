@@ -16,8 +16,9 @@ const total = deck.cartes.length;
   <!-- Filtrage du pool -->
   <div class="parallaxe__filtres">
     <p class="parallaxe__filtres-intro">
-      Avant de tirer, écartez les cartes hors-contexte (dix secondes). Rien de
-      coché dans une colonne = tout est gardé.
+      Avant de tirer, écartez les groupes hors-contexte (dix secondes) : cliquez
+      sur un repère pour le <strong>barrer</strong> et le retirer du tirage. Rien
+      de barré = tout est gardé.
     </p>
 
     <fieldset class="parallaxe__group" data-group="focales">
@@ -57,7 +58,13 @@ const total = deck.cartes.length;
   <div class="parallaxe__result" data-result hidden></div>
 </section>
 
-<style>
+<!--
+  is:global est nécessaire : chips et carte sont générés en JS (createElement /
+  innerHTML) et ne portent donc pas le marqueur de portée data-astro-cid-* que
+  Astro exige sur les sélecteurs scopés. Tous les sélecteurs sont préfixés
+  `.parallaxe` (classe unique au composant) : aucune fuite vers le reste du site.
+-->
+<style is:global>
   .parallaxe {
     max-width: 44rem;
     margin: 0 auto;
@@ -109,10 +116,17 @@ const total = deck.cartes.length;
     border-color: var(--color-accent-strong);
     background: var(--color-surface-alt);
   }
+  /* Chip « écarté » : barré et atténué (retiré du pool). */
   .parallaxe__chip[aria-pressed='true'] {
-    border-color: var(--color-accent-strong);
-    background: var(--color-surface-alt);
-    font-weight: 600;
+    border-color: var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+  .parallaxe__chip[aria-pressed='true']:hover,
+  .parallaxe__chip[aria-pressed='true']:focus-visible {
+    opacity: 0.85;
   }
   .parallaxe__chip-icone {
     font-size: 0.85em;
@@ -301,7 +315,7 @@ const total = deck.cartes.length;
     margin: 0.5rem 0 0;
   }
 
-  .visually-hidden {
+  .parallaxe .visually-hidden {
     position: absolute;
     width: 1px;
     height: 1px;

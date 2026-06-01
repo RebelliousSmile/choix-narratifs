@@ -247,9 +247,11 @@ export function validateDeck(data: unknown): ValidationResult<DeckParallaxe> {
  * ------------------------------------------------------------------------ */
 
 export interface Filtre {
-  /** Focales conservées. Tableau vide = aucune contrainte (toutes conservées). */
+  /** Focales ÉCARTÉES du pool. Tableau vide = aucune focale écartée. */
   focales: Focale[];
+  /** Tonalités écartées. */
   tonalites: Tonalite[];
+  /** Archétypes écartés. */
   archetypes: Archetype[];
   /** Garder la carte Pause dans le pool (vrai par défaut côté UI). */
   inclurePause: boolean;
@@ -260,8 +262,9 @@ export function filtreVide(): Filtre {
 }
 
 /**
- * Applique le filtrage par axes : une carte thématique est conservée si, pour
- * chaque axe contraint (tableau non vide), sa valeur figure dans la sélection.
+ * Applique le filtrage par axes selon la logique du canon : on ÉCARTE les
+ * cartes hors-contexte. Une carte thématique est conservée tant qu'aucun de ses
+ * axes (focale, tonalité, archétype) ne figure dans les ensembles écartés.
  * La carte Pause suit `inclurePause`, indépendamment des autres axes.
  */
 export function filtrerPool(cartes: Carte[], filtre: Filtre): Carte[] {
@@ -269,19 +272,13 @@ export function filtrerPool(cartes: Carte[], filtre: Filtre): Carte[] {
     if (estPause(carte)) {
       return filtre.inclurePause;
     }
-    if (filtre.focales.length > 0 && (carte.focale === null || !filtre.focales.includes(carte.focale))) {
+    if (carte.focale !== null && filtre.focales.includes(carte.focale)) {
       return false;
     }
-    if (
-      filtre.tonalites.length > 0 &&
-      (carte.tonalite === null || !filtre.tonalites.includes(carte.tonalite))
-    ) {
+    if (carte.tonalite !== null && filtre.tonalites.includes(carte.tonalite)) {
       return false;
     }
-    if (
-      filtre.archetypes.length > 0 &&
-      (carte.archetype === null || !filtre.archetypes.includes(carte.archetype))
-    ) {
+    if (carte.archetype !== null && filtre.archetypes.includes(carte.archetype)) {
       return false;
     }
     return true;
