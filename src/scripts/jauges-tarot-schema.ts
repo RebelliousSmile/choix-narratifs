@@ -14,6 +14,35 @@ export type Signe = '+' | '=' | '-';
 export type Cavalier = 'pique' | 'coeur' | 'trefle' | 'carreau';
 export type TypeDescription = 'lieu' | 'pnj' | 'objet' | 'faction';
 
+/** Couleur du tarot à jouer (assignée à une zone). */
+export type Couleur = 'pique' | 'coeur' | 'trefle' | 'carreau';
+/** Figure d'As (retirée des couleurs avant la partie). */
+export type AsFigure = 'pique' | 'coeur' | 'trefle' | 'carreau';
+
+/** Les 4 zones « couleur » et la couleur du tarot qui leur est assignée. */
+export interface AffectationCouleurs {
+  jauge: Couleur;
+  charge: Couleur;
+  descriptions: Couleur;
+  challenges: Couleur;
+}
+
+/** As : figure de ressource récurrente (glissée sur l'As correspondant). */
+export interface FicheRessource {
+  id: string;
+  as: AsFigure;
+  nom: string;
+  trait1: string;
+  trait2: string;
+}
+
+/** Ligne de Temps (atouts 21 → 1, l'Excuse au bout). Éphémère par séquence. */
+export interface LigneTemps {
+  ouverte: boolean;
+  /** 21 (départ, calme) → 1 (climax). 0 = Excuse / Stase. */
+  position: number;
+}
+
 export interface FicheEcho {
   id: string;
   titre: string;
@@ -79,7 +108,11 @@ export interface JaugeTarotState {
   challenges: FicheChallenge[];
   descriptions: FicheDescription[];
   compagnons: FicheCompagnon[];
+  ressources: FicheRessource[];
   intention: FicheIntention;
+  /** Affectation des 4 couleurs du tarot aux 4 zones (choix permanent). */
+  couleurs: AffectationCouleurs;
+  ligne: LigneTemps;
 }
 
 export const CAVALIER_LABEL: Record<Cavalier, string> = {
@@ -102,12 +135,52 @@ export const TYPE_DESCRIPTION_LABEL: Record<TypeDescription, string> = {
   faction: 'Faction',
 };
 
+export const COULEUR_LABEL: Record<Couleur, string> = {
+  pique: 'Pique',
+  coeur: 'Cœur',
+  trefle: 'Trèfle',
+  carreau: 'Carreau',
+};
+
+export const COULEUR_SYMBOLE: Record<Couleur, string> = {
+  pique: '♠',
+  coeur: '♥',
+  trefle: '♣',
+  carreau: '♦',
+};
+
+/** Couleurs « rouges » du tarot (Cœur, Carreau) — pour le rendu visuel. */
+export const COULEUR_ROUGE: Record<Couleur, boolean> = {
+  pique: false,
+  coeur: true,
+  trefle: false,
+  carreau: true,
+};
+
+export const AS_LABEL: Record<AsFigure, string> = {
+  pique: 'Mentor (As de Pique)',
+  coeur: 'Protecteur (As de Cœur)',
+  trefle: 'Soutien (As de Trèfle)',
+  carreau: 'Réseau (As de Carreau)',
+};
+
+/** Position de départ de la Ligne de Temps. 0 = l'Excuse (Stase). */
+export const LIGNE_DEPART = 21;
+
 export const PLAFOND_INITIAL = 12;
 export const MAX_FICHES = 12;
 export const MAX_COMPAGNONS = 4;
 
 export function creerIntentionVide(): FicheIntention {
   return { themes: '', ton: '', verites: '', vivre: '', eviter: '', question: '', filsRouges: '' };
+}
+
+/**
+ * Affectation par défaut des couleurs (suit la suggestion du canon : Cœur →
+ * Charge Mentale, Pique → Challenge). Reste une bijection zone ↔ couleur.
+ */
+export function affectationParDefaut(): AffectationCouleurs {
+  return { jauge: 'trefle', charge: 'coeur', descriptions: 'carreau', challenges: 'pique' };
 }
 
 export function creerEtatInitial(): JaugeTarotState {
@@ -120,7 +193,10 @@ export function creerEtatInitial(): JaugeTarotState {
     challenges: [],
     descriptions: [],
     compagnons: [],
+    ressources: [],
     intention: creerIntentionVide(),
+    couleurs: affectationParDefaut(),
+    ligne: { ouverte: false, position: LIGNE_DEPART },
   };
 }
 
@@ -234,6 +310,54 @@ export function reRemplissage(state: JaugeTarotState): ResultatReRemplissage {
 }
 
 /* --------------------------------------------------------------------------
+ * Couleurs & Ligne de Temps
+ * ------------------------------------------------------------------------ */
+
+export type ZoneCouleur = keyof AffectationCouleurs;
+
+/**
+ * Assigne `couleur` à `zone` en conservant une bijection : si une autre zone
+ * portait déjà cette couleur, elle reçoit en échange l'ancienne couleur de
+ * `zone` (permutation). Renvoie une nouvelle affectation.
+ */
+export function affecterCouleur(
+  couleurs: AffectationCouleurs,
+  zone: ZoneCouleur,
+  couleur: Couleur,
+): AffectationCouleurs {
+  const next: AffectationCouleurs = { ...couleurs };
+  const ancienne = next[zone];
+  const autre = (Object.keys(next) as ZoneCouleur[]).find((z) => z !== zone && next[z] === couleur);
+  next[zone] = couleur;
+  if (autre) next[autre] = ancienne;
+  return next;
+}
+
+export function ouvrirLigne(depart: number = LIGNE_DEPART): LigneTemps {
+  return { ouverte: true, position: Math.max(1, Math.min(LIGNE_DEPART, Math.round(depart))) };
+}
+
+/**
+ * Retire `retrait` arcanes de la Ligne de Temps (1 = succès, 0 = négociation,
+ * 2 = échec critique ; n quelconque pour une cascade). La position est bornée à
+ * 0 (l'Excuse / Stase). Renvoie une nouvelle Ligne.
+ */
+export function retirerArcanes(ligne: LigneTemps, retrait: number): LigneTemps {
+  if (!ligne.ouverte) return ligne;
+  return { ...ligne, position: Math.max(0, ligne.position - Math.max(0, Math.round(retrait))) };
+}
+
+export type EtatLigne = 'fermee' | 'depart' | 'tension' | 'beat-final' | 'stase';
+
+export function etatLigne(ligne: LigneTemps): EtatLigne {
+  if (!ligne.ouverte) return 'fermee';
+  if (ligne.position <= 0) return 'stase';
+  if (ligne.position === 1) return 'beat-final';
+  if (ligne.position >= LIGNE_DEPART) return 'depart';
+  return 'tension';
+}
+
+/* --------------------------------------------------------------------------
  * Validation (import de sauvegarde)
  * ------------------------------------------------------------------------ */
 
@@ -261,6 +385,12 @@ export function validateState(data: unknown): ValidationResult<JaugeTarotState> 
   const plafond = Math.min(PLAFOND_INITIAL, Math.max(1, Math.round(num(data.plafond, base.plafond))));
   const position = Math.min(plafond, Math.max(1, Math.round(num(data.position, plafond))));
 
+  const ligneSrc = isRecord(data.ligne) ? data.ligne : {};
+  const ligne: LigneTemps = {
+    ouverte: ligneSrc.ouverte === true,
+    position: Math.max(0, Math.min(LIGNE_DEPART, Math.round(num(ligneSrc.position, LIGNE_DEPART)))),
+  };
+
   const value: JaugeTarotState = {
     plafond,
     position,
@@ -270,9 +400,14 @@ export function validateState(data: unknown): ValidationResult<JaugeTarotState> 
     challenges: arr<FicheChallenge>(data.challenges),
     descriptions: arr<FicheDescription>(data.descriptions),
     compagnons: arr<FicheCompagnon>(data.compagnons),
+    ressources: arr<FicheRessource>(data.ressources),
     intention: isRecord(data.intention)
       ? { ...base.intention, ...(data.intention as Partial<FicheIntention>) }
       : base.intention,
+    couleurs: isRecord(data.couleurs)
+      ? { ...base.couleurs, ...(data.couleurs as Partial<AffectationCouleurs>) }
+      : base.couleurs,
+    ligne,
   };
   return { ok: true, value };
 }

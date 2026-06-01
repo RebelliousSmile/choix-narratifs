@@ -9,6 +9,11 @@ import {
   denouementNormal,
   reRemplissage,
   validateState,
+  affectationParDefaut,
+  affecterCouleur,
+  ouvrirLigne,
+  retirerArcanes,
+  etatLigne,
   type JaugeTarotState,
   type FicheEcho,
 } from '../src/scripts/jauges-tarot-schema';
@@ -99,6 +104,43 @@ describe('reRemplissage (arcane 13)', () => {
     const s: JaugeTarotState = { ...creerEtatInitial(), retournees: 3 };
     reRemplissage(s);
     expect(s.retournees).toBe(3);
+  });
+});
+
+describe('affecterCouleur (bijection)', () => {
+  it('permute quand la couleur est déjà prise par une autre zone', () => {
+    const base = affectationParDefaut(); // jauge=trefle, charge=coeur, descriptions=carreau, challenges=pique
+    const next = affecterCouleur(base, 'jauge', 'pique'); // pique était sur challenges
+    expect(next.jauge).toBe('pique');
+    expect(next.challenges).toBe('trefle'); // a récupéré l'ancienne couleur de jauge
+    // reste une bijection : 4 couleurs distinctes
+    expect(new Set(Object.values(next)).size).toBe(4);
+  });
+  it('sans conflit, assigne simplement', () => {
+    const base = affectationParDefaut();
+    const next = affecterCouleur(base, 'jauge', 'trefle'); // déjà sa couleur
+    expect(next).toEqual(base);
+  });
+});
+
+describe('Ligne de Temps (atouts)', () => {
+  it('ouvre à 21 par défaut, borne le calibrage', () => {
+    expect(ouvrirLigne().position).toBe(21);
+    expect(ouvrirLigne(8).position).toBe(8);
+    expect(ouvrirLigne(99).position).toBe(21);
+  });
+  it('retire des arcanes et borne à 0 (Excuse/Stase)', () => {
+    const l = ouvrirLigne(3);
+    expect(retirerArcanes(l, 2).position).toBe(1);
+    expect(retirerArcanes(l, 5).position).toBe(0);
+    expect(retirerArcanes({ ouverte: false, position: 10 }, 2).position).toBe(10);
+  });
+  it('qualifie l\'état de la ligne', () => {
+    expect(etatLigne({ ouverte: false, position: 21 })).toBe('fermee');
+    expect(etatLigne(ouvrirLigne(21))).toBe('depart');
+    expect(etatLigne(ouvrirLigne(10))).toBe('tension');
+    expect(etatLigne(ouvrirLigne(1))).toBe('beat-final');
+    expect(etatLigne({ ouverte: true, position: 0 })).toBe('stase');
   });
 });
 

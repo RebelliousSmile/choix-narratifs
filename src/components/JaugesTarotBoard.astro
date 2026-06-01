@@ -1,6 +1,9 @@
 ---
 // Tableau de bord de campagne « Jauges & Tarot ». Toute l'interactivité est
 // côté client (voir <script>). L'état est persisté en localStorage.
+// La mise en page reflète la structure du matériel : les 4 COULEURS du tarot
+// (une par zone), les ATOUTS (arcanes majeurs : Ligne de Temps + Intention),
+// et les FIGURES retirées des couleurs (As, Cavaliers).
 ---
 
 <section class="jt" aria-labelledby="jt-title">
@@ -9,16 +12,30 @@
   <!-- Statut dérivé -->
   <div class="jt__status" data-status aria-live="polite"></div>
 
+  <!-- Affectation des couleurs (choix permanent) -->
+  <details class="jt__setup">
+    <summary>Affectation des couleurs du tarot aux zones (choix permanent)</summary>
+    <p class="jt__panel-hint">
+      Chaque zone correspond à une couleur du tarot à jouer. Réassigner une zone
+      permute avec celle qui portait déjà la couleur (les 4 restent distinctes).
+    </p>
+    <div class="jt__couleurs" data-couleurs></div>
+  </details>
+
+  <!-- ============ FAMILLE : LES 4 COULEURS ============ -->
+  <h3 class="jt__family">Les 4 couleurs <span>le tarot à jouer · une couleur par zone</span></h3>
+
   <div class="jt__cols">
-    <!-- Jauge Narrative -->
-    <article class="jt__panel">
+    <!-- Jauge Narrative (zone A) -->
+    <article class="jt__panel jt__zone" data-zone="jauge">
+      <div class="jt__zone-tag" data-zone-tag="jauge"></div>
       <h3>Jauge Narrative</h3>
       <p class="jt__panel-hint">L'aventure avance de la position courante vers 1 (dénouement). Elle se contracte, jamais ne grandit.</p>
       <div class="jt__jauge-line" data-jauge-line></div>
       <div class="jt__jauge-ctl">
         <button type="button" data-act="avancer">Avancer (scène jouée)</button>
-        <button type="button" data-act="pd-plus">+1 Point de Destin (scène résolue)</button>
-        <button type="button" data-act="pd-depenser">Dépenser un Point de Destin</button>
+        <button type="button" data-act="pd-plus">+1 Point de Destin</button>
+        <button type="button" data-act="pd-depenser">Dépenser un PD</button>
         <button type="button" class="jt__rerempl" data-act="reremplir">Re-remplissage</button>
       </div>
       <details class="jt__manual">
@@ -32,7 +49,7 @@
       </details>
     </article>
 
-    <!-- Aides -->
+    <!-- Aides de lecture -->
     <article class="jt__panel">
       <h3>Aides de lecture</h3>
       <div class="jt__helper">
@@ -52,54 +69,82 @@
     </article>
   </div>
 
-  <!-- Charge Mentale -->
-  <article class="jt__panel">
-    <div class="jt__panel-head">
-      <h3>Charge Mentale — Échos <span class="jt__badge" data-echos-count>0</span></h3>
-      <button type="button" data-add="echo">+ Ajouter un écho</button>
-    </div>
-    <p class="jt__panel-hint">Fils ouverts. Coche une case de Progression à chaque résonance ; à 4, l'écho est mûr. « Résolu » envoie la carte à la Pile de Résolues.</p>
-    <div class="jt__list" data-list="echos"></div>
-  </article>
-
-  <!-- Challenges -->
-  <article class="jt__panel">
-    <div class="jt__panel-head">
-      <h3>Fiches de Challenge <span class="jt__badge" data-chal-count>0</span></h3>
-      <button type="button" data-add="challenge">+ Ajouter un challenge</button>
-    </div>
-    <p class="jt__panel-hint">Obstacles actifs (max 12). Vitalité 4 cases : chaque coup porté coche une case ; à 4, l'obstacle est vaincu.</p>
-    <div class="jt__list" data-list="challenges"></div>
-  </article>
-
   <div class="jt__cols">
-    <!-- Descriptions -->
-    <article class="jt__panel">
+    <!-- Charge Mentale (zone B) -->
+    <article class="jt__panel jt__zone" data-zone="charge">
+      <div class="jt__zone-tag" data-zone-tag="charge"></div>
       <div class="jt__panel-head">
-        <h3>Fiches de Description <span class="jt__badge" data-desc-count>0</span></h3>
-        <button type="button" data-add="description">+ Ajouter</button>
+        <h3>Charge Mentale — Échos <span class="jt__badge" data-echos-count>0</span></h3>
+        <button type="button" data-add="echo">+ Écho</button>
       </div>
-      <p class="jt__panel-hint">Mémoire du monde : lieux, PNJ, objets, factions (max 12).</p>
-      <div class="jt__list" data-list="descriptions"></div>
+      <p class="jt__panel-hint">Fils ouverts. Coche une case de Progression à chaque résonance ; à 4, l'écho est mûr. « Résolu » envoie la carte à la Pile de Résolues (+1 PD).</p>
+      <div class="jt__list" data-list="echos"></div>
     </article>
 
-    <!-- Compagnons -->
-    <article class="jt__panel">
+    <!-- Challenges (zone D) -->
+    <article class="jt__panel jt__zone" data-zone="challenges">
+      <div class="jt__zone-tag" data-zone-tag="challenges"></div>
       <div class="jt__panel-head">
-        <h3>Fiches Compagnon <span class="jt__badge" data-comp-count>0</span></h3>
-        <button type="button" data-add="compagnon">+ Ajouter</button>
+        <h3>Fiches de Challenge <span class="jt__badge" data-chal-count>0</span></h3>
+        <button type="button" data-add="challenge">+ Challenge</button>
+      </div>
+      <p class="jt__panel-hint">Obstacles actifs (max 12). Vitalité 4 cases : à 4, l'obstacle est vaincu.</p>
+      <div class="jt__list" data-list="challenges"></div>
+    </article>
+  </div>
+
+  <!-- Descriptions (zone C) -->
+  <article class="jt__panel jt__zone" data-zone="descriptions">
+    <div class="jt__zone-tag" data-zone-tag="descriptions"></div>
+    <div class="jt__panel-head">
+      <h3>Fiches de Description <span class="jt__badge" data-desc-count>0</span></h3>
+      <button type="button" data-add="description">+ Description</button>
+    </div>
+    <p class="jt__panel-hint">Mémoire du monde : lieux, PNJ, objets, factions (max 12).</p>
+    <div class="jt__list" data-list="descriptions"></div>
+  </article>
+
+  <!-- ============ FAMILLE : LES ATOUTS ============ -->
+  <h3 class="jt__family jt__family--atout">Les atouts <span>22 arcanes majeurs</span></h3>
+
+  <!-- Ligne de Temps -->
+  <article class="jt__panel jt__atout">
+    <h3>Ligne de Temps <span class="jt__atout-note">arcanes 21 → 1 · l'Excuse au bout</span></h3>
+    <p class="jt__panel-hint">Tension d'une séquence intense (poursuite, dialogue serré, rituel…). La tension monte vers 1 (climax) ; l'Excuse = Stase.</p>
+    <div class="jt__ligne" data-ligne></div>
+  </article>
+
+  <!-- Fiche d'Intention (Excuse) -->
+  <article class="jt__panel jt__atout">
+    <h3>Fiche d'Intention <span class="jt__atout-note">portée par l'Excuse · atout 0</span></h3>
+    <p class="jt__panel-hint">Cadrage de la campagne. Relis-la (2–3 min) en début de session.</p>
+    <div class="jt__intention" data-intention></div>
+  </article>
+
+  <!-- ============ FAMILLE : À PART ============ -->
+  <h3 class="jt__family jt__family--figure">À part <span>figures retirées des couleurs (As &amp; Cavaliers)</span></h3>
+
+  <div class="jt__cols">
+    <!-- As / Ressources -->
+    <article class="jt__panel jt__figure">
+      <div class="jt__panel-head">
+        <h3>As — Ressources <span class="jt__badge" data-ress-count>0</span></h3>
+        <button type="button" data-add="ressource">+ Ressource</button>
+      </div>
+      <p class="jt__panel-hint">Figures récurrentes : Mentor, Protecteur, Soutien, Réseau (max 4).</p>
+      <div class="jt__list" data-list="ressources"></div>
+    </article>
+
+    <!-- Cavaliers / Compagnons -->
+    <article class="jt__panel jt__figure">
+      <div class="jt__panel-head">
+        <h3>Cavaliers — Compagnons <span class="jt__badge" data-comp-count>0</span></h3>
+        <button type="button" data-add="compagnon">+ Compagnon</button>
       </div>
       <p class="jt__panel-hint">Compagnons récurrents (max 4). Concurrence : d100 ≤ seuil → spotlight compagnon.</p>
       <div class="jt__list" data-list="compagnons"></div>
     </article>
   </div>
-
-  <!-- Intention -->
-  <article class="jt__panel">
-    <h3>Fiche d'Intention</h3>
-    <p class="jt__panel-hint">Cadrage de la campagne. Relis-la (2–3 min) en début de session.</p>
-    <div class="jt__intention" data-intention></div>
-  </article>
 
   <!-- Données -->
   <article class="jt__panel jt__data">
@@ -129,6 +174,32 @@
     gap: var(--space-3);
     grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   }
+
+  /* En-tête de famille */
+  .jt__family {
+    margin: var(--space-5) 0 var(--space-3);
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--color-border);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .jt__family span {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .jt__family--atout {
+    border-bottom-color: var(--color-focus);
+  }
+  .jt__family--figure {
+    border-bottom-style: dashed;
+  }
+
   .jt__panel {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -159,6 +230,63 @@
     background: var(--color-surface-alt);
     color: var(--color-accent-strong);
     border: 1px solid var(--color-border);
+  }
+
+  /* Zone « couleur » : bord coloré + étiquette de couleur */
+  .jt__zone {
+    border-left: 5px solid var(--zone-color, var(--color-border));
+  }
+  .jt__zone-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.35rem;
+  }
+  .jt__suit {
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--color-text);
+  }
+  .jt__suit.is-rouge {
+    color: #e0697c;
+  }
+  .jt__suit:not(.is-rouge) {
+    color: #cfc8e0;
+  }
+
+  /* Atouts : accent or ; figures : bord pointillé */
+  .jt__atout {
+    border-left: 5px solid var(--color-focus);
+  }
+  .jt__atout-note {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+  .jt__figure {
+    border-left: 5px dashed var(--color-text-muted);
+  }
+
+  .jt__setup {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+  .jt__setup summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .jt__couleurs {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    margin-top: 0.75rem;
   }
 
   /* Statut */
@@ -204,20 +332,22 @@
     color: #ffd0df;
   }
 
-  /* Jauge */
-  .jt__jauge-line {
+  /* Jauge / Ligne de Temps : lignes de cases */
+  .jt__jauge-line,
+  .jt__ligne-line {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
     margin-bottom: 0.75rem;
   }
   .jt__cell {
-    width: 2rem;
+    min-width: 2rem;
     height: 2rem;
+    padding: 0 0.3rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm, 6px);
@@ -237,8 +367,14 @@
   .jt__cell--denouement {
     border-color: var(--color-focus);
   }
+  .jt__cell--excuse {
+    border-style: dashed;
+    border-color: var(--color-focus);
+    color: var(--color-focus);
+  }
   .jt__jauge-ctl,
-  .jt__data-ctl {
+  .jt__data-ctl,
+  .jt__ligne-ctl {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -266,6 +402,11 @@
   .jt__danger {
     border-color: var(--color-accent) !important;
     color: var(--color-accent-strong);
+  }
+  .jt__ligne-etat {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
   .jt__manual {
     margin-top: 0.75rem;
@@ -423,9 +564,18 @@
     denouementNormal,
     reRemplissage,
     validateState,
+    affecterCouleur,
+    ouvrirLigne,
+    retirerArcanes,
+    etatLigne,
     CAVALIER_LABEL,
     POSTURE_LABEL,
     TYPE_DESCRIPTION_LABEL,
+    COULEUR_LABEL,
+    COULEUR_SYMBOLE,
+    COULEUR_ROUGE,
+    AS_LABEL,
+    LIGNE_DEPART,
     MAX_FICHES,
     MAX_COMPAGNONS,
     type JaugeTarotState,
@@ -433,10 +583,20 @@
     type Posture,
     type Cavalier,
     type TypeDescription,
+    type Couleur,
+    type AsFigure,
+    type ZoneCouleur,
   } from '../scripts/jauges-tarot-schema';
   import { saveData, loadData, exportData, importData } from '../scripts/storage';
 
   const STORAGE_KEY = 'jauges-tarot:campagne';
+  const ZONE_LETTRE: Record<ZoneCouleur, string> = {
+    jauge: 'A',
+    charge: 'B',
+    descriptions: 'C',
+    challenges: 'D',
+  };
+  const COULEURS: Couleur[] = ['pique', 'coeur', 'trefle', 'carreau'];
 
   function uid(): string {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -468,6 +628,54 @@
       }
     }
 
+    /* ---- Affectation des couleurs ---- */
+    function suitColor(c: Couleur): string {
+      return COULEUR_ROUGE[c] ? '#e0697c' : '#cfc8e0';
+    }
+    function renderCouleurs(): void {
+      const host = $('[data-couleurs]');
+      host.innerHTML = '';
+      (Object.keys(ZONE_LETTRE) as ZoneCouleur[]).forEach((zone) => {
+        const zoneLabel =
+          zone === 'jauge'
+            ? 'Jauge Narrative'
+            : zone === 'charge'
+              ? 'Charge Mentale'
+              : zone === 'descriptions'
+                ? 'Descriptions'
+                : 'Challenges';
+        const l = document.createElement('label');
+        l.textContent = `${zoneLabel} (zone ${ZONE_LETTRE[zone]})`;
+        const sel = document.createElement('select');
+        for (const c of COULEURS) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = `${COULEUR_SYMBOLE[c]} ${COULEUR_LABEL[c]}`;
+          if (state.couleurs[zone] === c) opt.selected = true;
+          sel.appendChild(opt);
+        }
+        sel.addEventListener('change', () => {
+          state.couleurs = affecterCouleur(state.couleurs, zone, sel.value as Couleur);
+          save();
+          renderCouleurs();
+          applyZoneTags();
+        });
+        l.appendChild(sel);
+        host.appendChild(l);
+      });
+    }
+    function applyZoneTags(): void {
+      (Object.keys(ZONE_LETTRE) as ZoneCouleur[]).forEach((zone) => {
+        const c = state.couleurs[zone];
+        const tag = root.querySelector<HTMLElement>(`[data-zone-tag="${zone}"]`);
+        if (tag) {
+          tag.innerHTML = `<span class="jt__suit ${COULEUR_ROUGE[c] ? 'is-rouge' : ''}">${COULEUR_SYMBOLE[c]}</span> ${esc(COULEUR_LABEL[c])} · Couleur ${ZONE_LETTRE[zone]}`;
+        }
+        const panel = root.querySelector<HTMLElement>(`.jt__zone[data-zone="${zone}"]`);
+        if (panel) panel.style.setProperty('--zone-color', suitColor(c));
+      });
+    }
+
     /* ---- Statut dérivé + jauge ---- */
     function renderStatus(): void {
       const charge = chargeActive(state);
@@ -486,7 +694,6 @@
       }
       statusEl.innerHTML = html;
 
-      // Ligne de jauge : plafond → 1
       let cells = '';
       for (let n = state.plafond; n >= 1; n--) {
         const cls =
@@ -501,8 +708,6 @@
       }
       jaugeLine.innerHTML = cells;
 
-      // La résonance dépend de la Charge et des emplacements restants : la
-      // maintenir à jour à chaque changement d'état.
       renderResonance();
     }
 
@@ -513,21 +718,67 @@
       ($('[data-field="pointsDestin"]') as HTMLInputElement).value = String(state.pointsDestin);
     }
 
-    /* ---- Helpers ---- */
+    /* ---- Ligne de Temps (atouts) ---- */
+    function renderLigne(): void {
+      const host = $('[data-ligne]');
+      const l = state.ligne;
+      if (!l.ouverte) {
+        host.innerHTML = `
+          <div class="jt__ligne-ctl">
+            <label>Calibrage
+              <select data-ligne-depart>
+                <option value="21">Longue (21)</option>
+                <option value="8">Courte (8)</option>
+                <option value="5">Très courte (5)</option>
+              </select>
+            </label>
+            <button type="button" data-act="ligne-ouvrir">Ouvrir une séquence</button>
+          </div>`;
+        return;
+      }
+      const et = etatLigne(l);
+      let cells = '';
+      for (let n = LIGNE_DEPART; n >= 1; n--) {
+        const cls =
+          n === l.position
+            ? 'jt__cell jt__cell--courant'
+            : n > l.position
+              ? 'jt__cell jt__cell--passe'
+              : 'jt__cell';
+        cells += `<span class="${cls}">${n}</span>`;
+      }
+      const excuseCls = l.position <= 0 ? 'jt__cell jt__cell--excuse jt__cell--courant' : 'jt__cell jt__cell--excuse';
+      cells += `<span class="${excuseCls}" title="l'Excuse">0</span>`;
+
+      const etat =
+        et === 'stase'
+          ? '<p class="jt__ligne-etat" style="color:var(--color-focus)">Stase — l’Excuse. La séquence patine : attendre une ouverture, ou forcer la rupture (fin abrupte).</p>'
+          : et === 'beat-final'
+            ? '<p class="jt__ligne-etat" style="color:var(--color-accent-strong)">Beat final — décris le climax, puis termine la séquence.</p>'
+            : '';
+
+      host.innerHTML = `
+        <div class="jt__ligne-line">${cells}</div>
+        ${etat}
+        <div class="jt__ligne-ctl">
+          <button type="button" data-act="ligne-succes">Succès (−1)</button>
+          <button type="button" data-act="ligne-nego">Négociation (=)</button>
+          <button type="button" data-act="ligne-echec">Échec critique (−2)</button>
+          <button type="button" class="jt__danger" data-act="ligne-fin">Fin de séquence</button>
+        </div>`;
+    }
+
+    /* ---- Helpers de lecture ---- */
     function renderAiguillage(): void {
       const n = Math.max(0, Math.round(Number(($('[data-aig-input]') as HTMLInputElement).value) || 0));
       $('[data-aig-out]').textContent = aiguillage(n).texte;
     }
     function renderResonance(): void {
       const out = $('[data-reso-out]');
-      if (!signe) {
-        out.textContent = 'Choisis un signe.';
-        return;
-      }
-      out.textContent = resonance(signe, state).texte;
+      out.textContent = signe ? resonance(signe, state).texte : 'Choisis un signe.';
     }
 
-    /* ---- Listes ---- */
+    /* ---- Briques de formulaire ---- */
     function boxes(n: number, total: number, onToggle: (i: number) => void): HTMLElement {
       const wrap = document.createElement('span');
       wrap.className = 'jt__boxes';
@@ -541,17 +792,15 @@
       }
       return wrap;
     }
-
     function field(label: string, value: string, onInput: (v: string) => void, textarea = false): HTMLElement {
       const l = document.createElement('label');
-      l.innerHTML = `${esc(label)}`;
+      l.textContent = label;
       const input = document.createElement(textarea ? 'textarea' : 'input');
       (input as HTMLInputElement).value = value;
       input.addEventListener('input', () => onInput((input as HTMLInputElement).value));
       l.appendChild(input);
       return l;
     }
-
     function select<T extends string>(
       label: string,
       value: T,
@@ -572,7 +821,6 @@
       l.appendChild(sel);
       return l;
     }
-
     function supprBtn(onClick: () => void): HTMLElement {
       const b = document.createElement('button');
       b.type = 'button';
@@ -582,6 +830,7 @@
       return b;
     }
 
+    /* ---- Listes ---- */
     function renderEchos(): void {
       const host = $('[data-list="echos"]');
       host.innerHTML = '';
@@ -607,13 +856,7 @@
         row.className = 'jt__fiche-row';
         const prog = document.createElement('label');
         prog.textContent = 'Progression';
-        prog.appendChild(
-          boxes(e.progression, 4, (i) => {
-            e.progression = e.progression === i ? i - 1 : i;
-            save();
-            renderEchos();
-          }),
-        );
+        prog.appendChild(boxes(e.progression, 4, (i) => { e.progression = e.progression === i ? i - 1 : i; save(); renderEchos(); }));
         row.appendChild(prog);
 
         const resolu = document.createElement('label');
@@ -623,23 +866,12 @@
         chk.checked = e.resolu;
         chk.addEventListener('change', () => {
           e.resolu = chk.checked;
-          if (e.resolu) state.pointsDestin += 1; // résolu → +1 PD
-          save();
-          renderEchos();
-          renderStatus();
-          syncManual();
+          if (e.resolu) state.pointsDestin += 1;
+          save(); renderEchos(); renderStatus(); syncManual();
         });
         resolu.append(chk, document.createTextNode('Résolu (+1 PD)'));
         row.appendChild(resolu);
-
-        row.appendChild(
-          supprBtn(() => {
-            state.echos.splice(idx, 1);
-            save();
-            renderEchos();
-            renderStatus();
-          }),
-        );
+        row.appendChild(supprBtn(() => { state.echos.splice(idx, 1); save(); renderEchos(); renderStatus(); }));
         card.appendChild(row);
         host.appendChild(card);
       });
@@ -669,18 +901,11 @@
           field('Menace', c.menace, (v) => { c.menace = v; save(); }),
         );
         card.appendChild(grid);
-
         const row = document.createElement('div');
         row.className = 'jt__fiche-row';
         const vit = document.createElement('label');
         vit.textContent = 'Vitalité';
-        vit.appendChild(
-          boxes(c.vitalite, 4, (i) => {
-            c.vitalite = c.vitalite === i ? i - 1 : i;
-            save();
-            renderChallenges();
-          }),
-        );
+        vit.appendChild(boxes(c.vitalite, 4, (i) => { c.vitalite = c.vitalite === i ? i - 1 : i; save(); renderChallenges(); }));
         row.appendChild(vit);
         if (c.vitalite >= 4) {
           const v = document.createElement('span');
@@ -688,13 +913,7 @@
           v.textContent = 'Vaincu';
           row.appendChild(v);
         }
-        row.appendChild(
-          supprBtn(() => {
-            state.challenges.splice(idx, 1);
-            save();
-            renderChallenges();
-          }),
-        );
+        row.appendChild(supprBtn(() => { state.challenges.splice(idx, 1); save(); renderChallenges(); }));
         card.appendChild(row);
         host.appendChild(card);
       });
@@ -726,6 +945,37 @@
         const row = document.createElement('div');
         row.className = 'jt__fiche-row';
         row.appendChild(supprBtn(() => { state.descriptions.splice(idx, 1); save(); renderDescriptions(); }));
+        card.appendChild(row);
+        host.appendChild(card);
+      });
+    }
+
+    function renderRessources(): void {
+      const host = $('[data-list="ressources"]');
+      host.innerHTML = '';
+      $('[data-ress-count]').textContent = String(state.ressources.length);
+      if (state.ressources.length === 0) {
+        host.innerHTML = '<p class="jt__empty">Aucune ressource (As) active.</p>';
+        return;
+      }
+      state.ressources.forEach((r, idx) => {
+        const card = document.createElement('div');
+        card.className = 'jt__fiche';
+        const grid = document.createElement('div');
+        grid.className = 'jt__fiche-grid';
+        grid.append(
+          select<AsFigure>('Figure', r.as, [
+            { v: 'pique', t: AS_LABEL.pique }, { v: 'coeur', t: AS_LABEL.coeur },
+            { v: 'trefle', t: AS_LABEL.trefle }, { v: 'carreau', t: AS_LABEL.carreau },
+          ], (v) => { r.as = v; save(); }),
+          field('Nom', r.nom, (v) => { r.nom = v; save(); }),
+          field('Trait 1', r.trait1, (v) => { r.trait1 = v; save(); }),
+          field('Trait 2', r.trait2, (v) => { r.trait2 = v; save(); }),
+        );
+        card.appendChild(grid);
+        const row = document.createElement('div');
+        row.className = 'jt__fiche-row';
+        row.appendChild(supprBtn(() => { state.ressources.splice(idx, 1); save(); renderRessources(); }));
         card.appendChild(row);
         host.appendChild(card);
       });
@@ -788,25 +1038,26 @@
         { key: 'filsRouges', label: 'Fils rouges (continuité)' },
       ];
       for (const c of champs) {
-        host.appendChild(
-          field(c.label, state.intention[c.key], (v) => { state.intention[c.key] = v; save(); }, true),
-        );
+        host.appendChild(field(c.label, state.intention[c.key], (v) => { state.intention[c.key] = v; save(); }, true));
       }
     }
 
-    /* ---- Actions ---- */
     function renderAll(): void {
+      renderCouleurs();
+      applyZoneTags();
       renderStatus();
       syncManual();
+      renderLigne();
       renderEchos();
       renderChallenges();
       renderDescriptions();
+      renderRessources();
       renderCompagnons();
       renderIntention();
-      renderResonance();
       renderAiguillage();
     }
 
+    /* ---- Actions déléguées ---- */
     root.addEventListener('click', (ev) => {
       const target = (ev.target as HTMLElement).closest('[data-act],[data-add],[data-signe]') as HTMLElement | null;
       if (!target) return;
@@ -818,7 +1069,7 @@
         if (state.pointsDestin > 0) {
           state.pointsDestin -= 1;
           state.retournees += 1;
-          state.position = Math.max(1, state.position - 1); // un emplacement contracté / scène sautée
+          state.position = Math.max(1, state.position - 1);
           save(); renderStatus(); syncManual();
         }
       } else if (act === 'reremplir') {
@@ -828,7 +1079,15 @@
         dataMsg.textContent = r.denouementForce
           ? `Re-remplissage : ${r.pdDepenses} PD dépensés → dénouement FORCÉ (plafond ${r.nouveauPlafond} ≤ Charge).`
           : `Re-remplissage : ${r.pdDepenses} PD dépensés, nouveau plafond ${r.nouveauPlafond}.`;
-      } else if (act === 'exporter') {
+      } else if (act === 'ligne-ouvrir') {
+        const sel = root.querySelector<HTMLSelectElement>('[data-ligne-depart]');
+        state.ligne = ouvrirLigne(Number(sel?.value) || LIGNE_DEPART);
+        save(); renderLigne();
+      } else if (act === 'ligne-succes') { state.ligne = retirerArcanes(state.ligne, 1); save(); renderLigne(); }
+      else if (act === 'ligne-nego') { renderLigne(); /* sursis : aucun retrait */ }
+      else if (act === 'ligne-echec') { state.ligne = retirerArcanes(state.ligne, 2); save(); renderLigne(); }
+      else if (act === 'ligne-fin') { state.ligne = { ouverte: false, position: LIGNE_DEPART }; save(); renderLigne(); }
+      else if (act === 'exporter') {
         const blob = exportData(state);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -856,6 +1115,10 @@
         if (state.descriptions.length >= MAX_FICHES) { dataMsg.textContent = `Maximum ${MAX_FICHES} descriptions.`; return; }
         state.descriptions.push({ id: uid(), type: 'lieu', nom: '', trait1: '', trait2: '' });
         save(); renderDescriptions();
+      } else if (add === 'ressource') {
+        if (state.ressources.length >= MAX_COMPAGNONS) { dataMsg.textContent = `Maximum ${MAX_COMPAGNONS} ressources (4 As).`; return; }
+        state.ressources.push({ id: uid(), as: 'pique', nom: '', trait1: '', trait2: '' });
+        save(); renderRessources();
       } else if (add === 'compagnon') {
         if (state.compagnons.length >= MAX_COMPAGNONS) { dataMsg.textContent = `Maximum ${MAX_COMPAGNONS} compagnons.`; return; }
         state.compagnons.push({ id: uid(), cavalier: 'pique', nom: '', concurrenceDomaine: '', concurrenceSeuil: 0, complementarite: '', caractere: '' });
@@ -872,7 +1135,7 @@
       }
     });
 
-    // Champs manuels
+    // Champs manuels de la jauge
     for (const f of ['plafond', 'position', 'retournees', 'pointsDestin'] as const) {
       $(`[data-field="${f}"]`).addEventListener('input', (ev) => {
         const v = Math.max(0, Math.round(Number((ev.target as HTMLInputElement).value) || 0));
