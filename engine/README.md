@@ -107,16 +107,26 @@ voyage sous la clé `move` (rename serde) et reste la forme fermée du contrat.
 Vérifié : `cargo build --target wasm32-unknown-unknown -p cn-wasm --release`
 produit `cn_wasm.wasm` ; `tests/boundary.rs` fige la forme JSON côté hôte.
 
-### Générer les bindings JS (Phase 3, câblage de l'island)
+### Générer les bindings JS + intégration au déploiement
 
-`pkg/` (glue JS + `.d.ts`) est un artefact **gitignoré**, produit par `wasm-pack` :
+`pkg/` (glue JS + `.d.ts`) est un artefact **gitignoré**, produit par `wasm-pack`.
+Le pipeline est encapsulé dans `scripts/build-engine.mjs`, branché aux scripts npm :
 
 ```bash
-cargo install wasm-pack            # une fois (absent de cet environnement)
-cd engine/wasm
-wasm-pack build --target web --out-dir pkg
-# puis import côté Astro : import init, { WasmEngine } from '../engine/wasm/pkg';
+pnpm test:engine     # cargo test du crate (garde-fou seul)
+pnpm build:engine    # tests + wasm-pack build → src/scripts/narrative/pkg/
+pnpm deploy:prod     # build:engine → astro build → transfert SSH → git push
 ```
+
+`build:engine` fait le préflight (cargo, cible wasm32, wasm-pack) avec messages
+actionnables, et expose deux échappatoires :
+
+- `SKIP_ENGINE=1` — saute toute l'étape moteur (machine sans toolchain Rust) ;
+- `ENGINE_TESTS_ONLY=1` — lance les tests sans le build wasm.
+
+Prérequis une fois : `cargo install wasm-pack` (absent de cet environnement CI).
+La sortie va dans `src/scripts/narrative/pkg/` pour que Vite/Astro la résolve ;
+import côté island : `import init, { WasmEngine } from './pkg/cn_engine.js'`.
 
 ## Prochaines étapes (plan §3)
 

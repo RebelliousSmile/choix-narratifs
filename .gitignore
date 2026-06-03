@@ -11,6 +11,7 @@ dist/
 target/
 wasm/pkg/
 engine/wasm/pkg/
+src/scripts/narrative/pkg/
 
 # Env & local
 .env

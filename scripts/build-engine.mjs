@@ -1,0 +1,119 @@
+// Étape « moteur » du pipeline de build/déploiement.
+//
+// Le moteur narratif (engine/) est un crate Rust compilé en WASM. Avant de
+// builder le site, on doit : (1) faire passer les tests du crate (garde-fou),
+// (2) produire le glue WASM (`pkg/`) que l'island importera.
+//
+//   pnpm build:engine        # tests + build wasm
+//   SKIP_ENGINE=1 pnpm …      # saute tout (ex. machine sans toolchain Rust)
+//   ENGINE_TESTS_ONLY=1 …     # tests seuls, sans wasm-pack
+//
+// Branché AVANT `astro build` dans `deploy:prod` : le `.wasm` doit exister pour
+// que Vite le bundle dans dist/.
+
+import { execSync } from 'node:child_process'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const ENGINE = resolve(ROOT, 'engine')
+// Où l'island importera le glue : sous src/, donc résolu par Vite/Astro.
+const PKG_OUT = resolve(ROOT, 'src/scripts/narrative/pkg')
+
+const log = (msg) => console.log(msg)
+const time = (label) => {
+  const start = Date.now()
+  return () => log(`  ${label} : ${((Date.now() - start) / 1000).toFixed(1)}s`)
+}
+
+const has = (cmd) => {
+  try {
+    execSync(`${cmd} --version`, { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+const run = (cmd, opts = {}) => execSync(cmd, { stdio: 'inherit', ...opts })
+
+const die = (msg) => {
+  console.error(`\n✗ ${msg}\n`)
+  process.exit(1)
+}
+
+// --- 0. Échappatoire (machine sans Rust, ou build site seul) ------------------
+if (process.env.SKIP_ENGINE === '1') {
+  log('\n[moteur] SKIP_ENGINE=1 → étape moteur ignorée.')
+  process.exit(0)
+}
+
+log('\n=== Build moteur (engine/) ===')
+
+if (!existsSync(ENGINE)) {
+  die(`Dossier engine/ introuvable à ${ENGINE}.`)
+}
+
+// --- 1. Toolchain Rust --------------------------------------------------------
+if (!has('cargo')) {
+  die(
+    'cargo introuvable. Installer Rust (https://rustup.rs), ' +
+      'ou poser SKIP_ENGINE=1 pour déployer le site sans rebuild du moteur.',
+  )
+}
+
+// --- 2. Tests du crate (garde-fou avant tout artefact) ------------------------
+log('\n[moteur] cargo test (garde-fou)…')
+const doneTests = time('Tests')
+run('cargo test', { cwd: ENGINE })
+doneTests()
+
+if (process.env.ENGINE_TESTS_ONLY === '1') {
+  log('\n[moteur] ENGINE_TESTS_ONLY=1 → pas de build wasm. Terminé ✓')
+  process.exit(0)
+}
+
+// --- 3. Cible wasm32 (auto-ajout si rustup dispo) -----------------------------
+let hasWasmTarget = false
+try {
+  hasWasmTarget = execSync('rustup target list --installed', { encoding: 'utf8' })
+    .includes('wasm32-unknown-unknown')
+} catch {
+  // pas de rustup : on suppose la cible présente, wasm-pack le confirmera.
+  hasWasmTarget = true
+}
+if (!hasWasmTarget) {
+  log('\n[moteur] ajout de la cible wasm32-unknown-unknown…')
+  run('rustup target add wasm32-unknown-unknown')
+}
+
+// --- 4. wasm-pack -------------------------------------------------------------
+if (!has('wasm-pack')) {
+  die(
+    'wasm-pack introuvable. Installer avec `cargo install wasm-pack` ' +
+      '(ou https://rustwasm.github.io/wasm-pack/installer/). ' +
+      'Alternatives : ENGINE_TESTS_ONLY=1 (tests seuls) ou SKIP_ENGINE=1.',
+  )
+}
+
+// --- 5. Build du glue WASM dans src/…/pkg ------------------------------------
+log(`\n[moteur] wasm-pack build → ${PKG_OUT}`)
+const doneWasm = time('Build wasm')
+run(
+  `wasm-pack build wasm --release --target web --out-dir "${PKG_OUT}" --out-name cn_engine`,
+  { cwd: ENGINE },
+)
+doneWasm()
+
+// --- 6. Récap ----------------------------------------------------------------
+const size = () => {
+  let total = 0
+  for (const f of readdirSync(PKG_OUT, { recursive: true })) {
+    try {
+      total += statSync(resolve(PKG_OUT, f)).size
+    } catch {}
+  }
+  return `${(total / 1024).toFixed(0)}K`
+}
+log(`\n[moteur] pkg/ produit (${size()}) ✓`)
