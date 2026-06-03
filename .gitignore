@@ -36,3 +36,6 @@ Thumbs.db
 # Temp
 .tmp_issues/
 _diag_*.txt
+
+# Playwright MCP (captures/snapshots de tests interactifs)
+.playwright-mcp/
