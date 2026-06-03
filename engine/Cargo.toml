@@ -1,0 +1,6 @@
+# Workspace du moteur narratif (track CN du plan d'action).
+# `core` : crate Rust pure (état, registre épistémique, directeur, oracle, verifier).
+# `harness` : harnais terminal qui déroule la boucle avec un /narrate STUB (Phase 1).
+[workspace]
+resolver = "2"
+members = ["core", "harness"]

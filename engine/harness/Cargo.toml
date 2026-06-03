@@ -1,0 +1,10 @@
+[package]
+name = "cn-harness"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Harnais terminal : déroule la boucle du moteur avec un /narrate STUB (Phase 1)."
+
+[dependencies]
+cn-core = { path = "../core" }
+serde_json = "1"
