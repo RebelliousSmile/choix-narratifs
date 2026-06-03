@@ -1,0 +1,8 @@
+{
+  "outcome": "commit",
+  "index": 1,
+  "candidat": "Il se détourne. « La cargaison ? Partie, elle a quitté le quai. »",
+  "diff": [
+    "la cargaison a quitté le quai"
+  ]
+}
