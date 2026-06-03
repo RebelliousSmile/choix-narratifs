@@ -10,19 +10,23 @@
 //! La boucle hôte : `prepare` → (Hub `/narrate`) → `resolve` → resample si tous
 //! invalides (Mikado, §6) → persist. Le verifier reste **côté client** (canon-aware).
 
+use serde::Serialize;
+
 use crate::directeur::{self, BeatPlan};
 use crate::packet::ScenePacket;
 use crate::state::{Event, World};
 use crate::verifier::{self, Rejet};
 
 /// Sortie de `prepare` : ce qui part vers le relais (le paquet + le best-of-N).
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Prepared {
     pub packet: ScenePacket,
     pub n: u8,
 }
 
 /// Résultat de `resolve`.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(tag = "outcome", rename_all = "snake_case")]
 pub enum Outcome {
     /// Un candidat valide a été retenu ; l'état a avancé.
     Commit {

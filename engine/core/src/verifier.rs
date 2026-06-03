@@ -8,11 +8,14 @@
 //! Phase 1 = checklist par jetons (stub avant LLM). La version « qualité » fera
 //! le même travail sémantiquement ; la *forme* du contrat ne change pas.
 
+use serde::Serialize;
+
 use crate::directeur::BeatPlan;
 use crate::state::Canon;
 
 /// Motif d'écartement d'un candidat.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "type", content = "detail", rename_all = "snake_case")]
 pub enum Rejet {
     /// Un jeton du secret est apparu dans la prose (le fuyard).
     Fuite(String),

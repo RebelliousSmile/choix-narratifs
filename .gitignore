@@ -10,6 +10,7 @@ dist/
 # Rust / WASM (réservé pour usage futur)
 target/
 wasm/pkg/
+engine/wasm/pkg/
 
 # Env & local
 .env

@@ -26,6 +26,9 @@ engine/
     tests/
       packet_challenge.rs   # tests qui CHALLENGENT packet.rs (cf. plus bas)
   harness/                  # binaire terminal, /narrate stub
+  wasm/                     # couche wasm-bindgen `cn-wasm` (Phase 2)
+    src/lib.rs              # façade JS WasmEngine
+    tests/boundary.rs       # tests de la forme JSON exposée au TS
 ```
 
 API (cf. plan §1) :
@@ -79,9 +82,44 @@ Bilan du challenge : **aucun bug dans `packet.rs`** — le contrat tient. Les te
 ajoutés verrouillent son comportement (régressions futures) et balisent sa
 frontière de responsabilité.
 
+## Phase 2 — couche `wasm-bindgen` (`cn-wasm`)
+
+Enveloppe mince (aucune logique) qui traduit l'API du core pour le JS de l'island.
+Façade `WasmEngine` :
+
+| Méthode JS | Rust | Entrée → sortie |
+| --- | --- | --- |
+| `new WasmEngine()` | `Engine::restore(None)` | scène d'amorce |
+| `WasmEngine.fromSnapshot(u8)` | `Engine::restore(Some)` | `Uint8Array` → session |
+| `prepare(action)` | `engine.prepare` | `string` → JSON `{ packet, n }` |
+| `resolve(candidates)` | `engine.resolve` | `string[]` → JSON `Outcome` |
+| `snapshot()` | `engine.snapshot` | → `Uint8Array` |
+| `savoirJoueur()` | `engine.savoir_joueur` | → `string[]` |
+
+Conventions de frontière : les structures traversent en **JSON `String`**
+(`JSON.parse` côté hôte) ; les erreurs sont levées comme **`string`**. Le paquet
+voyage sous la clé `move` (rename serde) et reste la forme fermée du contrat.
+
+`Outcome` sérialisé est discriminé par `outcome` :
+`{"outcome":"commit","index":…,"candidat":…,"diff":[…]}` ou
+`{"outcome":"resample_needed","rejets":[[i,{"type":"fuite","detail":…}],…]}`.
+
+Vérifié : `cargo build --target wasm32-unknown-unknown -p cn-wasm --release`
+produit `cn_wasm.wasm` ; `tests/boundary.rs` fige la forme JSON côté hôte.
+
+### Générer les bindings JS (Phase 3, câblage de l'island)
+
+`pkg/` (glue JS + `.d.ts`) est un artefact **gitignoré**, produit par `wasm-pack` :
+
+```bash
+cargo install wasm-pack            # une fois (absent de cet environnement)
+cd engine/wasm
+wasm-pack build --target web --out-dir pkg
+# puis import côté Astro : import init, { WasmEngine } from '../engine/wasm/pkg';
+```
+
 ## Prochaines étapes (plan §3)
 
-2. Couche `wasm-bindgen` (`restore/prepare/resolve/snapshot`).
 3. Island Astro `client:only` + IndexedDB + reprise de session.
 4. UI d'élaboration + modules en bucket.
 5. Producteur d'export + rôle éditeur.
