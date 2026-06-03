@@ -8,6 +8,12 @@ export class WasmEngine {
     free(): void;
     [Symbol.dispose](): void;
     /**
+     * La membrane d'export (US-1.4). `resolutions_json` = tableau de
+     * `{ secret, decision: { type: "reveler", texte } | { type: "retirer" } }`.
+     * Retourne le `CompteRendu` en JSON, ou lève le JSON des `ExportError[]`.
+     */
+    export(resolutions_json: string): string;
+    /**
      * Amorce une session sur une scène **créée par l'auteur** (UI / bucket). Le
      * JSON est un `SceneSpec`. Lève (string) si le devis est injouable.
      */
@@ -38,6 +44,10 @@ export class WasmEngine {
      */
     scene(): string;
     /**
+     * Les secrets encore cachés à résoudre avant export (`string[]`).
+     */
+    secretsEnAttente(): string[];
+    /**
      * Sérialise l'état pour persistance (IndexedDB / bucket).
      */
     snapshot(): Uint8Array;
@@ -48,6 +58,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_wasmengine_free: (a: number, b: number) => void;
+    readonly wasmengine_export: (a: number, b: number, c: number) => [number, number, number, number];
     readonly wasmengine_fromScene: (a: number, b: number) => [number, number, number];
     readonly wasmengine_fromSnapshot: (a: number, b: number) => number;
     readonly wasmengine_new: () => number;
@@ -55,6 +66,7 @@ export interface InitOutput {
     readonly wasmengine_resolve: (a: number, b: number, c: number) => [number, number, number, number];
     readonly wasmengine_savoirJoueur: (a: number) => [number, number];
     readonly wasmengine_scene: (a: number) => [number, number, number, number];
+    readonly wasmengine_secretsEnAttente: (a: number) => [number, number];
     readonly wasmengine_snapshot: (a: number) => [number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

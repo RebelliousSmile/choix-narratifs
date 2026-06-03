@@ -141,8 +141,27 @@ continue. Drapeaux :
 > Dérive possible : si le Rust change sans régénérer le `pkg/`, l'artefact
 > versionné se désynchronise. Régénérer + committer dans le même lot.
 
-## Prochaines étapes (plan §3)
+## Phases 3-5 (faites)
 
-3. Island Astro `client:only` + IndexedDB + reprise de session.
-4. UI d'élaboration + modules en bucket.
-5. Producteur d'export + rôle éditeur.
+3. **Island Astro + IndexedDB + reprise** — `/moteur-narratif` ; `WasmEngine` câblé,
+   stub narrateur, persistance snapshot, reprise de session.
+4. **UI d'élaboration + bucket** — `/elaboration` ; `SceneSpec` → `WasmEngine.fromScene`
+   (scènes custom jouables), bucket de modules, couche `contexte` (univers/campagne).
+5. **Producteur d'export + rôle éditeur** — `/compte-rendu` ; **membrane** Rust-autoritaire
+   (`Engine::export`) : refuse tout secret caché indécis, exige révéler/retirer ;
+   `CompteRendu` clos (JSON canonique) + rendu Markdown. Transcript persistant (`World.journal`).
+
+### La membrane d'export (US-1.4) — le second mur
+
+`Engine::export(resolutions)` est l'inverse du mur de `packet.rs` : il décide ce qui
+sort vers Suddenly **après** le jeu. Invariants verrouillés (`core/tests/export.rs`) :
+
+- un secret **caché** (jamais lâché en jeu) exige une décision éditeur : `Reveler{texte}`
+  (seule la formulation de l'éditeur sort, jamais le canon brut) ou `Retirer` (rien ne sort) ;
+- l'export **refuse** (`Err`) tant qu'un secret est indécis ;
+- `FuiteDansProse` est une défense en profondeur **inatteignable par la boucle normale**
+  (la prose journalisée a déjà passé le verifier) — un mur ne fait jamais confiance à l'étage du dessous ;
+- `World.journal` est `#[serde(default)]` : les snapshots Phase 3/4 se chargent sans casser.
+
+La couture aval CN↔Suddenly reste **à spécifier** : abstraite derrière `Publisher`
+(stub `DownloadPublisher` côté TS), comme le Hub l'était derrière `Narrator`.

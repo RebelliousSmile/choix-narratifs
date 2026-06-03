@@ -21,6 +21,33 @@ export class WasmEngine {
         wasm.__wbg_wasmengine_free(ptr, 0);
     }
     /**
+     * La membrane d'export (US-1.4). `resolutions_json` = tableau de
+     * `{ secret, decision: { type: "reveler", texte } | { type: "retirer" } }`.
+     * Retourne le `CompteRendu` en JSON, ou lève le JSON des `ExportError[]`.
+     * @param {string} resolutions_json
+     * @returns {string}
+     */
+    export(resolutions_json) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(resolutions_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.wasmengine_export(this.__wbg_ptr, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * Amorce une session sur une scène **créée par l'auteur** (UI / bucket). Le
      * JSON est un `SceneSpec`. Lève (string) si le devis est injouable.
      * @param {string} spec_json
@@ -137,6 +164,16 @@ export class WasmEngine {
         } finally {
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
+    }
+    /**
+     * Les secrets encore cachés à résoudre avant export (`string[]`).
+     * @returns {string[]}
+     */
+    secretsEnAttente() {
+        const ret = wasm.wasmengine_secretsEnAttente(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
     }
     /**
      * Sérialise l'état pour persistance (IndexedDB / bucket).

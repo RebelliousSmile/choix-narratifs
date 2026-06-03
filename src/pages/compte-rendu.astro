@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CompteRendu from '../components/CompteRendu.astro';
+---
+
+<BaseLayout
+  title="Compte rendu — Moteur narratif"
+  description="Produisez le compte rendu d'une session jouée : résolvez les secrets restés cachés, puis exportez un récit publiable. Aucun secret ne sort tant qu'il n'est pas résolu."
+>
+  <main class="cr-page">
+    <header class="cr-page-head">
+      <h1>Compte rendu</h1>
+      <p class="cr-page-sub">
+        Clôturez votre session : tranchez le sort des secrets, exportez le récit.
+      </p>
+    </header>
+    <CompteRendu />
+  </main>
+</BaseLayout>
+
+<style>
+  .cr-page { max-width: 48rem; margin: 0 auto; padding: var(--space-5) var(--space-4); }
+  .cr-page-head { margin-bottom: var(--space-4); }
+  .cr-page-head h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: var(--space-2); }
+  .cr-page-sub { color: var(--color-text-muted); font-size: .95rem; }
+</style>

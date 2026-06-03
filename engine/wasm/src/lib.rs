@@ -76,6 +76,24 @@ impl WasmEngine {
     pub fn scene(&self) -> Result<String, String> {
         serde_json::to_string(&self.inner.scene()).map_err(|e| e.to_string())
     }
+
+    /// Les secrets encore cachés à résoudre avant export (`string[]`).
+    #[wasm_bindgen(js_name = secretsEnAttente)]
+    pub fn secrets_en_attente(&self) -> Vec<String> {
+        self.inner.secrets_en_attente()
+    }
+
+    /// La membrane d'export (US-1.4). `resolutions_json` = tableau de
+    /// `{ secret, decision: { type: "reveler", texte } | { type: "retirer" } }`.
+    /// Retourne le `CompteRendu` en JSON, ou lève le JSON des `ExportError[]`.
+    pub fn export(&self, resolutions_json: &str) -> Result<String, String> {
+        let resolutions: Vec<cn_core::engine::SecretResolution> =
+            serde_json::from_str(resolutions_json).map_err(|e| e.to_string())?;
+        match self.inner.export(&resolutions) {
+            Ok(cr) => serde_json::to_string(&cr).map_err(|e| e.to_string()),
+            Err(errs) => Err(serde_json::to_string(&errs).unwrap_or_else(|e| e.to_string())),
+        }
+    }
 }
 
 impl Default for WasmEngine {

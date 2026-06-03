@@ -1,0 +1,263 @@
+---
+// Rôle éditeur (Phase 5, US-1.4) : revue de la session jouée, résolution des secrets
+// cachés (révéler / retirer), génération du compte rendu et publication (stub).
+// La membrane vit en Rust (WasmEngine.export) — ici on pilote et on rend.
+---
+
+<section class="cr" aria-label="Compte rendu">
+  <div id="cr-loading" class="cr-state" aria-live="polite">
+    <span class="cr-spinner" aria-hidden="true"></span>
+    <p>Chargement de la session…</p>
+  </div>
+
+  <div id="cr-empty" class="cr-state" hidden>
+    <p>Aucune session à exporter. <a href="/moteur-narratif">Jouer une scène</a> d'abord.</p>
+  </div>
+
+  <div id="cr-main" hidden>
+    <p class="cr-intro">
+      Relisez la session, tranchez le sort de chaque secret encore caché, puis
+      produisez le compte rendu. <strong>Rien ne sort tant qu'un secret reste indécis.</strong>
+    </p>
+
+    <!-- Secrets à résoudre -->
+    <div id="cr-secrets" class="cr-secrets"></div>
+
+    <div class="cr-actions">
+      <button id="cr-gen" class="cr-btn pri">Produire le compte rendu</button>
+    </div>
+
+    <p class="cr-err" id="cr-err" hidden></p>
+
+    <!-- Aperçu du compte rendu -->
+    <div id="cr-preview" class="cr-preview" hidden>
+      <div class="cr-preview-head">
+        <span class="cr-preview-title">Compte rendu</span>
+        <button id="cr-download" class="cr-btn">⬇ Télécharger (.md)</button>
+      </div>
+      <pre id="cr-md" class="cr-md"></pre>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cr { color: var(--color-text); }
+  .cr-state { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4);
+    color: var(--color-text-muted); }
+  .cr-state a { color: var(--color-accent-strong); }
+  .cr-spinner { width: 1rem; height: 1rem; border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent); border-radius: 50%; animation: cr-spin .8s linear infinite; }
+  @keyframes cr-spin { to { transform: rotate(360deg); } }
+
+  .cr-intro { font-size: .9rem; color: var(--color-text-muted); margin-bottom: 1.5rem; max-width: 46rem; }
+  .cr-intro strong { color: var(--color-text); }
+
+  .cr-secrets { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+  .cr-secret { background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: .5rem; padding: 1rem; }
+  .cr-secret-lbl { font-size: .7rem; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--color-text-muted); margin-bottom: .3rem; }
+  .cr-secret-val { font-size: .95rem; font-style: italic; margin-bottom: .8rem; }
+  .cr-choices { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .cr-choice { display: flex; align-items: center; gap: .35rem; font-size: .85rem; cursor: pointer; }
+  .cr-reveal-txt { flex: 1; min-width: 14rem; background: var(--color-surface-alt);
+    border: 1px solid var(--color-border); border-radius: .25rem; color: var(--color-text);
+    font: inherit; font-size: .85rem; padding: .4rem .7rem; }
+  .cr-reveal-txt:disabled { opacity: .4; }
+  .cr-reveal-txt:focus { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+
+  .cr-actions { margin-bottom: 1rem; }
+  .cr-btn { cursor: pointer; border: 1px solid var(--color-border); border-radius: .25rem;
+    background: var(--color-surface-alt); color: var(--color-text); font: inherit; font-size: .875rem;
+    padding: .4rem 1rem; transition: border-color .15s; }
+  .cr-btn:hover { border-color: var(--color-accent); }
+  .cr-btn.pri { background: var(--color-accent); border-color: var(--color-accent); color: #fff; font-weight: 600; }
+  .cr-btn.pri:hover { background: var(--color-accent-strong); border-color: var(--color-accent-strong); }
+
+  .cr-err { color: #ff9a9a; font-size: .86rem; background: rgba(255,80,80,.08);
+    border: 1px solid rgba(255,120,120,.3); border-radius: .35rem; padding: .6rem .8rem; }
+
+  .cr-preview { margin-top: 1.5rem; border: 1px solid var(--color-border); border-radius: .5rem; overflow: hidden; }
+  .cr-preview-head { display: flex; justify-content: space-between; align-items: center;
+    background: var(--color-surface-alt); padding: .5rem .8rem; border-bottom: 1px solid var(--color-border); }
+  .cr-preview-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); }
+  .cr-md { margin: 0; padding: 1rem; background: var(--color-surface); color: var(--color-text);
+    font-family: ui-monospace, 'Cascadia Code', monospace; font-size: .82rem; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-word; max-height: 28rem; overflow-y: auto; }
+</style>
+
+<script>
+  import init, { WasmEngine } from '../scripts/narrative/pkg/cn_engine.js';
+  import { IdbSnapshotStore } from '../scripts/narrative/snapshot-store';
+  import {
+    renderMarkdown,
+    DownloadPublisher,
+    type CompteRendu,
+    type SecretResolution,
+    type ExportError,
+  } from '../scripts/narrative/export';
+
+  const SESSION_ID = 'moteur-v1';
+
+  const loadingEl = document.getElementById('cr-loading')!;
+  const emptyEl = document.getElementById('cr-empty')!;
+  const mainEl = document.getElementById('cr-main')!;
+  const secretsEl = document.getElementById('cr-secrets')!;
+  const errEl = document.getElementById('cr-err')!;
+  const previewEl = document.getElementById('cr-preview')!;
+  const mdEl = document.getElementById('cr-md')!;
+
+  let engine: WasmEngine | null = null;
+  let dernierCR: CompteRendu | null = null;
+  let dernierMd = '';
+
+  async function start(): Promise<void> {
+    await init();
+    const store = new IdbSnapshotStore();
+    let bytes: Uint8Array | null = null;
+    try {
+      bytes = await store.load(SESSION_ID);
+    } catch {
+      bytes = null;
+    }
+    if (!bytes) {
+      loadingEl.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    try {
+      engine = WasmEngine.fromSnapshot(bytes);
+    } catch {
+      loadingEl.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    loadingEl.hidden = true;
+    mainEl.hidden = false;
+    renderSecrets();
+  }
+
+  function renderSecrets(): void {
+    if (!engine) return;
+    const secrets = engine.secretsEnAttente();
+    secretsEl.replaceChildren();
+    if (secrets.length === 0) {
+      const p = document.createElement('p');
+      p.style.color = 'var(--color-text-muted)';
+      p.style.fontSize = '.88rem';
+      p.textContent = 'Aucun secret en suspens : tout a été résolu en jeu.';
+      secretsEl.appendChild(p);
+      return;
+    }
+    for (const [i, secret] of secrets.entries()) {
+      secretsEl.appendChild(secretCard(i, secret));
+    }
+  }
+
+  function secretCard(i: number, secret: string): HTMLElement {
+    const card = document.createElement('div');
+    card.className = 'cr-secret';
+    card.dataset.secret = secret;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'cr-secret-lbl';
+    lbl.textContent = 'Secret resté caché';
+    const val = document.createElement('div');
+    val.className = 'cr-secret-val';
+    val.textContent = secret;
+
+    const choices = document.createElement('div');
+    choices.className = 'cr-choices';
+
+    const name = `cr-dec-${i}`;
+    const reveal = radio(name, 'reveler', 'Révéler', true);
+    const retirer = radio(name, 'retirer', 'Retirer', false);
+    const txt = document.createElement('input');
+    txt.type = 'text';
+    txt.className = 'cr-reveal-txt';
+    txt.placeholder = 'Comment révéler ce secret au lecteur…';
+    txt.value = secret;
+
+    const sync = () => { txt.disabled = !reveal.input.checked; };
+    reveal.input.addEventListener('change', sync);
+    retirer.input.addEventListener('change', sync);
+    sync();
+
+    choices.append(reveal.label, retirer.label, txt);
+    card.append(lbl, val, choices);
+    return card;
+  }
+
+  function radio(name: string, value: string, text: string, checked: boolean) {
+    const label = document.createElement('label');
+    label.className = 'cr-choice';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = name;
+    input.value = value;
+    input.checked = checked;
+    label.append(input, document.createTextNode(text));
+    return { label, input };
+  }
+
+  function collectResolutions(): SecretResolution[] {
+    const out: SecretResolution[] = [];
+    secretsEl.querySelectorAll<HTMLElement>('.cr-secret').forEach((card) => {
+      const secret = card.dataset.secret!;
+      const checked = card.querySelector<HTMLInputElement>('input[type=radio]:checked');
+      const txt = card.querySelector<HTMLInputElement>('.cr-reveal-txt');
+      if (checked?.value === 'retirer') {
+        out.push({ secret, decision: { type: 'retirer' } });
+      } else {
+        out.push({ secret, decision: { type: 'reveler', texte: txt?.value ?? secret } });
+      }
+    });
+    return out;
+  }
+
+  function showErrors(errs: ExportError[]): void {
+    const msgs = errs.map((e) =>
+      e.type === 'secret_non_resolu'
+        ? `Secret indécis : « ${e.detail} »`
+        : `Fuite dans la prose (« ${e.detail.jeton} ») : éditez la prose ou révélez le secret.`,
+    );
+    errEl.textContent = msgs.join(' · ');
+    errEl.hidden = false;
+    previewEl.hidden = true;
+  }
+
+  document.getElementById('cr-gen')!.addEventListener('click', () => {
+    if (!engine) return;
+    errEl.hidden = true;
+    const resolutions = collectResolutions();
+    let json: string;
+    try {
+      json = engine.export(JSON.stringify(resolutions));
+    } catch (raw) {
+      try {
+        showErrors(JSON.parse(String(raw)) as ExportError[]);
+      } catch {
+        errEl.textContent = `Erreur : ${String(raw)}`;
+        errEl.hidden = false;
+      }
+      return;
+    }
+    dernierCR = JSON.parse(json) as CompteRendu;
+    dernierMd = renderMarkdown(dernierCR);
+    mdEl.textContent = dernierMd;
+    previewEl.hidden = false;
+  });
+
+  document.getElementById('cr-download')!.addEventListener('click', async () => {
+    if (!dernierCR) return;
+    await new DownloadPublisher().publish(dernierCR, dernierMd);
+  });
+
+  window.addEventListener('beforeunload', () => { if (engine) engine.free(); });
+
+  start().catch((e: unknown) => {
+    loadingEl.hidden = true;
+    emptyEl.hidden = false;
+    console.error(e);
+  });
+</script>

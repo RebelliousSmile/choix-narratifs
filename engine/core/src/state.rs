@@ -49,6 +49,17 @@ impl Registry {
     }
 }
 
+/// Un tour commité, journalisé pour l'export (US-1.4) et la reprise d'historique.
+/// La prose y est **déjà canon-free** (elle a passé le verifier). Persisté dans le
+/// snapshot.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct TourJournal {
+    pub action: String,
+    pub prose: String,
+    /// Faits que le joueur a appris à ce tour.
+    pub faits_reveles: Vec<String>,
+}
+
 /// L'état complet d'une session. Sérialisé pour le snapshot (stockage local :
 /// IndexedDB / bucket). Contient le canon — il reste donc côté client, jamais
 /// dans le paquet.
@@ -67,6 +78,10 @@ pub struct World {
     pub registre: Registry,
     /// Shapes récemment utilisées → alimentent `Form::interdit_shape` (§6).
     pub shapes_recentes: Vec<ShapeTag>,
+    /// Transcript des tours commités (US-1.4). `default` : les snapshots antérieurs
+    /// (Phase 3/4, sans journal) se chargent sans casser.
+    #[serde(default)]
+    pub journal: Vec<TourJournal>,
 }
 
 /// Devis d'élaboration **côté auteur** (UI Phase 4 / bucket de modules). Forme
@@ -206,6 +221,7 @@ impl World {
             withhold: spec.withhold,
             registre: Registry::default(),
             shapes_recentes: vec![],
+            journal: Vec::new(),
         }
     }
 
@@ -237,6 +253,7 @@ impl World {
             jetons_move: vec!["quitté le quai".into(), "partie".into(), "embarqué".into()],
             registre: Registry::default(),
             shapes_recentes: vec![ShapeTag::Monologue, ShapeTag::ListeDescripteurs],
+            journal: Vec::new(),
         }
     }
 }

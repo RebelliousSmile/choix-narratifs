@@ -55,6 +55,7 @@
     <!-- Pied de page -->
     <footer class="mn-footer">
       <button id="mn-new-session" class="mn-btn mn-btn--ghost">Nouvelle session</button>
+      <a href="/compte-rendu" class="mn-btn mn-btn--ghost mn-export">Clore &amp; exporter →</a>
       <span id="mn-persist-status" class="mn-persist"></span>
       <span class="mn-mode">Narrateur local (démo)</span>
     </footer>
@@ -264,6 +265,10 @@
     padding: var(--space-2) var(--space-4);
     border-top: 1px solid var(--color-border);
     background: var(--color-surface-alt);
+  }
+  .mn-export {
+    text-decoration: none;
+    line-height: 1.2;
   }
   .mn-persist {
     font-size: 0.75rem;
