@@ -14,7 +14,7 @@ use serde::Serialize;
 
 use crate::directeur::{self, BeatPlan};
 use crate::packet::ScenePacket;
-use crate::state::{Event, World};
+use crate::state::{Event, SceneSpec, World};
 use crate::verifier::{self, Rejet};
 
 /// Sortie de `prepare` : ce qui part vers le relais (le paquet + le best-of-N).
@@ -22,6 +22,16 @@ use crate::verifier::{self, Rejet};
 pub struct Prepared {
     pub packet: ScenePacket,
     pub n: u8,
+}
+
+/// Info **publique** de la scène (décor + PNJ), pour l'en-tête de l'UI. N'expose
+/// aucun canon : ce sont les mêmes champs que le directeur copie déjà dans le paquet.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SceneInfo {
+    pub lieu: String,
+    pub ambiance: Option<String>,
+    pub pnj_nom: String,
+    pub pnj_voix: String,
 }
 
 /// Résultat de `resolve`.
@@ -65,6 +75,14 @@ impl Engine {
             None => World::scene_docker(),
         };
         Engine { world, pending: None, trace: Vec::new() }
+    }
+
+    /// Amorce une session sur une scène **créée par l'auteur** (UI Phase 4 / bucket).
+    /// Renvoie une erreur si le devis est injouable (cf. [`SceneSpec::validate`]).
+    pub fn author(spec: SceneSpec) -> Result<Engine, String> {
+        spec.validate()?;
+        let world = World::from_spec(spec);
+        Ok(Engine { world, pending: None, trace: Vec::new() })
     }
 
     /// Le directeur produit le paquet canon-free ; le plan privé est mémorisé.
@@ -138,6 +156,16 @@ impl Engine {
     /// Ce que le joueur sait à cet instant (fold du registre).
     pub fn savoir_joueur(&self) -> Vec<String> {
         self.world.registre.knows("joueur")
+    }
+
+    /// Info publique de la scène (pour l'en-tête de l'UI). Aucun canon.
+    pub fn scene(&self) -> SceneInfo {
+        SceneInfo {
+            lieu: self.world.cadre.lieu.clone(),
+            ambiance: self.world.cadre.ambiance.clone(),
+            pnj_nom: self.world.locuteur.nom.clone(),
+            pnj_voix: self.world.locuteur.voix.clone(),
+        }
     }
 
     /// Applique le diff d'état : le joueur apprend jusqu'à `budget` faits

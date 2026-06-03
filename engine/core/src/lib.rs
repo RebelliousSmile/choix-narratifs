@@ -15,4 +15,5 @@ pub mod verifier;
 
 pub use engine::{Engine, Outcome, Prepared};
 pub use packet::ScenePacket;
+pub use state::SceneSpec;
 pub use verifier::Rejet;

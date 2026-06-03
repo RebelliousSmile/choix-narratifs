@@ -21,6 +21,21 @@ export class WasmEngine {
         wasm.__wbg_wasmengine_free(ptr, 0);
     }
     /**
+     * Amorce une session sur une scène **créée par l'auteur** (UI / bucket). Le
+     * JSON est un `SceneSpec`. Lève (string) si le devis est injouable.
+     * @param {string} spec_json
+     * @returns {WasmEngine}
+     */
+    static fromScene(spec_json) {
+        const ptr0 = passStringToWasm0(spec_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmengine_fromScene(ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmEngine.__wrap(ret[0]);
+    }
+    /**
      * Reprend une session depuis un snapshot (`Uint8Array`).
      * @param {Uint8Array} snapshot
      * @returns {WasmEngine}
@@ -100,6 +115,28 @@ export class WasmEngine {
         var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
         return v1;
+    }
+    /**
+     * Info publique de la scène (décor + PNJ) en JSON, pour l'en-tête de l'UI.
+     * @returns {string}
+     */
+    scene() {
+        let deferred2_0;
+        let deferred2_1;
+        try {
+            const ret = wasm.wasmengine_scene(this.__wbg_ptr);
+            var ptr1 = ret[0];
+            var len1 = ret[1];
+            if (ret[3]) {
+                ptr1 = 0; len1 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred2_0 = ptr1;
+            deferred2_1 = len1;
+            return getStringFromWasm0(ptr1, len1);
+        } finally {
+            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        }
     }
     /**
      * Sérialise l'état pour persistance (IndexedDB / bucket).

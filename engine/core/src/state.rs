@@ -69,7 +69,146 @@ pub struct World {
     pub shapes_recentes: Vec<ShapeTag>,
 }
 
+/// Devis d'élaboration **côté auteur** (UI Phase 4 / bucket de modules). Forme
+/// amicale, non-technique : l'auteur saisit le décor, le PNJ, le secret et ce que
+/// le PNJ peut lâcher. `World::from_spec` en dérive les jetons internes.
+///
+/// FRONTIÈRE : ce type porte le `secret` **en clair** (c'est l'auteur qui le tape).
+/// Il vit côté client (UI → moteur) et ne franchit JAMAIS le mur : `prepare` ne lit
+/// que les champs publics du `World`, pas le canon.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct SceneSpec {
+    pub lieu: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ambiance: Option<String>,
+    pub pnj_nom: String,
+    pub pnj_voix: String,
+    /// Le grand secret (la réponse tue).
+    pub secret: String,
+    /// Mots qui trahissent le secret. Si vide, dérivé des noms propres du secret.
+    #[serde(default)]
+    pub jetons_fuite: Vec<String>,
+    /// Ce que le PNJ peut lâcher (faits révélables). Sert aussi de preuve de move.
+    #[serde(default)]
+    pub revealable: Vec<String>,
+    /// Faits établis du monde (base de détection des contradictions).
+    #[serde(default)]
+    pub faits_etablis: Vec<String>,
+    /// Tournures qui NIENT un fait établi.
+    #[serde(default)]
+    pub jetons_contradiction: Vec<String>,
+    /// Étiquettes de sujet tu (jamais le contenu) — passent telles quelles au paquet.
+    #[serde(default)]
+    pub withhold: Vec<String>,
+}
+
+impl SceneSpec {
+    /// Refuse une scène injouable ou dont le mur sémantique est cassé.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.lieu.trim().is_empty() {
+            return Err("Le lieu est requis.".into());
+        }
+        if self.pnj_nom.trim().is_empty() {
+            return Err("Le nom du PNJ est requis.".into());
+        }
+        if self.secret.trim().is_empty() {
+            return Err("Le grand secret est requis.".into());
+        }
+        // Sans rien à lâcher, le PNJ ne peut pas exécuter de move → scène injouable.
+        if self.revealable.iter().all(|r| r.trim().is_empty()) {
+            return Err("Au moins un fait révélable est requis (sinon le PNJ n'a rien à lâcher).".into());
+        }
+        let jetons = self.jetons_fuite_effectifs();
+        if jetons.is_empty() {
+            return Err(
+                "Aucun mot qui trahit le secret n'a pu être déterminé. Précisez-en au moins un.".into(),
+            );
+        }
+        // Le mur sémantique : un jeton de fuite ne doit JAMAIS apparaître dans un
+        // fait révélable, sinon le seul énoncé possible du PNJ fuit le secret.
+        for fait in &self.revealable {
+            let f = fait.to_lowercase();
+            for jeton in &jetons {
+                if f.contains(&jeton.to_lowercase()) {
+                    return Err(format!(
+                        "Le fait révélable « {fait} » contient le mot secret « {jeton} » : il fuiterait le secret.",
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Les jetons de fuite explicites, ou dérivés du secret s'ils sont absents.
+    fn jetons_fuite_effectifs(&self) -> Vec<String> {
+        let explicites: Vec<String> = self
+            .jetons_fuite
+            .iter()
+            .map(|j| j.trim().to_string())
+            .filter(|j| !j.is_empty())
+            .collect();
+        if explicites.is_empty() {
+            derive_jetons_fuite(&self.secret)
+        } else {
+            explicites
+        }
+    }
+}
+
+/// Dérive les jetons de fuite d'un secret : ses **noms propres** (mots capitalisés
+/// hors mots-outils). Heuristique de pré-remplissage — l'auteur peut corriger.
+fn derive_jetons_fuite(secret: &str) -> Vec<String> {
+    const OUTILS: &[&str] = &[
+        "le", "la", "les", "un", "une", "des", "de", "du", "il", "elle", "on",
+        "ce", "cet", "cette", "ils", "elles", "nous", "vous", "et", "ou", "qui",
+    ];
+    secret
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|mot| {
+            let m = mot.trim();
+            m.chars().count() >= 3
+                && m.chars().next().is_some_and(|c| c.is_uppercase())
+                && !OUTILS.contains(&m.to_lowercase().as_str())
+        })
+        .map(|m| m.to_string())
+        .collect()
+}
+
 impl World {
+    /// Construit un monde jouable depuis un devis d'auteur.
+    ///
+    /// COUPLAGE DE JOUABILITÉ : `jetons_move = revealable`. Le narrateur (stub ou
+    /// Hub) prouve le move en énonçant un fait révélable ; le verifier exige alors
+    /// qu'un `jetons_move` apparaisse → satisfait par construction.
+    pub fn from_spec(spec: SceneSpec) -> World {
+        let jetons_fuite = spec.jetons_fuite_effectifs();
+        let revealable: Vec<String> = spec
+            .revealable
+            .into_iter()
+            .map(|r| r.trim().to_string())
+            .filter(|r| !r.is_empty())
+            .collect();
+        World {
+            canon: Canon {
+                secret_reponse: spec.secret,
+                jetons_fuite,
+                faits_etablis: spec.faits_etablis,
+                jetons_contradiction: spec.jetons_contradiction,
+            },
+            cadre: Cadre {
+                lieu: spec.lieu,
+                ambiance: spec.ambiance.filter(|a| !a.trim().is_empty()),
+                presents: vec![],
+            },
+            locuteur: Locuteur { nom: spec.pnj_nom, voix: spec.pnj_voix },
+            jetons_move: revealable.clone(),
+            revealable,
+            withhold: spec.withhold,
+            registre: Registry::default(),
+            shapes_recentes: vec![],
+        }
+    }
+
     /// La scène d'amorce de la Phase 1 : un PNJ (le docker), un secret (qui a payé).
     pub fn scene_docker() -> World {
         World {

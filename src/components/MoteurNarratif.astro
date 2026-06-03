@@ -21,17 +21,15 @@
 
   <!-- Jeu -->
   <div id="mn-game" hidden>
-    <!-- Contexte de scène (Phase 1 : docker, quai) -->
+    <!-- Contexte de scène — rempli dynamiquement depuis engine.scene() -->
     <header class="mn-scene">
-      <div class="mn-scene__lieu">Le quai, à la nuit tombée</div>
-      <div class="mn-scene__ambiance">Pluie fine, lanternes. Le docker est là.</div>
+      <div class="mn-scene__lieu" id="mn-lieu"></div>
+      <div class="mn-scene__ambiance" id="mn-ambiance"></div>
     </header>
 
     <!-- Journal d'échanges -->
     <div id="mn-log" class="mn-log" role="log" aria-live="polite" aria-label="Échanges">
-      <p class="mn-log__intro">
-        Le docker vous regarde approcher. Il sait quelque chose sur la cargaison. À vous.
-      </p>
+      <p class="mn-log__intro" id="mn-intro"></p>
     </div>
 
     <!-- Saisie joueur -->
@@ -285,6 +283,14 @@
   import type { SnapshotStore } from '../scripts/narrative/snapshot-store';
   import { StubNarrator } from '../scripts/narrative/stub-narrator';
   import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
+  import { takePendingScene } from '../scripts/narrative/pending-scene';
+
+  interface SceneInfo {
+    lieu: string;
+    ambiance: string | null;
+    pnj_nom: string;
+    pnj_voix: string;
+  }
 
   const SESSION_ID = 'moteur-v1';
   const narrator = new StubNarrator();
@@ -300,6 +306,8 @@
   const submitEl = document.getElementById('mn-submit') as HTMLButtonElement;
   const savoirListEl = document.getElementById('mn-savoir-list')!;
   const persistStatusEl = document.getElementById('mn-persist-status')!;
+  const lieuEl = document.getElementById('mn-lieu')!;
+  const ambianceEl = document.getElementById('mn-ambiance')!;
 
   // ── Store ─────────────────────────────────────────────────────────────────
   let store: SnapshotStore = new MemorySnapshotStore();
@@ -313,8 +321,26 @@
 
   // ── Engine ────────────────────────────────────────────────────────────────
   let engine: WasmEngine | null = null;
+  // État de la scène au montage (scène fraîche, ou dernier point repris) — sert à
+  // « Nouvelle session » pour repartir sur la MÊME scène sans en perdre l'identité.
+  let initialSnapshot: Uint8Array | null = null;
 
   // ── Helpers UI ────────────────────────────────────────────────────────────
+  function renderScene(): void {
+    if (!engine) return;
+    let info: SceneInfo;
+    try {
+      info = JSON.parse(engine.scene()) as SceneInfo;
+    } catch {
+      return;
+    }
+    lieuEl.textContent = info.lieu;
+    ambianceEl.textContent = info.ambiance ?? '';
+    // mn-intro peut avoir été recréé par resetLog : on le requête à chaud.
+    const intro = document.getElementById('mn-intro');
+    if (intro) intro.textContent = `${info.pnj_nom} vous fait face. À vous d'engager.`;
+  }
+
   function refreshSavoir(): void {
     if (!engine) return;
     const faits = engine.savoirJoueur();
@@ -365,24 +391,40 @@
     await init();
 
     let eng: WasmEngine;
-    try {
-      eng = await resume(
-        store,
-        SESSION_ID,
-        (bytes) => WasmEngine.fromSnapshot(bytes),
-        () => new WasmEngine(),
-      );
-    } catch {
-      // Snapshot corrompu → clear + session fraîche.
+
+    // Une scène choisie/créée à l'élaboration prime sur la reprise : on démarre
+    // frais dessus et on efface l'ancien snapshot.
+    const pending = takePendingScene();
+    if (pending !== null) {
       await store.clear(SESSION_ID).catch(() => undefined);
-      eng = new WasmEngine();
+      eng = WasmEngine.fromScene(pending); // lève (string) si devis injouable
+      resetLog();
+    } else {
+      try {
+        eng = await resume(
+          store,
+          SESSION_ID,
+          (bytes) => WasmEngine.fromSnapshot(bytes),
+          () => new WasmEngine(),
+        );
+      } catch {
+        // Snapshot corrompu → clear + session fraîche.
+        await store.clear(SESSION_ID).catch(() => undefined);
+        eng = new WasmEngine();
+      }
     }
 
     if (engine) engine.free();
     engine = eng;
+    initialSnapshot = engine.snapshot();
 
     showGame();
+    renderScene();
     refreshSavoir();
+  }
+
+  function resetLog(): void {
+    logEl.innerHTML = '<p class="mn-log__intro" id="mn-intro"></p>';
   }
 
   startEngine().catch((e: unknown) => showError(String(e)));
@@ -416,16 +458,18 @@
   });
 
   // ── Nouvelle session ──────────────────────────────────────────────────────
+  // Repart sur la MÊME scène depuis son état initial (snapshot du montage).
   document.getElementById('mn-new-session')!.addEventListener('click', async () => {
-    if (!confirm('Démarrer une nouvelle session ? La progression en cours sera perdue.')) return;
+    if (!confirm('Recommencer cette scène ? La progression en cours sera perdue.')) return;
 
     await store.clear(SESSION_ID).catch(() => undefined);
     if (engine) engine.free();
-    engine = new WasmEngine();
+    engine = initialSnapshot
+      ? WasmEngine.fromSnapshot(initialSnapshot)
+      : new WasmEngine();
 
-    const intro = logEl.querySelector('.mn-log__intro');
-    logEl.innerHTML = '';
-    if (intro) logEl.appendChild(intro);
+    resetLog();
+    renderScene();
     refreshSavoir();
   });
 
