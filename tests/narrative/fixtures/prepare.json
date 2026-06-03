@@ -1,0 +1,33 @@
+{
+  "packet": {
+    "schema_version": 1,
+    "cadre": {
+      "lieu": "le quai, à la nuit tombée",
+      "ambiance": "pluie fine, lanternes",
+      "presents": []
+    },
+    "locuteur": {
+      "nom": "le docker",
+      "voix": "bourru, phrases courtes"
+    },
+    "action_joueur": "Je lui demande où est passée la cargaison.",
+    "hearing": "menace sur le secret",
+    "move": "se détourne, lâche 1 fait mineur",
+    "revealable": [
+      "la cargaison a quitté le quai"
+    ],
+    "withhold": [
+      "qui a payé"
+    ],
+    "form": {
+      "registre": "sec",
+      "budget_revelation": 1,
+      "ratio": "non_verbal_dominant",
+      "interdit_shape": [
+        "liste_descripteurs",
+        "monologue"
+      ]
+    }
+  },
+  "n": 3
+}

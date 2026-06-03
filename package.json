@@ -10,8 +10,10 @@
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
+    "test:engine": "cargo test --manifest-path engine/Cargo.toml",
+    "build:engine": "node scripts/build-engine.mjs",
     "gen:docs": "node scripts/gen-mues-doc.mjs",
-    "deploy:prod": "pnpm build && node scripts/deploy.mjs"
+    "deploy:prod": "pnpm build:engine && pnpm build && node scripts/deploy.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^25.0.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"

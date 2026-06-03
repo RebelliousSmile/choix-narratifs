@@ -1,0 +1,25 @@
+{
+  "outcome": "resample_needed",
+  "rejets": [
+    [
+      0,
+      {
+        "type": "fuite",
+        "detail": "verain"
+      }
+    ],
+    [
+      1,
+      {
+        "type": "contradiction",
+        "detail": "toujours sur le quai"
+      }
+    ],
+    [
+      2,
+      {
+        "type": "move_non_execute"
+      }
+    ]
+  ]
+}
