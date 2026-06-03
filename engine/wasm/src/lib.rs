@@ -17,7 +17,7 @@
 
 use wasm_bindgen::prelude::*;
 
-use cn_core::Engine;
+use cn_core::{Engine, SceneSpec};
 
 /// Façade JS du moteur. Un objet = une session.
 #[wasm_bindgen]
@@ -37,6 +37,15 @@ impl WasmEngine {
     #[wasm_bindgen(js_name = fromSnapshot)]
     pub fn from_snapshot(snapshot: &[u8]) -> WasmEngine {
         WasmEngine { inner: Engine::restore(Some(snapshot)) }
+    }
+
+    /// Amorce une session sur une scène **créée par l'auteur** (UI / bucket). Le
+    /// JSON est un `SceneSpec`. Lève (string) si le devis est injouable.
+    #[wasm_bindgen(js_name = fromScene)]
+    pub fn from_scene(spec_json: &str) -> Result<WasmEngine, String> {
+        let spec: SceneSpec = serde_json::from_str(spec_json).map_err(|e| e.to_string())?;
+        let inner = Engine::author(spec)?;
+        Ok(WasmEngine { inner })
     }
 
     /// Directeur → paquet canon-free. Retourne `{"packet":…,"n":…}` en JSON.
@@ -61,6 +70,29 @@ impl WasmEngine {
     #[wasm_bindgen(js_name = savoirJoueur)]
     pub fn savoir_joueur(&self) -> Vec<String> {
         self.inner.savoir_joueur()
+    }
+
+    /// Info publique de la scène (décor + PNJ) en JSON, pour l'en-tête de l'UI.
+    pub fn scene(&self) -> Result<String, String> {
+        serde_json::to_string(&self.inner.scene()).map_err(|e| e.to_string())
+    }
+
+    /// Les secrets encore cachés à résoudre avant export (`string[]`).
+    #[wasm_bindgen(js_name = secretsEnAttente)]
+    pub fn secrets_en_attente(&self) -> Vec<String> {
+        self.inner.secrets_en_attente()
+    }
+
+    /// La membrane d'export (US-1.4). `resolutions_json` = tableau de
+    /// `{ secret, decision: { type: "reveler", texte } | { type: "retirer" } }`.
+    /// Retourne le `CompteRendu` en JSON, ou lève le JSON des `ExportError[]`.
+    pub fn export(&self, resolutions_json: &str) -> Result<String, String> {
+        let resolutions: Vec<cn_core::engine::SecretResolution> =
+            serde_json::from_str(resolutions_json).map_err(|e| e.to_string())?;
+        match self.inner.export(&resolutions) {
+            Ok(cr) => serde_json::to_string(&cr).map_err(|e| e.to_string()),
+            Err(errs) => Err(serde_json::to_string(&errs).unwrap_or_else(|e| e.to_string())),
+        }
     }
 }
 

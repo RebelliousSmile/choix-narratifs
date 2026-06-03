@@ -13,6 +13,9 @@ pub mod packet;
 pub mod state;
 pub mod verifier;
 
-pub use engine::{Engine, Outcome, Prepared};
+pub use engine::{
+    CompteRendu, Decision, Engine, ExportError, Outcome, Prepared, SecretResolution,
+};
 pub use packet::ScenePacket;
+pub use state::SceneSpec;
 pub use verifier::Rejet;

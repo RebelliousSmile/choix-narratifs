@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Elaboration from '../components/Elaboration.astro';
+---
+
+<BaseLayout
+  title="Élaboration — Moteur narratif"
+  description="Composez une scène de jeu narratif : choisissez un module pré-construit ou créez votre propre rencontre (PNJ, secret, faits révélables), puis jouez-la."
+>
+  <main class="el-page">
+    <Elaboration />
+  </main>
+</BaseLayout>
+
+<style>
+  .el-page {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4);
+  }
+</style>

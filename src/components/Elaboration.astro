@@ -1,0 +1,545 @@
+---
+// UI d'élaboration (Phase 4, US-2.1 / US-3.1). Deux entrées :
+//  1. « Choisir un module » : bucket de SceneSpec pré-construits (rendu côté serveur) ;
+//  2. « Créer une scène » : formulaire 3 étapes + aperçu live + bascule jouer/préparer.
+// Les deux produisent un SceneSpec, déposé via setPendingScene, puis on file au moteur.
+import { MODULES } from '../scripts/narrative/modules';
+---
+
+<section class="el" aria-label="Élaboration de scène" data-mode="jouer">
+  <header class="el-head">
+    <div>
+      <h2 class="el-title">Élaboration de scène</h2>
+      <p class="el-sub">Posez le cadre d'une rencontre — le moteur fait le reste.</p>
+    </div>
+    <!-- Bascule auto-ignorance (US-2.1 vs US-3.2) : un réglage de session, pas global. -->
+    <div class="el-modes" role="tablist" aria-label="Mode">
+      <button class="el-mode on" data-mode="jouer" role="tab" aria-selected="true">Je joue</button>
+      <button class="el-mode" data-mode="preparer" role="tab" aria-selected="false">Je prépare (MJ)</button>
+    </div>
+  </header>
+  <p class="el-mode-note" id="el-mode-note">
+    Mode joueur : le secret reste caché — vous le découvrirez en jouant.
+  </p>
+
+  <nav class="el-tabs">
+    <button class="el-tab on" data-tab="bucket">Choisir un module</button>
+    <button class="el-tab" data-tab="create">Créer une scène</button>
+  </nav>
+
+  <!-- ── BUCKET ──────────────────────────────────────────────────────────── -->
+  <div id="el-panel-bucket" class="el-panel on">
+    <div class="el-grid">
+      {MODULES.map((m) => (
+        <article
+          class:list={['el-card', { dim: !m.disponible }]}
+          data-mid={m.id}
+          tabindex={m.disponible ? 0 : -1}
+          role={m.disponible ? 'button' : undefined}
+          aria-pressed={m.disponible ? 'false' : undefined}
+        >
+          <span class:list={['el-badge', m.disponible ? 'ok' : 'soon']}>
+            {m.disponible ? 'Disponible' : 'Bientôt'}
+          </span>
+          <h3 class="el-ctitle">{m.titre}</h3>
+          <p class="el-clieu">{m.spec.lieu}</p>
+          <div class="el-cpnj">
+            <div class="el-cpnj-name">{m.spec.pnj_nom}</div>
+            <div class="el-cpnj-voix">{m.spec.pnj_voix}</div>
+          </div>
+          <div>
+            <div class="el-csec-lbl">Grand secret</div>
+            <div class="el-csec-val">{m.spec.secret}</div>
+          </div>
+          {m.contexte && (
+            <div class="el-cctx">
+              {m.contexte.univers && <span class="el-ctag" title="Univers">🌍 {m.contexte.univers.nom}</span>}
+              {m.contexte.campagne && <span class="el-ctag" title="Campagne">🧵 {m.contexte.campagne.nom}</span>}
+            </div>
+          )}
+          {m.disponible && <button class="el-btn pri el-cta" data-play={m.id}>Jouer ce module →</button>}
+        </article>
+      ))}
+    </div>
+  </div>
+
+  <!-- ── CREATE ──────────────────────────────────────────────────────────── -->
+  <div id="el-panel-create" class="el-panel">
+    <div class="el-cols">
+      <div>
+        <div class="el-steps">
+          <div class="el-step on" id="el-ind1"><span class="el-snum">1</span>Le décor</div>
+          <span class="el-sep">›</span>
+          <div class="el-step" id="el-ind2"><span class="el-snum">2</span>L'enjeu</div>
+          <span class="el-sep">›</span>
+          <div class="el-step" id="el-ind3"><span class="el-snum">3</span>Aperçu</div>
+        </div>
+
+        <!-- Étape 1 -->
+        <div class="el-sp on" id="el-s1">
+          <div class="el-fg">
+            <label class="el-lbl" for="el-lieu"><strong>Le lieu de la rencontre</strong></label>
+            <input class="el-inp" id="el-lieu" type="text" placeholder="Ex. : Le quai, à la nuit tombée" />
+          </div>
+          <div class="el-fg">
+            <label class="el-lbl" for="el-amb">Atmosphère <span class="el-opt">(optionnel)</span></label>
+            <input class="el-inp" id="el-amb" type="text" placeholder="Ex. : Pluie fine, lanternes" />
+          </div>
+          <div class="el-fg">
+            <label class="el-lbl" for="el-nom"><strong>Nom du PNJ</strong>
+              <span class="el-hint">Le personnage que le joueur va interroger</span></label>
+            <input class="el-inp" id="el-nom" type="text" placeholder="Ex. : Le docker" />
+          </div>
+          <div class="el-fg">
+            <label class="el-lbl" for="el-voix">Sa façon de parler
+              <span class="el-hint">Ton, rythme, tic de langage</span></label>
+            <input class="el-inp" id="el-voix" type="text" placeholder="Ex. : Bourru, phrases courtes" />
+          </div>
+          <div class="el-nav"><button class="el-btn pri" id="el-b12">Suivant →</button></div>
+        </div>
+
+        <!-- Étape 2 -->
+        <div class="el-sp" id="el-s2">
+          <div class="el-fg">
+            <label class="el-lbl" for="el-sec"><strong>Le grand secret</strong>
+              <span class="el-hint">Ce que le PNJ sait mais tait — l'enjeu de la scène</span></label>
+            <input class="el-inp" id="el-sec" type="text" placeholder="Ex. : Verain a payé pour la cargaison" />
+          </div>
+          <div class="el-fg">
+            <label class="el-lbl">Ce que le PNJ peut lâcher
+              <span class="el-hint">Faits révélables — tapez et appuyez sur Entrée</span></label>
+            <div class="el-tags" id="el-rev-wrap">
+              <input class="el-tags-inp" id="el-rev-inp" type="text" placeholder="Tapez un fait, Entrée…" />
+            </div>
+          </div>
+          <div class="el-fg">
+            <label class="el-lbl" for="el-with">Le sujet tu <span class="el-opt">(optionnel)</span>
+              <span class="el-hint">L'étiquette de la question, jamais sa réponse</span></label>
+            <input class="el-inp" id="el-with" type="text" placeholder="Ex. : qui a payé" />
+          </div>
+
+          <details class="el-adv">
+            <summary>Réglages avancés</summary>
+            <div class="el-fg">
+              <label class="el-lbl" for="el-fuite">Mots qui trahissent le secret
+                <span class="el-hint">Pré-rempli depuis le secret (noms propres). Séparez par des virgules.</span></label>
+              <input class="el-inp" id="el-fuite" type="text" placeholder="Dérivé automatiquement…" />
+            </div>
+            <div class="el-fg">
+              <label class="el-lbl" for="el-faits">Faits établis
+                <span class="el-hint">Vrais du monde (base des contradictions). Une virgule par fait.</span></label>
+              <input class="el-inp" id="el-faits" type="text" placeholder="Ex. : la cargaison a quitté le quai" />
+            </div>
+            <div class="el-fg">
+              <label class="el-lbl" for="el-contra">Tournures de contradiction
+                <span class="el-hint">Ce qui NIERAIT un fait établi. Une virgule par tournure.</span></label>
+              <input class="el-inp" id="el-contra" type="text" placeholder="Ex. : toujours sur le quai, jamais partie" />
+            </div>
+          </details>
+
+          <div class="el-nav">
+            <button class="el-btn ghost" id="el-b21">← Retour</button>
+            <button class="el-btn pri" id="el-b23">Aperçu →</button>
+          </div>
+        </div>
+
+        <!-- Étape 3 -->
+        <div class="el-sp" id="el-s3">
+          <p class="el-s3-intro">Votre scène est prête. Vérifiez avant de lancer.</p>
+          <div id="el-summ"></div>
+          <p class="el-err" id="el-err" hidden></p>
+          <div class="el-launch">
+            <button class="el-btn pri el-go" id="el-launch">▶ Lancer la scène</button>
+            <p class="el-launch-note">La session sera sauvegardée dans votre navigateur.</p>
+          </div>
+          <div class="el-nav"><button class="el-btn ghost" id="el-b32">← Modifier</button></div>
+        </div>
+      </div>
+
+      <!-- Aperçu live -->
+      <div>
+        <div class="el-prev-title">Aperçu en direct</div>
+        <div class="el-prev">
+          <div class="el-prev-scene">
+            <div class="el-prev-lieu" id="el-pl">Lieu…</div>
+            <div class="el-prev-amb" id="el-pa"></div>
+          </div>
+          <div class="el-prev-body">
+            <div class="el-prev-pnj">
+              <div class="el-prev-av" id="el-pav">?</div>
+              <div>
+                <div class="el-prev-name" id="el-pn">PNJ…</div>
+                <div class="el-prev-voix" id="el-pv"></div>
+              </div>
+            </div>
+            <div class="el-prev-sec">
+              <div class="el-prev-sec-lbl">Grand secret</div>
+              <div class="el-prev-sec-val" id="el-ps">—</div>
+            </div>
+            <div class="el-prev-faits" id="el-pf">
+              <span class="el-prev-empty">Aucun fait révélable encore.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .el { color: var(--color-text); }
+  .el-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap; }
+  .el-title { font-size: 1.3rem; }
+  .el-sub { color: var(--color-text-muted); font-size: .9rem; margin-top: .2rem; }
+
+  .el-modes { display: flex; border: 1px solid var(--color-border); border-radius: 999px; overflow: hidden; }
+  .el-mode { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer;
+    font: inherit; font-size: .8rem; padding: .35rem .9rem; transition: background .15s, color .15s; }
+  .el-mode.on { background: var(--color-accent); color: #fff; }
+  .el-mode-note { font-size: .8rem; color: var(--color-text-muted); margin-top: .6rem; font-style: italic; }
+
+  .el-tabs { display: flex; border-bottom: 1px solid var(--color-border); margin: 1.5rem 0 2rem; }
+  .el-tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--color-text-muted);
+    cursor: pointer; font: inherit; font-size: .9rem; padding: .5rem 1.25rem; margin-bottom: -1px;
+    transition: color .15s, border-color .15s; }
+  .el-tab:hover { color: var(--color-text); }
+  .el-tab.on { color: var(--color-text); border-bottom-color: var(--color-accent); }
+  .el-panel { display: none; } .el-panel.on { display: block; }
+
+  /* bucket */
+  .el-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+  .el-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .5rem;
+    padding: 1.1rem; cursor: pointer; transition: border-color .15s, transform .1s; position: relative; }
+  .el-card:not(.dim):hover { border-color: var(--color-accent); transform: translateY(-2px); }
+  .el-card.sel { border-color: var(--color-accent); background: var(--color-surface-alt); }
+  .el-card.dim { opacity: .45; cursor: default; }
+  .el-badge { display: inline-block; font-size: .68rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid; margin-bottom: .7rem; }
+  .el-badge.ok { color: var(--color-accent-strong); border-color: var(--color-accent-strong); }
+  .el-badge.soon { color: var(--color-text-muted); border-color: var(--color-border); }
+  .el-ctitle { font-size: .95rem; }
+  .el-clieu { font-size: .78rem; color: var(--color-text-muted); margin: .2rem 0 .8rem; }
+  .el-cpnj { background: var(--color-surface-alt); border-radius: .35rem; padding: .45rem .7rem; margin-bottom: .8rem; }
+  .el-cpnj-name { font-size: .84rem; font-weight: 600; }
+  .el-cpnj-voix { font-size: .76rem; color: var(--color-text-muted); font-style: italic; }
+  .el-csec-lbl { font-size: .64rem; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-muted); margin-bottom: .2rem; }
+  /* Le secret est flouté en mode « jouer », net en mode « préparer ». */
+  .el-csec-val { font-size: .82rem; font-style: italic; transition: filter .3s; }
+  .el[data-mode="jouer"] .el-csec-val { filter: blur(5px); }
+  .el[data-mode="jouer"] .el-card:not(.dim):hover .el-csec-val { filter: blur(0); }
+  .el-cctx { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .7rem; }
+  .el-ctag { font-size: .68rem; color: var(--color-text-muted); background: var(--color-surface-alt);
+    border: 1px solid var(--color-border); border-radius: 999px; padding: .1rem .5rem; }
+  .el-cta { display: none; width: 100%; margin-top: .9rem; }
+  .el-card.sel .el-cta { display: block; }
+
+  /* form */
+  .el-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  @media (max-width: 640px) { .el-cols { grid-template-columns: 1fr; } }
+  .el-steps { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.75rem; }
+  .el-step { display: flex; align-items: center; gap: .45rem; font-size: .82rem; color: var(--color-text-muted); }
+  .el-step.on { color: var(--color-text); }
+  .el-snum { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1.5px solid var(--color-border);
+    display: flex; align-items: center; justify-content: center; font-size: .7rem; }
+  .el-step.on .el-snum { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+  .el-step.done .el-snum { border-color: var(--color-accent); color: var(--color-accent); }
+  .el-sep { color: var(--color-border); }
+  .el-sp { display: none; } .el-sp.on { display: block; }
+
+  .el-fg { margin-bottom: 1rem; }
+  .el-lbl { display: block; font-size: .84rem; color: var(--color-text-muted); margin-bottom: .3rem; }
+  .el-lbl strong { color: var(--color-text); }
+  .el-opt { font-size: .75rem; }
+  .el-hint { display: block; font-size: .73rem; color: var(--color-text-muted); margin-top: .15rem; font-style: italic; }
+  .el-inp { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: .25rem;
+    color: var(--color-text); font: inherit; font-size: .88rem; padding: .45rem .75rem; width: 100%; }
+  .el-inp:focus { outline: 2px solid var(--color-focus); outline-offset: 1px; border-color: var(--color-accent); }
+
+  .el-tags { background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: .25rem;
+    min-height: 2.6rem; padding: .3rem .5rem; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; cursor: text; }
+  .el-tags:focus-within { border-color: var(--color-accent); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+  .el-chip { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 999px;
+    font-size: .78rem; padding: .1rem .55rem; display: flex; align-items: center; gap: .3rem; }
+  .el-chip-rm { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: .95rem; line-height: 1; padding: 0; }
+  .el-chip-rm:hover { color: var(--color-accent); }
+  .el-tags-inp { background: none; border: none; color: var(--color-text); font: inherit; font-size: .82rem; min-width: 7rem; outline: none; padding: .2rem .3rem; }
+
+  .el-adv { margin: 1rem 0; }
+  .el-adv summary { font-size: .82rem; color: var(--color-text-muted); cursor: pointer; padding: .3rem 0; }
+
+  .el-btn { cursor: pointer; border: 1px solid var(--color-border); border-radius: .25rem; background: var(--color-surface-alt);
+    color: var(--color-text); font: inherit; font-size: .875rem; padding: .35rem 1rem; transition: border-color .15s; }
+  .el-btn:hover { border-color: var(--color-accent); }
+  .el-btn.pri { background: var(--color-accent); border-color: var(--color-accent); color: #fff; font-weight: 600; }
+  .el-btn.pri:hover { background: var(--color-accent-strong); border-color: var(--color-accent-strong); }
+  .el-btn.ghost { background: transparent; border-color: transparent; color: var(--color-text-muted); }
+  .el-btn.ghost:hover { color: var(--color-text); border-color: var(--color-border); }
+  .el-nav { display: flex; gap: .6rem; margin-top: 1.5rem; }
+
+  .el-s3-intro { font-size: .84rem; color: var(--color-text-muted); margin-bottom: 1rem; }
+  .el-sum-row { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem 0; border-bottom: 1px solid var(--color-border); font-size: .86rem; }
+  .el-sum-k { color: var(--color-text-muted); }
+  .el-sum-v { text-align: right; max-width: 60%; }
+  .el-err { color: #ff9a9a; font-size: .84rem; margin-top: .9rem; }
+  .el-launch { margin-top: 1.5rem; text-align: center; }
+  .el-go { font-size: .95rem; padding: .55rem 1.5rem; }
+  .el-launch-note { font-size: .76rem; color: var(--color-text-muted); margin-top: .6rem; }
+
+  /* preview */
+  .el-prev-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); margin-bottom: .75rem; }
+  .el-prev { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .5rem; overflow: hidden; position: sticky; top: 1.5rem; }
+  .el-prev-scene { background: var(--color-surface-alt); padding: .8rem 1rem; border-bottom: 1px solid var(--color-border); }
+  .el-prev-lieu { font-weight: 600; font-size: .88rem; min-height: 1.3em; }
+  .el-prev-amb { font-size: .78rem; color: var(--color-text-muted); font-style: italic; min-height: 1em; }
+  .el-prev-body { padding: .8rem 1rem; }
+  .el-prev-pnj { display: flex; align-items: center; gap: .6rem; margin-bottom: .8rem; }
+  .el-prev-av { width: 2rem; height: 2rem; background: var(--color-surface-alt); border: 1px solid var(--color-border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; color: var(--color-text-muted); }
+  .el-prev-name { font-weight: 600; font-size: .85rem; }
+  .el-prev-voix { font-size: .75rem; color: var(--color-text-muted); font-style: italic; }
+  .el-prev-sec { background: var(--color-surface-alt); border-radius: .35rem; padding: .5rem .75rem; margin-bottom: .8rem; }
+  .el-prev-sec-lbl { font-size: .64rem; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-muted); margin-bottom: .2rem; }
+  .el-prev-sec-val { font-size: .83rem; font-style: italic; color: var(--color-accent-strong); min-height: 1.1em; transition: filter .3s; }
+  .el[data-mode="jouer"] .el-prev-sec-val { filter: blur(5px); }
+  .el[data-mode="jouer"] .el-prev-sec:hover .el-prev-sec-val { filter: blur(0); }
+  .el-prev-faits { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .el-prev-fait { font-size: .73rem; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: 999px; padding: .1rem .5rem; color: var(--color-text-muted); }
+  .el-prev-empty { color: var(--color-text-muted); font-size: .8rem; font-style: italic; }
+</style>
+
+<script>
+  import { MODULES, findModule } from '../scripts/narrative/modules';
+  import {
+    emptySpec,
+    deriveJetonsFuite,
+    validateSceneSpec,
+    type SceneSpec,
+  } from '../scripts/narrative/scene-spec';
+  import { composeScene } from '../scripts/narrative/contexte';
+  import { setPendingScene } from '../scripts/narrative/pending-scene';
+
+  const root = document.querySelector('.el') as HTMLElement;
+  const GAME_URL = '/moteur-narratif';
+
+  function launch(spec: SceneSpec): void {
+    setPendingScene(JSON.stringify(spec));
+    window.location.href = GAME_URL;
+  }
+
+  // ── Bascule jouer / préparer ────────────────────────────────────────────
+  const note = document.getElementById('el-mode-note')!;
+  document.querySelectorAll<HTMLButtonElement>('.el-mode').forEach((b) => {
+    b.addEventListener('click', () => {
+      const mode = b.dataset.mode!;
+      root.dataset.mode = mode;
+      document.querySelectorAll('.el-mode').forEach((x) => {
+        const on = x === b;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-selected', String(on));
+      });
+      note.textContent =
+        mode === 'jouer'
+          ? 'Mode joueur : le secret reste caché — vous le découvrirez en jouant.'
+          : 'Mode prépa : tout est visible (vous menez la partie). Le mur ne s’applique pas à vous.';
+    });
+  });
+
+  // ── Onglets ───────────────────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.el-tab').forEach((t) => {
+    t.addEventListener('click', () => {
+      const id = t.dataset.tab!;
+      document.querySelectorAll('.el-tab').forEach((b) =>
+        b.classList.toggle('on', (b as HTMLElement).dataset.tab === id),
+      );
+      document.querySelectorAll('.el-panel').forEach((p) =>
+        p.classList.toggle('on', p.id === 'el-panel-' + id),
+      );
+    });
+  });
+
+  // ── Bucket : sélection + lancement ─────────────────────────────────────────
+  document.querySelectorAll<HTMLElement>('.el-card:not(.dim)').forEach((c) => {
+    const select = () => {
+      document.querySelectorAll('.el-card').forEach((x) => {
+        x.classList.remove('sel');
+        x.setAttribute('aria-pressed', 'false');
+      });
+      c.classList.add('sel');
+      c.setAttribute('aria-pressed', 'true');
+    };
+    c.addEventListener('click', select);
+    c.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-play]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mod = findModule(btn.dataset.play!);
+      // Replie le contexte (univers/campagne) dans le spec avant de jouer.
+      if (mod) launch(composeScene(mod.spec, mod.contexte));
+    });
+  });
+
+  // ── Stepper ─────────────────────────────────────────────────────────────
+  function go(n: number): void {
+    [1, 2, 3].forEach((i) => {
+      document.getElementById('el-s' + i)!.classList.toggle('on', i === n);
+      const ind = document.getElementById('el-ind' + i)!;
+      ind.classList.toggle('on', i === n);
+      ind.classList.toggle('done', i < n);
+    });
+    if (n === 3) buildSummary();
+  }
+  document.getElementById('el-b12')!.addEventListener('click', () => go(2));
+  document.getElementById('el-b21')!.addEventListener('click', () => go(1));
+  document.getElementById('el-b23')!.addEventListener('click', () => go(3));
+  document.getElementById('el-b32')!.addEventListener('click', () => go(2));
+
+  // ── Champs ────────────────────────────────────────────────────────────────
+  const f = {
+    lieu: document.getElementById('el-lieu') as HTMLInputElement,
+    amb: document.getElementById('el-amb') as HTMLInputElement,
+    nom: document.getElementById('el-nom') as HTMLInputElement,
+    voix: document.getElementById('el-voix') as HTMLInputElement,
+    sec: document.getElementById('el-sec') as HTMLInputElement,
+    with: document.getElementById('el-with') as HTMLInputElement,
+    fuite: document.getElementById('el-fuite') as HTMLInputElement,
+    faits: document.getElementById('el-faits') as HTMLInputElement,
+    contra: document.getElementById('el-contra') as HTMLInputElement,
+  };
+
+  // Tags révélables
+  let revealable: string[] = [];
+  const revWrap = document.getElementById('el-rev-wrap')!;
+  const revInp = document.getElementById('el-rev-inp') as HTMLInputElement;
+  function renderTags(): void {
+    revWrap.querySelectorAll('.el-chip').forEach((c) => c.remove());
+    revealable.forEach((t) => {
+      const chip = document.createElement('span');
+      chip.className = 'el-chip';
+      chip.append(t);
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'el-chip-rm';
+      rm.textContent = '×';
+      rm.addEventListener('click', () => {
+        revealable = revealable.filter((x) => x !== t);
+        renderTags();
+        updatePreview();
+      });
+      chip.appendChild(rm);
+      revWrap.insertBefore(chip, revInp);
+    });
+  }
+  function addTag(v: string): void {
+    v = v.trim();
+    if (v && !revealable.includes(v)) {
+      revealable.push(v);
+      renderTags();
+      updatePreview();
+    }
+  }
+  revInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(revInp.value); revInp.value = ''; }
+    else if (e.key === 'Backspace' && !revInp.value && revealable.length) {
+      revealable.pop(); renderTags(); updatePreview();
+    }
+  });
+  revWrap.addEventListener('click', () => revInp.focus());
+
+  // Pré-remplit les jetons de fuite à la saisie du secret (sauf si déjà édité).
+  let fuiteEdited = false;
+  f.fuite.addEventListener('input', () => { fuiteEdited = true; });
+  f.sec.addEventListener('input', () => {
+    if (!fuiteEdited) f.fuite.value = deriveJetonsFuite(f.sec.value).join(', ');
+    updatePreview();
+  });
+
+  // ── Aperçu live ────────────────────────────────────────────────────────────
+  const p = {
+    lieu: document.getElementById('el-pl')!, amb: document.getElementById('el-pa')!,
+    nom: document.getElementById('el-pn')!, voix: document.getElementById('el-pv')!,
+    av: document.getElementById('el-pav')!, sec: document.getElementById('el-ps')!,
+    faits: document.getElementById('el-pf')!,
+  };
+  function updatePreview(): void {
+    p.lieu.textContent = f.lieu.value || 'Lieu…';
+    p.amb.textContent = f.amb.value || '';
+    p.nom.textContent = f.nom.value || 'PNJ…';
+    p.voix.textContent = f.voix.value || '';
+    p.av.textContent = (f.nom.value || '?').charAt(0).toUpperCase();
+    p.sec.textContent = f.sec.value || '—';
+    if (revealable.length) {
+      p.faits.replaceChildren(...revealable.map((t) => {
+        const s = document.createElement('span');
+        s.className = 'el-prev-fait';
+        s.textContent = t;
+        return s;
+      }));
+    } else {
+      const e = document.createElement('span');
+      e.className = 'el-prev-empty';
+      e.textContent = 'Aucun fait révélable encore.';
+      p.faits.replaceChildren(e);
+    }
+  }
+  [f.lieu, f.amb, f.nom, f.voix].forEach((el) => el.addEventListener('input', updatePreview));
+  updatePreview();
+
+  // ── Construit le SceneSpec ──────────────────────────────────────────────────
+  function csv(v: string): string[] {
+    return v.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  function currentSpec(): SceneSpec {
+    const spec = emptySpec();
+    spec.lieu = f.lieu.value.trim();
+    spec.ambiance = f.amb.value.trim() || undefined;
+    spec.pnj_nom = f.nom.value.trim();
+    spec.pnj_voix = f.voix.value.trim();
+    spec.secret = f.sec.value.trim();
+    spec.revealable = [...revealable];
+    spec.withhold = f.with.value.trim() ? [f.with.value.trim()] : [];
+    spec.jetons_fuite = csv(f.fuite.value);
+    spec.faits_etablis = csv(f.faits.value);
+    spec.jetons_contradiction = csv(f.contra.value);
+    return spec;
+  }
+
+  // ── Récapitulatif + lancement ────────────────────────────────────────────
+  function buildSummary(): void {
+    const s = currentSpec();
+    const rows: Array<[string, string]> = [
+      ['Lieu', s.lieu || '—'],
+      ['Atmosphère', s.ambiance || '—'],
+      ['PNJ', s.pnj_nom || '—'],
+      ['Ton', s.pnj_voix || '—'],
+      ['Grand secret', s.secret || '—'],
+      ['Faits révélables', s.revealable.length ? s.revealable.join(' · ') : '—'],
+    ];
+    const host = document.getElementById('el-summ')!;
+    host.replaceChildren(...rows.map(([k, v]) => {
+      const row = document.createElement('div');
+      row.className = 'el-sum-row';
+      const ke = document.createElement('span'); ke.className = 'el-sum-k'; ke.textContent = k;
+      const ve = document.createElement('span'); ve.className = 'el-sum-v'; ve.textContent = v;
+      row.append(ke, ve);
+      return row;
+    }));
+  }
+
+  const errEl = document.getElementById('el-err')!;
+  document.getElementById('el-launch')!.addEventListener('click', () => {
+    const spec = currentSpec();
+    const err = validateSceneSpec(spec);
+    if (err) {
+      errEl.textContent = err;
+      errEl.hidden = false;
+      return;
+    }
+    errEl.hidden = true;
+    launch(spec);
+  });
+
+  // Évite l'avertissement d'import inutilisé : MODULES sert au rendu serveur.
+  void MODULES;
+</script>

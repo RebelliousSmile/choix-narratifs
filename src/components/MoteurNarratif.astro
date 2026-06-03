@@ -1,0 +1,492 @@
+---
+// Island du moteur narratif.
+// Pattern : <script> Astro (module ES bundlé par Vite) — pas de client:only.
+// Le WASM est chargé de façon asynchrone par init() ; l'UI gère l'état de chargement.
+---
+
+<section class="mn" aria-label="Moteur narratif">
+  <!-- État : chargement -->
+  <div id="mn-loading" class="mn-state" aria-live="polite">
+    <span class="mn-state__spinner" aria-hidden="true"></span>
+    <p class="mn-state__msg">Initialisation du moteur…</p>
+  </div>
+
+  <!-- État : erreur -->
+  <div id="mn-error" class="mn-state mn-state--error" hidden aria-live="assertive">
+    <p class="mn-state__msg">
+      Erreur : <span id="mn-error-msg"></span>
+    </p>
+    <button id="mn-retry" class="mn-btn">Réessayer</button>
+  </div>
+
+  <!-- Jeu -->
+  <div id="mn-game" hidden>
+    <!-- Contexte de scène — rempli dynamiquement depuis engine.scene() -->
+    <header class="mn-scene">
+      <div class="mn-scene__lieu" id="mn-lieu"></div>
+      <div class="mn-scene__ambiance" id="mn-ambiance"></div>
+    </header>
+
+    <!-- Journal d'échanges -->
+    <div id="mn-log" class="mn-log" role="log" aria-live="polite" aria-label="Échanges">
+      <p class="mn-log__intro" id="mn-intro"></p>
+    </div>
+
+    <!-- Saisie joueur -->
+    <form id="mn-form" class="mn-form" novalidate>
+      <label for="mn-action" class="mn-form__label">Votre action</label>
+      <textarea
+        id="mn-action"
+        class="mn-form__input"
+        rows="2"
+        placeholder="Ex. : Vous demandez qui a payé pour la cargaison."
+      ></textarea>
+      <button type="submit" id="mn-submit" class="mn-btn mn-btn--primary">Jouer</button>
+    </form>
+
+    <!-- Savoir du joueur -->
+    <details class="mn-savoir">
+      <summary class="mn-savoir__summary">Ce que vous savez</summary>
+      <ul id="mn-savoir-list" class="mn-savoir__list">
+        <li class="mn-savoir__empty">Rien encore.</li>
+      </ul>
+    </details>
+
+    <!-- Pied de page -->
+    <footer class="mn-footer">
+      <button id="mn-new-session" class="mn-btn mn-btn--ghost">Nouvelle session</button>
+      <a href="/compte-rendu" class="mn-btn mn-btn--ghost mn-export">Clore &amp; exporter →</a>
+      <span id="mn-persist-status" class="mn-persist"></span>
+      <span class="mn-mode">Narrateur local (démo)</span>
+    </footer>
+  </div>
+</section>
+
+<style>
+  .mn {
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  /* ── États chargement / erreur ─────────────────────────────────────────── */
+  .mn-state {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    color: var(--color-text-muted);
+    min-height: 6rem;
+  }
+  .mn-state--error {
+    flex-direction: column;
+    align-items: flex-start;
+    color: var(--color-text);
+  }
+  .mn-state__spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: mn-spin 0.8s linear infinite;
+  }
+  @keyframes mn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Scène ──────────────────────────────────────────────────────────────── */
+  .mn-scene {
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .mn-scene__lieu {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text);
+  }
+  .mn-scene__ambiance {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Journal ───────────────────────────────────────────────────────────── */
+  .mn-log {
+    padding: var(--space-3) var(--space-4);
+    min-height: 10rem;
+    max-height: 24rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background: var(--color-surface);
+  }
+  .mn-log__intro {
+    color: var(--color-text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+  .mn-log :global(.mn-log__action) {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    padding-left: var(--space-2);
+    border-left: 2px solid var(--color-border);
+  }
+  .mn-log :global(.mn-log__response) {
+    color: var(--color-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .mn-log :global(.mn-log__system) {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  /* ── Formulaire ────────────────────────────────────────────────────────── */
+  .mn-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .mn-form__label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  .mn-form__input {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    color: var(--color-text);
+    font-family: var(--font-base);
+    font-size: 0.95rem;
+    padding: var(--space-2) var(--space-3);
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .mn-form__input:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+  .mn-form__input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── Boutons ───────────────────────────────────────────────────────────── */
+  .mn-btn {
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    font-family: var(--font-base);
+    font-size: 0.875rem;
+    padding: var(--space-1) var(--space-3);
+    transition: border-color 0.15s;
+  }
+  .mn-btn:hover {
+    border-color: var(--color-accent);
+  }
+  .mn-btn:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+  .mn-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .mn-btn--primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+    font-weight: 600;
+    align-self: flex-end;
+  }
+  .mn-btn--primary:hover {
+    background: var(--color-accent-strong);
+    border-color: var(--color-accent-strong);
+  }
+  .mn-btn--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+  .mn-btn--ghost:hover {
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+
+  /* ── Savoir ────────────────────────────────────────────────────────────── */
+  .mn-savoir {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .mn-savoir__summary {
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .mn-savoir__list {
+    margin: 0;
+    padding: 0 var(--space-4) var(--space-3);
+    list-style: none;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .mn-savoir__list li::before {
+    content: '— ';
+    color: var(--color-accent);
+  }
+  .mn-savoir__empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+  .mn-savoir__empty::before {
+    display: none;
+  }
+
+  /* ── Pied ──────────────────────────────────────────────────────────────── */
+  .mn-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+  }
+  .mn-export {
+    text-decoration: none;
+    line-height: 1.2;
+  }
+  .mn-persist {
+    font-size: 0.75rem;
+    color: var(--color-accent);
+  }
+  .mn-mode {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+</style>
+
+<script>
+  import init, { WasmEngine } from '../scripts/narrative/pkg/cn_engine.js';
+  import { IdbSnapshotStore, MemorySnapshotStore } from '../scripts/narrative/snapshot-store';
+  import type { SnapshotStore } from '../scripts/narrative/snapshot-store';
+  import { StubNarrator } from '../scripts/narrative/stub-narrator';
+  import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
+  import { takePendingScene } from '../scripts/narrative/pending-scene';
+
+  interface SceneInfo {
+    lieu: string;
+    ambiance: string | null;
+    pnj_nom: string;
+    pnj_voix: string;
+  }
+
+  const SESSION_ID = 'moteur-v1';
+  const narrator = new StubNarrator();
+
+  // ── DOM ───────────────────────────────────────────────────────────────────
+  const loadingEl = document.getElementById('mn-loading')!;
+  const errorEl = document.getElementById('mn-error')!;
+  const errorMsgEl = document.getElementById('mn-error-msg')!;
+  const gameEl = document.getElementById('mn-game')!;
+  const logEl = document.getElementById('mn-log')!;
+  const formEl = document.getElementById('mn-form') as HTMLFormElement;
+  const actionEl = document.getElementById('mn-action') as HTMLTextAreaElement;
+  const submitEl = document.getElementById('mn-submit') as HTMLButtonElement;
+  const savoirListEl = document.getElementById('mn-savoir-list')!;
+  const persistStatusEl = document.getElementById('mn-persist-status')!;
+  const lieuEl = document.getElementById('mn-lieu')!;
+  const ambianceEl = document.getElementById('mn-ambiance')!;
+
+  // ── Store ─────────────────────────────────────────────────────────────────
+  let store: SnapshotStore = new MemorySnapshotStore();
+  let persisted = false;
+  try {
+    store = new IdbSnapshotStore();
+    persisted = true;
+  } catch {
+    // IDB inaccessible (ex. navigation privée) : MemorySnapshotStore déjà posé.
+  }
+
+  // ── Engine ────────────────────────────────────────────────────────────────
+  let engine: WasmEngine | null = null;
+  // État de la scène au montage (scène fraîche, ou dernier point repris) — sert à
+  // « Nouvelle session » pour repartir sur la MÊME scène sans en perdre l'identité.
+  let initialSnapshot: Uint8Array | null = null;
+
+  // ── Helpers UI ────────────────────────────────────────────────────────────
+  function renderScene(): void {
+    if (!engine) return;
+    let info: SceneInfo;
+    try {
+      info = JSON.parse(engine.scene()) as SceneInfo;
+    } catch {
+      return;
+    }
+    lieuEl.textContent = info.lieu;
+    ambianceEl.textContent = info.ambiance ?? '';
+    // mn-intro peut avoir été recréé par resetLog : on le requête à chaud.
+    const intro = document.getElementById('mn-intro');
+    if (intro) intro.textContent = `${info.pnj_nom} vous fait face. À vous d'engager.`;
+  }
+
+  function refreshSavoir(): void {
+    if (!engine) return;
+    const faits = engine.savoirJoueur();
+    savoirListEl.innerHTML = '';
+    if (faits.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'mn-savoir__empty';
+      li.textContent = 'Rien encore.';
+      savoirListEl.appendChild(li);
+    } else {
+      for (const fait of faits) {
+        const li = document.createElement('li');
+        li.textContent = fait;
+        savoirListEl.appendChild(li);
+      }
+    }
+  }
+
+  function addEntry(cls: string, text: string): void {
+    const p = document.createElement('p');
+    p.className = cls;
+    p.textContent = text;
+    logEl.appendChild(p);
+    p.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  function setDisabled(disabled: boolean): void {
+    actionEl.disabled = disabled;
+    submitEl.disabled = disabled;
+  }
+
+  function showError(msg: string): void {
+    loadingEl.hidden = true;
+    gameEl.hidden = true;
+    errorMsgEl.textContent = msg;
+    errorEl.hidden = false;
+  }
+
+  function showGame(): void {
+    loadingEl.hidden = true;
+    errorEl.hidden = true;
+    gameEl.hidden = false;
+    persistStatusEl.textContent = persisted ? '' : '(session non persistée)';
+  }
+
+  // ── Démarrage moteur ──────────────────────────────────────────────────────
+  async function startEngine(): Promise<void> {
+    await init();
+
+    let eng: WasmEngine;
+
+    // Une scène choisie/créée à l'élaboration prime sur la reprise : on démarre
+    // frais dessus et on efface l'ancien snapshot.
+    const pending = takePendingScene();
+    if (pending !== null) {
+      await store.clear(SESSION_ID).catch(() => undefined);
+      eng = WasmEngine.fromScene(pending); // lève (string) si devis injouable
+      resetLog();
+    } else {
+      try {
+        eng = await resume(
+          store,
+          SESSION_ID,
+          (bytes) => WasmEngine.fromSnapshot(bytes),
+          () => new WasmEngine(),
+        );
+      } catch {
+        // Snapshot corrompu → clear + session fraîche.
+        await store.clear(SESSION_ID).catch(() => undefined);
+        eng = new WasmEngine();
+      }
+    }
+
+    if (engine) engine.free();
+    engine = eng;
+    initialSnapshot = engine.snapshot();
+
+    showGame();
+    renderScene();
+    refreshSavoir();
+  }
+
+  function resetLog(): void {
+    logEl.innerHTML = '<p class="mn-log__intro" id="mn-intro"></p>';
+  }
+
+  startEngine().catch((e: unknown) => showError(String(e)));
+
+  // ── Soumission ────────────────────────────────────────────────────────────
+  formEl.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!engine) return;
+
+    const action = actionEl.value.trim();
+    if (!action) return;
+
+    setDisabled(true);
+    addEntry('mn-log__action', `Vous : ${action}`);
+
+    try {
+      const result = await runTurn(engine, narrator, store, action, { sessionId: SESSION_ID });
+      addEntry('mn-log__response', result.commit.candidat);
+      actionEl.value = '';
+      refreshSavoir();
+    } catch (err) {
+      if (err instanceof ResampleExhausted) {
+        addEntry('mn-log__system', `[Aucun candidat valide après ${err.tentatives} tentative(s).]`);
+      } else {
+        addEntry('mn-log__system', `[Erreur moteur : ${String(err)}]`);
+      }
+    } finally {
+      setDisabled(false);
+      actionEl.focus();
+    }
+  });
+
+  // ── Nouvelle session ──────────────────────────────────────────────────────
+  // Repart sur la MÊME scène depuis son état initial (snapshot du montage).
+  document.getElementById('mn-new-session')!.addEventListener('click', async () => {
+    if (!confirm('Recommencer cette scène ? La progression en cours sera perdue.')) return;
+
+    await store.clear(SESSION_ID).catch(() => undefined);
+    if (engine) engine.free();
+    engine = initialSnapshot
+      ? WasmEngine.fromSnapshot(initialSnapshot)
+      : new WasmEngine();
+
+    resetLog();
+    renderScene();
+    refreshSavoir();
+  });
+
+  // ── Réessayer ─────────────────────────────────────────────────────────────
+  document.getElementById('mn-retry')!.addEventListener('click', () => {
+    errorEl.hidden = true;
+    loadingEl.hidden = false;
+    startEngine().catch((e: unknown) => showError(String(e)));
+  });
+
+  // ── Nettoyage mémoire WASM ───────────────────────────────────────────────
+  window.addEventListener('beforeunload', () => {
+    if (engine) engine.free();
+  });
+</script>

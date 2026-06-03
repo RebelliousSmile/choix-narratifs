@@ -10,11 +10,11 @@
 //! La boucle hôte : `prepare` → (Hub `/narrate`) → `resolve` → resample si tous
 //! invalides (Mikado, §6) → persist. Le verifier reste **côté client** (canon-aware).
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::directeur::{self, BeatPlan};
 use crate::packet::ScenePacket;
-use crate::state::{Event, World};
+use crate::state::{Event, SceneSpec, World};
 use crate::verifier::{self, Rejet};
 
 /// Sortie de `prepare` : ce qui part vers le relais (le paquet + le best-of-N).
@@ -22,6 +22,68 @@ use crate::verifier::{self, Rejet};
 pub struct Prepared {
     pub packet: ScenePacket,
     pub n: u8,
+}
+
+/// Info **publique** de la scène (décor + PNJ), pour l'en-tête de l'UI. N'expose
+/// aucun canon : ce sont les mêmes champs que le directeur copie déjà dans le paquet.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct SceneInfo {
+    pub lieu: String,
+    pub ambiance: Option<String>,
+    pub pnj_nom: String,
+    pub pnj_voix: String,
+}
+
+/// Décision de l'éditeur pour un secret resté caché en fin de partie (US-1.4).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Decision {
+    /// Le mur tombe : le secret est révélé, sous la formulation choisie par l'éditeur.
+    Reveler { texte: String },
+    /// Le secret est retiré du compte rendu (il reste « caché vivant »).
+    Retirer,
+}
+
+/// Entrée du producteur : la décision prise pour un secret donné.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct SecretResolution {
+    pub secret: String,
+    pub decision: Decision,
+}
+
+/// Une révélation publiée : la formulation de l'éditeur (jamais le canon brut).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ResolutionPublique {
+    pub revelation: String,
+}
+
+/// Un échange du compte rendu (forme close, déjà canon-free).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Echange {
+    pub action: String,
+    pub prose: String,
+}
+
+/// Le **compte rendu** : type FERMÉ qui franchit la membrane vers Suddenly. Ne
+/// contient QUE du public : scène, échanges, faits appris, résolutions explicites.
+/// Aucun secret « caché vivant » n'y figure.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CompteRendu {
+    pub scene: SceneInfo,
+    pub echanges: Vec<Echange>,
+    pub faits_appris: Vec<String>,
+    pub resolutions: Vec<ResolutionPublique>,
+}
+
+/// Pourquoi la membrane refuse l'export.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "type", content = "detail", rename_all = "snake_case")]
+pub enum ExportError {
+    /// Un secret caché n'a reçu aucune décision (ni révélé, ni retiré).
+    SecretNonResolu(String),
+    /// Un secret qu'on veut retirer apparaît pourtant déjà dans la prose : impossible
+    /// de le retirer proprement (il faudrait éditer la prose, ou le révéler).
+    FuiteDansProse { secret: String, jeton: String },
 }
 
 /// Résultat de `resolve`.
@@ -54,6 +116,8 @@ pub struct TourTrace {
 pub struct Engine {
     world: World,
     pending: Option<BeatPlan>,
+    /// Action du beat en cours, mémorisée à `prepare` pour journaliser au commit.
+    derniere_action: String,
     pub trace: Vec<TourTrace>,
 }
 
@@ -64,13 +128,22 @@ impl Engine {
             Some(bytes) => serde_json::from_slice(bytes).expect("snapshot illisible"),
             None => World::scene_docker(),
         };
-        Engine { world, pending: None, trace: Vec::new() }
+        Engine { world, pending: None, derniere_action: String::new(), trace: Vec::new() }
+    }
+
+    /// Amorce une session sur une scène **créée par l'auteur** (UI Phase 4 / bucket).
+    /// Renvoie une erreur si le devis est injouable (cf. [`SceneSpec::validate`]).
+    pub fn author(spec: SceneSpec) -> Result<Engine, String> {
+        spec.validate()?;
+        let world = World::from_spec(spec);
+        Ok(Engine { world, pending: None, derniere_action: String::new(), trace: Vec::new() })
     }
 
     /// Le directeur produit le paquet canon-free ; le plan privé est mémorisé.
     pub fn prepare(&mut self, action: &str) -> Prepared {
         let brief = directeur::prepare(&self.world, action);
         self.pending = Some(brief.plan);
+        self.derniere_action = action.to_string();
         self.trace.push(TourTrace {
             paquet_json: serde_json::to_string(&brief.packet).expect("paquet sérialisable"),
             ..Default::default()
@@ -116,6 +189,12 @@ impl Engine {
                 if let Some(tour) = self.trace.last_mut() {
                     tour.commit = Some((index, diff.clone()));
                 }
+                // Journalise le tour commité (transcript persistant → export + reprise).
+                self.world.journal.push(crate::state::TourJournal {
+                    action: self.derniere_action.clone(),
+                    prose: candidat.clone(),
+                    faits_reveles: diff.clone(),
+                });
                 self.pending = None; // le beat se referme
                 Outcome::Commit { index, candidat, diff }
             }
@@ -138,6 +217,97 @@ impl Engine {
     /// Ce que le joueur sait à cet instant (fold du registre).
     pub fn savoir_joueur(&self) -> Vec<String> {
         self.world.registre.knows("joueur")
+    }
+
+    /// Info publique de la scène (pour l'en-tête de l'UI). Aucun canon.
+    pub fn scene(&self) -> SceneInfo {
+        SceneInfo {
+            lieu: self.world.cadre.lieu.clone(),
+            ambiance: self.world.cadre.ambiance.clone(),
+            pnj_nom: self.world.locuteur.nom.clone(),
+            pnj_voix: self.world.locuteur.voix.clone(),
+        }
+    }
+
+    /// Les secrets du canon (Phase 1 : un seul), filtrés des vides.
+    fn canon_secrets(&self) -> Vec<String> {
+        [self.world.canon.secret_reponse.clone()]
+            .into_iter()
+            .filter(|s| !s.trim().is_empty())
+            .collect()
+    }
+
+    /// Les secrets encore **cachés** en fin de partie : non révélés au joueur, donc
+    /// en attente d'une décision de l'éditeur (révéler / retirer) avant export.
+    pub fn secrets_en_attente(&self) -> Vec<String> {
+        let known = self.world.registre.knows("joueur");
+        self.canon_secrets()
+            .into_iter()
+            .filter(|s| !known.contains(s))
+            .collect()
+    }
+
+    /// **La membrane d'export** (US-1.4). Produit un compte rendu FERMÉ qui ne
+    /// contient que du public. Refuse (`Err`) tant qu'un secret caché est indécis,
+    /// ou si un secret qu'on veut retirer traîne encore dans la prose (paranoïa :
+    /// un mur ne fait jamais confiance à l'étage du dessous).
+    ///
+    /// Un secret **révélé en jeu** sort tel quel ; un secret **caché** ne sort que
+    /// sous la formulation explicite de l'éditeur (`Reveler`), ou pas du tout (`Retirer`).
+    pub fn export(
+        &self,
+        resolutions: &[SecretResolution],
+    ) -> Result<CompteRendu, Vec<ExportError>> {
+        let known = self.world.registre.knows("joueur");
+        let mut errors = Vec::new();
+        let mut publiques = Vec::new();
+
+        for secret in self.canon_secrets() {
+            if known.contains(&secret) {
+                // Résolu pendant la partie : le mur est déjà tombé dessus.
+                publiques.push(ResolutionPublique { revelation: secret });
+                continue;
+            }
+            match resolutions.iter().find(|r| r.secret == secret) {
+                None => errors.push(ExportError::SecretNonResolu(secret)),
+                Some(SecretResolution { decision: Decision::Reveler { texte }, .. }) => {
+                    publiques.push(ResolutionPublique { revelation: texte.clone() });
+                }
+                Some(SecretResolution { decision: Decision::Retirer, .. }) => {
+                    // Vérifie qu'aucun jeton du secret ne subsiste dans la prose.
+                    if let Some(jeton) = self.jeton_fuite_dans_prose() {
+                        errors.push(ExportError::FuiteDansProse { secret, jeton });
+                    }
+                }
+            }
+        }
+
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        Ok(CompteRendu {
+            scene: self.scene(),
+            echanges: self
+                .world
+                .journal
+                .iter()
+                .map(|t| Echange { action: t.action.clone(), prose: t.prose.clone() })
+                .collect(),
+            faits_appris: known,
+            resolutions: publiques,
+        })
+    }
+
+    /// Premier jeton de fuite trouvé dans la prose journalisée, le cas échéant.
+    fn jeton_fuite_dans_prose(&self) -> Option<String> {
+        for jeton in &self.world.canon.jetons_fuite {
+            let j = jeton.to_lowercase();
+            if self.world.journal.iter().any(|t| t.prose.to_lowercase().contains(&j)) {
+                return Some(jeton.clone());
+            }
+        }
+        None
     }
 
     /// Applique le diff d'état : le joueur apprend jusqu'à `budget` faits
