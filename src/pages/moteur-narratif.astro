@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MoteurNarratif from '../components/MoteurNarratif.astro';
+---
+
+<BaseLayout
+  title="Moteur narratif — Choix narratifs"
+  description="Circuit de démo du moteur narratif : dialoguez avec le docker au quai. Le PNJ est piloté par le moteur Rust compilé en WASM."
+>
+  <main class="mn-page">
+    <header class="mn-page__header">
+      <h1>Moteur narratif</h1>
+      <p class="mn-page__intro">
+        Scène d'amorce — le docker au quai. Un homme sait quelque chose sur la
+        cargaison. Découvrez qui a payé pour elle.
+      </p>
+    </header>
+
+    <MoteurNarratif />
+  </main>
+</BaseLayout>
+
+<style>
+  .mn-page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .mn-page__header {
+    margin-bottom: var(--space-4);
+  }
+
+  .mn-page__header h1 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: var(--space-2);
+  }
+
+  .mn-page__intro {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    max-width: 42ch;
+  }
+</style>
