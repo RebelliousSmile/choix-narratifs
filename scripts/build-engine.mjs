@@ -104,25 +104,35 @@ if (!hasWasmTarget) {
   run('rustup target add wasm32-unknown-unknown')
 }
 
-// --- 4. wasm-pack -------------------------------------------------------------
-if (!has('wasm-pack')) {
-  fail(
-    'wasm-pack introuvable. Installer avec `cargo install wasm-pack` ' +
-      '(ou https://rustwasm.github.io/wasm-pack/installer/). ' +
-      'Alternatives : ENGINE_TESTS_ONLY=1 (tests seuls) ou SKIP_ENGINE=1.',
-  )
-}
-
-// --- 5. Build du glue WASM dans src/…/pkg ------------------------------------
-log(`\n[moteur] wasm-pack build → ${PKG_OUT}`)
+// --- 4-5. Build du glue WASM dans src/…/pkg ----------------------------------
+// wasm-pack si présent (fait aussi wasm-opt) ; sinon repli wasm-bindgen-cli
+// (n'utilise que crates.io, sans téléchargement GitHub). Sans aucun des deux,
+// on garde le pkg/ committé tel quel (toléré).
 const doneWasm = time('Build wasm')
 try {
-  run(
-    `wasm-pack build wasm --release --target web --out-dir "${PKG_OUT}" --out-name cn_engine`,
-    { cwd: ENGINE },
-  )
+  if (has('wasm-pack')) {
+    log(`\n[moteur] wasm-pack build → ${PKG_OUT}`)
+    run(
+      `wasm-pack build wasm --release --target web --out-dir "${PKG_OUT}" --out-name cn_engine`,
+      { cwd: ENGINE },
+    )
+  } else if (has('wasm-bindgen')) {
+    log(`\n[moteur] wasm-pack absent → repli wasm-bindgen-cli → ${PKG_OUT}`)
+    run('cargo build -p cn-wasm --target wasm32-unknown-unknown --release', { cwd: ENGINE })
+    run(
+      `wasm-bindgen target/wasm32-unknown-unknown/release/cn_wasm.wasm ` +
+        `--out-dir "${PKG_OUT}" --target web --out-name cn_engine`,
+      { cwd: ENGINE },
+    )
+  } else {
+    fail(
+      'Ni wasm-pack ni wasm-bindgen-cli. Installer l\'un des deux ' +
+        '(`cargo install wasm-pack` ou `cargo install wasm-bindgen-cli`). ' +
+        'Le pkg/ committé (s\'il existe) sera utilisé tel quel.',
+    )
+  }
 } catch {
-  fail('wasm-pack build a échoué.')
+  fail('Build wasm échoué — le pkg/ committé (s\'il existe) sera utilisé tel quel.')
 }
 doneWasm()
 

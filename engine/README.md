@@ -107,28 +107,39 @@ voyage sous la clé `move` (rename serde) et reste la forme fermée du contrat.
 Vérifié : `cargo build --target wasm32-unknown-unknown -p cn-wasm --release`
 produit `cn_wasm.wasm` ; `tests/boundary.rs` fige la forme JSON côté hôte.
 
-### Générer les bindings JS + intégration au déploiement
+### Bindings JS : `pkg/` est VERSIONNÉ
 
-`pkg/` (glue JS + `.d.ts`) est un artefact **gitignoré**, produit par `wasm-pack`.
-Le pipeline est encapsulé dans `scripts/build-engine.mjs`, branché aux scripts npm :
+`src/scripts/narrative/pkg/` (glue JS + `cn_engine_bg.wasm` + `.d.ts`) est
+**committé dans le repo**. Conséquence : la **machine de déploiement n'a besoin
+d'aucune toolchain Rust** — `pnpm build`/`deploy:prod` prennent le `pkg/` versionné.
+On ne le régénère que quand le code Rust du moteur change.
+
+Import côté island : `import init, { WasmEngine } from './pkg/cn_engine.js'`.
+
+### Régénérer le `pkg/` (après un changement Rust)
+
+Pipeline dans `scripts/build-engine.mjs`, branché aux scripts npm :
 
 ```bash
 pnpm test:engine     # cargo test du crate (garde-fou seul)
-pnpm build:engine    # tests + wasm-pack build → src/scripts/narrative/pkg/
+pnpm build:engine    # tests + (re)build wasm → src/scripts/narrative/pkg/
 pnpm deploy:prod     # build:engine → astro build → transfert SSH → git push
 ```
 
-`build:engine` est **tolérant par défaut** : tant que l'island n'est pas câblée,
-tout problème (toolchain absente, test/build en échec) n'est qu'un **avertissement**
-et laisse `deploy:prod` continuer le déploiement du site. Drapeaux :
+`build:engine` produit le glue via **`wasm-pack`** si présent, sinon via un **repli
+`wasm-bindgen-cli`** (`cargo install wasm-bindgen-cli` — n'utilise que crates.io,
+sans téléchargement GitHub). Après régénération, **committer le `pkg/` mis à jour**.
 
-- `ENGINE_STRICT=1` — fait du moteur un **gate** (échoue le déploiement s'il casse) ;
-- `SKIP_ENGINE=1` — saute toute l'étape moteur (machine sans toolchain Rust) ;
-- `ENGINE_TESTS_ONLY=1` — lance les tests sans le build wasm.
+**Tolérant par défaut** : sans toolchain (ou en cas d'échec), c'est un simple
+**avertissement** et le `pkg/` committé est conservé tel quel ; le déploiement
+continue. Drapeaux :
 
-Prérequis une fois : `cargo install wasm-pack` (absent de cet environnement CI).
-La sortie va dans `src/scripts/narrative/pkg/` pour que Vite/Astro la résolve ;
-import côté island : `import init, { WasmEngine } from './pkg/cn_engine.js'`.
+- `ENGINE_STRICT=1` — fait du moteur un **gate** (échoue si le build casse) ;
+- `SKIP_ENGINE=1` — saute toute l'étape moteur ;
+- `ENGINE_TESTS_ONLY=1` — tests sans rebuild wasm.
+
+> Dérive possible : si le Rust change sans régénérer le `pkg/`, l'artefact
+> versionné se désynchronise. Régénérer + committer dans le même lot.
 
 ## Prochaines étapes (plan §3)
 

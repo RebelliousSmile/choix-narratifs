@@ -7,11 +7,12 @@ dist/
 .astro/
 .output/
 
-# Rust / WASM (réservé pour usage futur)
+# Rust / WASM
 target/
 wasm/pkg/
 engine/wasm/pkg/
-src/scripts/narrative/pkg/
+# NB : src/scripts/narrative/pkg/ est VERSIONNÉ (artefact moteur committé) — voir
+# engine/README.md. La machine de déploiement n'a donc pas besoin de la toolchain Rust.
 
 # Env & local
 .env
