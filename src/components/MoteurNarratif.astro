@@ -65,7 +65,7 @@
       <button id="mn-new-session" class="mn-btn mn-btn--ghost">Nouvelle session</button>
       <a href="/compte-rendu" class="mn-btn mn-btn--ghost mn-export">Clore &amp; exporter →</a>
       <span id="mn-persist-status" class="mn-persist"></span>
-      <span class="mn-mode">Narrateur local (démo)</span>
+      <span class="mn-mode" id="mn-mode">Narrateur local (démo)</span>
     </footer>
   </div>
 </section>
@@ -318,9 +318,9 @@
   import init, { WasmEngine } from '../scripts/narrative/pkg/cn_engine.js';
   import { IdbSnapshotStore, MemorySnapshotStore } from '../scripts/narrative/snapshot-store';
   import type { SnapshotStore } from '../scripts/narrative/snapshot-store';
-  import { StubNarrator } from '../scripts/narrative/stub-narrator';
   import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
   import { takePendingScene } from '../scripts/narrative/pending-scene';
+  import { resolveNarrator } from '../scripts/narrative/runtime-config';
 
   interface SceneInfo {
     lieu: string;
@@ -340,7 +340,7 @@
   }
 
   const SESSION_ID = 'moteur-v1';
-  const narrator = new StubNarrator();
+  const { narrator, mode: narratorMode } = resolveNarrator();
 
   // ── DOM ───────────────────────────────────────────────────────────────────
   const loadingEl = document.getElementById('mn-loading')!;
@@ -475,6 +475,10 @@
     errorEl.hidden = true;
     gameEl.hidden = false;
     persistStatusEl.textContent = persisted ? '' : '(session non persistée)';
+    const modeEl = document.getElementById('mn-mode');
+    if (modeEl) {
+      modeEl.textContent = narratorMode === 'hub' ? 'Narrateur : Hub' : 'Narrateur local (démo)';
+    }
   }
 
   // ── Démarrage moteur ──────────────────────────────────────────────────────

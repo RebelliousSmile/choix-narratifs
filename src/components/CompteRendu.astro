@@ -91,11 +91,11 @@
   import { IdbSnapshotStore } from '../scripts/narrative/snapshot-store';
   import {
     renderMarkdown,
-    DownloadPublisher,
     type CompteRendu,
     type SecretResolution,
     type ExportError,
   } from '../scripts/narrative/export';
+  import { resolvePublisher } from '../scripts/narrative/runtime-config';
 
   const SESSION_ID = 'moteur-v1';
 
@@ -250,7 +250,8 @@
 
   document.getElementById('cr-download')!.addEventListener('click', async () => {
     if (!dernierCR) return;
-    await new DownloadPublisher().publish(dernierCR, dernierMd);
+    const { publisher } = resolvePublisher();
+    await publisher.publish(dernierCR, dernierMd);
   });
 
   window.addEventListener('beforeunload', () => { if (engine) engine.free(); });

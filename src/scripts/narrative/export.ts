@@ -84,8 +84,36 @@ export interface Publisher {
 }
 
 /**
+ * Publieur HTTP vers Suddenly (« blob → base »). La couture restant à spécifier,
+ * l'enveloppe est volontairement minimale : `{ compte_rendu, markdown }`. À ajuster
+ * quand le format d'ingestion sera figé. Branché via `resolvePublisher`.
+ */
+export class HttpPublisher implements Publisher {
+  constructor(
+    private endpoint: string,
+    private token: string,
+  ) {}
+
+  async publish(cr: CompteRendu, markdown: string): Promise<string> {
+    const res = await fetch(this.endpoint, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${this.token}`,
+      },
+      body: JSON.stringify({ compte_rendu: cr, markdown }),
+    });
+    if (!res.ok) {
+      throw new Error(`Publication Suddenly: HTTP ${res.status}`);
+    }
+    const data = (await res.json()) as { url?: string; id?: string };
+    return data.url ?? data.id ?? 'publié';
+  }
+}
+
+/**
  * Stub de publication : ne sort pas du navigateur — propose le Markdown au
- * téléchargement. Remplaçable par un `HttpPublisher` quand l'endpoint Suddenly existera.
+ * téléchargement. Remplaçable par `HttpPublisher` quand l'endpoint Suddenly existera.
  */
 export class DownloadPublisher implements Publisher {
   async publish(cr: CompteRendu, markdown: string): Promise<string> {

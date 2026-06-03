@@ -165,3 +165,17 @@ sort vers Suddenly **après** le jeu. Invariants verrouillés (`core/tests/expor
 
 La couture aval CN↔Suddenly reste **à spécifier** : abstraite derrière `Publisher`
 (stub `DownloadPublisher` côté TS), comme le Hub l'était derrière `Narrator`.
+
+### Brancher les coutures externes (Hub / Suddenly)
+
+Les deux coutures sont résolues par `src/scripts/narrative/runtime-config.ts` :
+sans config, on retombe sur les stubs (démo) ; avec config, sur les implémentations
+HTTP — **aucun changement de code**.
+
+| Couture | Endpoint (build, public) | Token (localStorage) | Implémentations |
+| --- | --- | --- | --- |
+| Hub `/narrate` | `PUBLIC_NARRATE_ENDPOINT` | `cn-hub-token` | `StubNarrator` → `HttpNarrator` |
+| Publish Suddenly | `PUBLIC_PUBLISH_ENDPOINT` | `cn-hub-token` | `DownloadPublisher` → `HttpPublisher` |
+
+Le token (portefeuille Muse) n'est **jamais** en build : il vit en `localStorage`.
+L'en-tête du moteur affiche le mode actif (« Narrateur local (démo) » vs « Hub »).
