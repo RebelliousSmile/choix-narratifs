@@ -118,9 +118,11 @@ pnpm build:engine    # tests + wasm-pack build → src/scripts/narrative/pkg/
 pnpm deploy:prod     # build:engine → astro build → transfert SSH → git push
 ```
 
-`build:engine` fait le préflight (cargo, cible wasm32, wasm-pack) avec messages
-actionnables, et expose deux échappatoires :
+`build:engine` est **tolérant par défaut** : tant que l'island n'est pas câblée,
+tout problème (toolchain absente, test/build en échec) n'est qu'un **avertissement**
+et laisse `deploy:prod` continuer le déploiement du site. Drapeaux :
 
+- `ENGINE_STRICT=1` — fait du moteur un **gate** (échoue le déploiement s'il casse) ;
 - `SKIP_ENGINE=1` — saute toute l'étape moteur (machine sans toolchain Rust) ;
 - `ENGINE_TESTS_ONLY=1` — lance les tests sans le build wasm.
 

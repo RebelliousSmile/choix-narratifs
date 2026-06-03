@@ -1,12 +1,17 @@
 // Étape « moteur » du pipeline de build/déploiement.
 //
 // Le moteur narratif (engine/) est un crate Rust compilé en WASM. Avant de
-// builder le site, on doit : (1) faire passer les tests du crate (garde-fou),
-// (2) produire le glue WASM (`pkg/`) que l'island importera.
+// builder le site, on tente : (1) les tests du crate (garde-fou), (2) le glue
+// WASM (`pkg/`) que l'island importera.
 //
 //   pnpm build:engine        # tests + build wasm
 //   SKIP_ENGINE=1 pnpm …      # saute tout (ex. machine sans toolchain Rust)
 //   ENGINE_TESTS_ONLY=1 …     # tests seuls, sans wasm-pack
+//   ENGINE_STRICT=1 …         # bloque le déploiement si le moteur casse
+//
+// TOLÉRANT PAR DÉFAUT : tant que l'island n'est pas câblée, tout problème
+// (toolchain absente, test/build en échec) n'est qu'un AVERTISSEMENT et laisse
+// le déploiement du site continuer. Poser ENGINE_STRICT=1 pour en faire un gate.
 //
 // Branché AVANT `astro build` dans `deploy:prod` : le `.wasm` doit exister pour
 // que Vite le bundle dans dist/.
@@ -38,9 +43,16 @@ const has = (cmd) => {
 
 const run = (cmd, opts = {}) => execSync(cmd, { stdio: 'inherit', ...opts })
 
-const die = (msg) => {
-  console.error(`\n✗ ${msg}\n`)
-  process.exit(1)
+const STRICT = process.env.ENGINE_STRICT === '1'
+
+// En mode strict : échoue (gate). Sinon : avertit et laisse passer le déploiement.
+const fail = (msg) => {
+  if (STRICT) {
+    console.error(`\n✗ ${msg}\n`)
+    process.exit(1)
+  }
+  console.warn(`\n⚠ ${msg}\n  → toléré (ENGINE_STRICT=1 pour bloquer) ; le déploiement continue.\n`)
+  process.exit(0)
 }
 
 // --- 0. Échappatoire (machine sans Rust, ou build site seul) ------------------
@@ -49,15 +61,15 @@ if (process.env.SKIP_ENGINE === '1') {
   process.exit(0)
 }
 
-log('\n=== Build moteur (engine/) ===')
+log(`\n=== Build moteur (engine/)${STRICT ? ' [strict]' : ' [tolérant]'} ===`)
 
 if (!existsSync(ENGINE)) {
-  die(`Dossier engine/ introuvable à ${ENGINE}.`)
+  fail(`Dossier engine/ introuvable à ${ENGINE}.`)
 }
 
 // --- 1. Toolchain Rust --------------------------------------------------------
 if (!has('cargo')) {
-  die(
+  fail(
     'cargo introuvable. Installer Rust (https://rustup.rs), ' +
       'ou poser SKIP_ENGINE=1 pour déployer le site sans rebuild du moteur.',
   )
@@ -66,7 +78,11 @@ if (!has('cargo')) {
 // --- 2. Tests du crate (garde-fou avant tout artefact) ------------------------
 log('\n[moteur] cargo test (garde-fou)…')
 const doneTests = time('Tests')
-run('cargo test', { cwd: ENGINE })
+try {
+  run('cargo test', { cwd: ENGINE })
+} catch {
+  fail('cargo test a échoué.')
+}
 doneTests()
 
 if (process.env.ENGINE_TESTS_ONLY === '1') {
@@ -90,7 +106,7 @@ if (!hasWasmTarget) {
 
 // --- 4. wasm-pack -------------------------------------------------------------
 if (!has('wasm-pack')) {
-  die(
+  fail(
     'wasm-pack introuvable. Installer avec `cargo install wasm-pack` ' +
       '(ou https://rustwasm.github.io/wasm-pack/installer/). ' +
       'Alternatives : ENGINE_TESTS_ONLY=1 (tests seuls) ou SKIP_ENGINE=1.',
@@ -100,10 +116,14 @@ if (!has('wasm-pack')) {
 // --- 5. Build du glue WASM dans src/…/pkg ------------------------------------
 log(`\n[moteur] wasm-pack build → ${PKG_OUT}`)
 const doneWasm = time('Build wasm')
-run(
-  `wasm-pack build wasm --release --target web --out-dir "${PKG_OUT}" --out-name cn_engine`,
-  { cwd: ENGINE },
-)
+try {
+  run(
+    `wasm-pack build wasm --release --target web --out-dir "${PKG_OUT}" --out-name cn_engine`,
+    { cwd: ENGINE },
+  )
+} catch {
+  fail('wasm-pack build a échoué.')
+}
 doneWasm()
 
 // --- 6. Récap ----------------------------------------------------------------
