@@ -18,7 +18,6 @@ export type {
   Outcome,
 } from './generated';
 
-/// Numéro de contrat (valeur — non exprimable comme type généré). Reflète
-/// `cn_core::packet::PACKET_SCHEMA_VERSION` ; vérifié contre une fixture Rust dans
-/// tests/narrative/contract.test.ts.
-export const PACKET_SCHEMA_VERSION = 1;
+/// Numéro de contrat — ÉMIS PAR LE MOTEUR (generated/contract.json), plus écrit à
+/// la main. Réexporté ici pour les imports existants (`./types`).
+export { PACKET_SCHEMA_VERSION } from './contract';

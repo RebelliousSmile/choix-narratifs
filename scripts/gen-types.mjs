@@ -29,7 +29,16 @@ execSync('cargo test -p cn-core --features ts export_bindings', {
   env: { ...process.env, TS_RS_EXPORT_DIR: OUT },
 })
 
-// 3. Barrel index.ts : un point d'import unique pour les consommateurs.
+// 3. Contrat de données runtime (« possibles », façon template.json Foundry) :
+//    le moteur émet le JSON, on l'écrit à côté des types.
+console.log('\n[contrat] émission de contract.json (possibles)…')
+const contrat = execSync('cargo run -q -p cn-core --example emit_possibles', {
+  cwd: ENGINE,
+  encoding: 'utf8',
+})
+writeFileSync(resolve(OUT, 'contract.json'), contrat)
+
+// 4. Barrel index.ts : un point d'import unique pour les consommateurs.
 const fichiers = readdirSync(OUT)
   .filter((f) => f.endsWith('.ts') && f !== 'index.ts')
   .map((f) => f.replace(/\.ts$/, ''))
@@ -41,4 +50,5 @@ const banniere =
 const corps = fichiers.map((nom) => `export type { ${nom} } from './${nom}';`).join('\n')
 writeFileSync(resolve(OUT, 'index.ts'), banniere + corps + '\n')
 
-console.log(`\n[types] ${fichiers.length} types générés + index.ts ✓`)
+console.log(`\n[types] ${fichiers.length} types + contract.json + index.ts ✓`)
+

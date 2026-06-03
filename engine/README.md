@@ -14,6 +14,20 @@ cargo run -p cn-harness   # déroule la boucle (Phase 1)
 
 ## Architecture
 
+**Lecture DDD / hexagonale.** Le moteur est la **référence des données** ; les
+consommateurs lisent son schéma et s'adaptent (jamais l'inverse).
+
+- **Domaine** (`cn-core`) : modèle + règles purs, sans I/O — état, directeur,
+  verifier, catalogue de gestes, contrat. C'est l'autorité du modèle de données.
+- **Adaptateurs** : `cn-wasm` (port JS), l'orchestration TS, les pages Astro. Ils
+  n'inventent pas de données ; ils consomment ce que le domaine publie.
+- **Schéma publié** (la « dpc ») en deux formes, toutes deux émises depuis le domaine
+  et **versionnées** (build/déploiement sans Rust) :
+  - **types** compile-time → `generated/*.ts` (ts-rs) ;
+  - **contrat runtime** agnostique (façon `template.json` de FoundryVTT) →
+    `generated/contract.json` : les « possibles » (catalogue de gestes, domaines
+    d'enums, bornes, version) que tout consommateur lit pour se data-driver.
+
 ```
 engine/
   core/                     # crate pure `cn-core`

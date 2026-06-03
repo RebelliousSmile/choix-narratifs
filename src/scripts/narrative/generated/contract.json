@@ -1,0 +1,67 @@
+{
+  "best_of_n": {
+    "max": 5,
+    "min": 1
+  },
+  "decisions": [
+    "reveler",
+    "retirer"
+  ],
+  "moves": [
+    {
+      "id": "se_fermer",
+      "libelle": "se détourne, lâche 1 fait mineur"
+    },
+    {
+      "id": "conceder",
+      "libelle": "concède, lâche 1 fait mineur"
+    },
+    {
+      "id": "devier",
+      "libelle": "dévie, parle d'autre chose"
+    },
+    {
+      "id": "temporiser",
+      "libelle": "gagne du temps, ne s'engage pas"
+    },
+    {
+      "id": "reveler_partiellement",
+      "libelle": "lâche un détail, tait l'essentiel"
+    },
+    {
+      "id": "presser",
+      "libelle": "presse, retourne la question"
+    }
+  ],
+  "outcomes": [
+    "commit",
+    "resample_needed"
+  ],
+  "packet_schema_version": 1,
+  "ratios": [
+    "non_verbal_dominant",
+    "equilibre",
+    "verbal_dominant"
+  ],
+  "registres": [
+    "sec",
+    "neutre",
+    "tendu",
+    "lyrique",
+    "familier",
+    "solennel"
+  ],
+  "rejets": [
+    "fuite",
+    "contradiction",
+    "move_non_execute"
+  ],
+  "shapes": [
+    "monologue",
+    "question_reponse",
+    "action_puis_replique",
+    "description_puis_dialogue",
+    "liste_descripteurs",
+    "replique_seche"
+  ]
+}
