@@ -16,6 +16,7 @@ use crate::state::Canon;
 /// Motif d'écartement d'un candidat.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", content = "detail", rename_all = "snake_case")]
 pub enum Rejet {
     /// Un jeton du secret est apparu dans la prose (le fuyard).

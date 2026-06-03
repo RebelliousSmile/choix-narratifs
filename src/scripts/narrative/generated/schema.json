@@ -1,0 +1,696 @@
+{
+  "$defs": {
+    "Cadre": {
+      "additionalProperties": false,
+      "description": "Cadre non-secret de la scène.",
+      "properties": {
+        "ambiance": {
+          "description": "Ambiance, si pertinente.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lieu": {
+          "description": "Lieu / décor, descriptible librement.",
+          "type": "string"
+        },
+        "presents": {
+          "default": [],
+          "description": "Autres présents : identités publiques uniquement.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "lieu"
+      ],
+      "type": "object"
+    },
+    "CommitTrace": {
+      "description": "Commit sérialisable d'un tour.",
+      "properties": {
+        "diff": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "index": {
+          "format": "uint",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "diff",
+        "index"
+      ],
+      "type": "object"
+    },
+    "CompteRendu": {
+      "description": "Le **compte rendu** : type FERMÉ qui franchit la membrane vers Suddenly. Ne contient QUE du public : scène, échanges, faits appris, résolutions explicites. Aucun secret « caché vivant » n'y figure.",
+      "properties": {
+        "echanges": {
+          "items": {
+            "$ref": "#/definitions/Echange"
+          },
+          "type": "array"
+        },
+        "faits_appris": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "resolutions": {
+          "items": {
+            "$ref": "#/definitions/ResolutionPublique"
+          },
+          "type": "array"
+        },
+        "scene": {
+          "$ref": "#/definitions/SceneInfo"
+        }
+      },
+      "required": [
+        "echanges",
+        "faits_appris",
+        "resolutions",
+        "scene"
+      ],
+      "type": "object"
+    },
+    "Decision": {
+      "description": "Décision de l'éditeur pour un secret resté caché en fin de partie (US-1.4).",
+      "oneOf": [
+        {
+          "description": "Le mur tombe : le secret est révélé, sous la formulation choisie par l'éditeur.",
+          "properties": {
+            "texte": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "reveler"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "texte",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Le secret est retiré du compte rendu (il reste « caché vivant »).",
+          "properties": {
+            "type": {
+              "enum": [
+                "retirer"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Echange": {
+      "description": "Un échange du compte rendu (forme close, déjà canon-free).",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "prose": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "prose"
+      ],
+      "type": "object"
+    },
+    "ExportError": {
+      "description": "Pourquoi la membrane refuse l'export.",
+      "oneOf": [
+        {
+          "description": "Un secret caché n'a reçu aucune décision (ni révélé, ni retiré).",
+          "properties": {
+            "detail": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "secret_non_resolu"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Un secret qu'on veut retirer apparaît pourtant déjà dans la prose : impossible de le retirer proprement (il faudrait éditer la prose, ou le révéler).",
+          "properties": {
+            "detail": {
+              "properties": {
+                "jeton": {
+                  "type": "string"
+                },
+                "secret": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "jeton",
+                "secret"
+              ],
+              "type": "object"
+            },
+            "type": {
+              "enum": [
+                "fuite_dans_prose"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Form": {
+      "additionalProperties": false,
+      "description": "Contraintes de forme, posées par beat. Clôtures (empêcher l'attracteur), pas couloirs (dicter la phrase) — cf. §6.",
+      "properties": {
+        "budget_revelation": {
+          "description": "Budget de révélation : nombre MAX de faits `revealable` à lâcher ce beat.",
+          "format": "uint8",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "interdit_shape": {
+          "default": [],
+          "description": "Shapes à NE PAS reproduire (typiquement les 3 dernières utilisées), pour casser l'appariement 1:1 en lockstep (§6).",
+          "items": {
+            "$ref": "#/definitions/ShapeTag"
+          },
+          "type": "array"
+        },
+        "ratio": {
+          "$ref": "#/definitions/Ratio",
+          "description": "Ratio souhaité non-verbal / verbal."
+        },
+        "registre": {
+          "$ref": "#/definitions/Registre",
+          "description": "Registre / ton de ce beat."
+        }
+      },
+      "required": [
+        "budget_revelation",
+        "ratio",
+        "registre"
+      ],
+      "type": "object"
+    },
+    "Locuteur": {
+      "additionalProperties": false,
+      "description": "Le PNJ qui parle / agit ce beat.",
+      "properties": {
+        "nom": {
+          "description": "Nom / identité publique (non-secret).",
+          "type": "string"
+        },
+        "voix": {
+          "description": "Style de voix : registre, tics, manière. Descripteur, pas canon.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nom",
+        "voix"
+      ],
+      "type": "object"
+    },
+    "Move": {
+      "description": "Un geste dramatique. `id` stable (agnostique), `libelle` = texte du beat.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "libelle"
+      ],
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Résultat de `resolve`.",
+      "oneOf": [
+        {
+          "description": "Un candidat valide a été retenu ; l'état a avancé.",
+          "properties": {
+            "candidat": {
+              "type": "string"
+            },
+            "diff": {
+              "description": "Faits que le joueur apprend ce tour (diff du registre).",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "index": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "outcome": {
+              "enum": [
+                "commit"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "candidat",
+            "diff",
+            "index",
+            "outcome"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Tous les candidats ont été écartés → l'hôte doit redemander (resample §6). Le beat reste « ouvert » : un nouvel appel à `resolve` re-juge le même beat.",
+          "properties": {
+            "outcome": {
+              "enum": [
+                "resample_needed"
+              ],
+              "type": "string"
+            },
+            "rejets": {
+              "items": {
+                "items": [
+                  {
+                    "format": "uint",
+                    "minimum": 0.0,
+                    "type": "integer"
+                  },
+                  {
+                    "$ref": "#/definitions/Rejet"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "outcome",
+            "rejets"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Prepared": {
+      "description": "Sortie de `prepare` : ce qui part vers le relais (le paquet + le best-of-N).",
+      "properties": {
+        "n": {
+          "format": "uint8",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "packet": {
+          "$ref": "#/definitions/ScenePacket"
+        }
+      },
+      "required": [
+        "n",
+        "packet"
+      ],
+      "type": "object"
+    },
+    "Ratio": {
+      "description": "Dominante verbale / non-verbale du rendu.",
+      "enum": [
+        "non_verbal_dominant",
+        "equilibre",
+        "verbal_dominant"
+      ],
+      "type": "string"
+    },
+    "Registre": {
+      "description": "Registre de ton. Palette bornée = une clôture de forme.",
+      "enum": [
+        "sec",
+        "neutre",
+        "tendu",
+        "lyrique",
+        "familier",
+        "solennel"
+      ],
+      "type": "string"
+    },
+    "Rejet": {
+      "description": "Motif d'écartement d'un candidat.",
+      "oneOf": [
+        {
+          "description": "Un jeton du secret est apparu dans la prose (le fuyard).",
+          "properties": {
+            "detail": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "fuite"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "La prose nie un fait établi.",
+          "properties": {
+            "detail": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "contradiction"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Le move décidé n'apparaît pas (aucun jeton de move présent).",
+          "properties": {
+            "type": {
+              "enum": [
+                "move_non_execute"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ResolutionPublique": {
+      "description": "Une révélation publiée : la formulation de l'éditeur (jamais le canon brut).",
+      "properties": {
+        "revelation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revelation"
+      ],
+      "type": "object"
+    },
+    "SceneInfo": {
+      "description": "Info **publique** de la scène (décor + PNJ), pour l'en-tête de l'UI. N'expose aucun canon : ce sont les mêmes champs que le directeur copie déjà dans le paquet.",
+      "properties": {
+        "ambiance": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lieu": {
+          "type": "string"
+        },
+        "pnj_nom": {
+          "type": "string"
+        },
+        "pnj_voix": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "lieu",
+        "pnj_nom",
+        "pnj_voix"
+      ],
+      "type": "object"
+    },
+    "ScenePacket": {
+      "additionalProperties": false,
+      "description": "Le paquet de scène : tout ce dont le narrateur a besoin pour rendre ce beat, et rien qui puisse fuiter.",
+      "properties": {
+        "action_joueur": {
+          "description": "L'action commitée du joueur ce tour. Non-secret (ce sont *ses* mots) ; nécessaire au narrateur pour ancrer la scène. Le résultat d'oracle, lui, n'apparaît jamais brut : il est déjà *traduit* dans `mouvement` (le LLM est renderer, pas simulateur — il ne voit pas les dés).",
+          "type": "string"
+        },
+        "cadre": {
+          "$ref": "#/definitions/Cadre",
+          "description": "Cadre non-secret de la scène : lieu, ambiance, présents."
+        },
+        "form": {
+          "$ref": "#/definitions/Form",
+          "description": "Contraintes de forme posées par beat (§6) : des clôtures, pas des couloirs."
+        },
+        "hearing": {
+          "description": "Comment le locuteur ENTEND l'énoncé du joueur, via son savoir/biais. La *forme* de la méprise (§6), motivée et lisible — pas le secret.",
+          "type": "string"
+        },
+        "locuteur": {
+          "$ref": "#/definitions/Locuteur",
+          "description": "Le PNJ qui agit ce beat : identité publique + voix."
+        },
+        "move": {
+          "description": "Le move choisi par le directeur : ce que le locuteur FAIT ce beat (oracle déjà résolu et plié dedans).",
+          "type": "string"
+        },
+        "revealable": {
+          "description": "Faits que le narrateur A LE DROIT d'utiliser. Les secrets sont ABSENTS.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "description": "Version du contrat. Doit valoir [`PACKET_SCHEMA_VERSION`].",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "withhold": {
+          "description": "Sujets marqués TUS — **étiquettes neutres**, jamais le contenu. Ex. `\"qui a payé\"`, pas la réponse. Le narrateur sait qu'il y a quelque chose à taire, sans savoir quoi.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "action_joueur",
+        "cadre",
+        "form",
+        "hearing",
+        "locuteur",
+        "move",
+        "revealable",
+        "schema_version",
+        "withhold"
+      ],
+      "type": "object"
+    },
+    "SceneSpec": {
+      "description": "Devis d'élaboration **côté auteur** (UI Phase 4 / bucket de modules). Forme amicale, non-technique : l'auteur saisit le décor, le PNJ, le secret et ce que le PNJ peut lâcher. `World::from_spec` en dérive les jetons internes.\n\nFRONTIÈRE : ce type porte le `secret` **en clair** (c'est l'auteur qui le tape). Il vit côté client (UI → moteur) et ne franchit JAMAIS le mur : `prepare` ne lit que les champs publics du `World`, pas le canon.",
+      "properties": {
+        "ambiance": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "faits_etablis": {
+          "default": [],
+          "description": "Faits établis du monde (base de détection des contradictions).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "jetons_contradiction": {
+          "default": [],
+          "description": "Tournures qui NIENT un fait établi.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "jetons_fuite": {
+          "default": [],
+          "description": "Mots qui trahissent le secret. Si vide, dérivé des noms propres du secret.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "lieu": {
+          "type": "string"
+        },
+        "pnj_nom": {
+          "type": "string"
+        },
+        "pnj_voix": {
+          "type": "string"
+        },
+        "revealable": {
+          "default": [],
+          "description": "Ce que le PNJ peut lâcher (faits révélables). Sert aussi de preuve de move.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "secret": {
+          "description": "Le grand secret (la réponse tue).",
+          "type": "string"
+        },
+        "withhold": {
+          "default": [],
+          "description": "Étiquettes de sujet tu (jamais le contenu) — passent telles quelles au paquet.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "lieu",
+        "pnj_nom",
+        "pnj_voix",
+        "secret"
+      ],
+      "type": "object"
+    },
+    "SecretResolution": {
+      "description": "Entrée du producteur : la décision prise pour un secret donné.",
+      "properties": {
+        "decision": {
+          "$ref": "#/definitions/Decision"
+        },
+        "secret": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "secret"
+      ],
+      "type": "object"
+    },
+    "ShapeTag": {
+      "description": "Patrons structurels d'une réponse. Le directeur interdit les dernières `shape` pour éviter le moule répétitif (§6). Partagé par le directeur ET le verifier (même crate).",
+      "enum": [
+        "monologue",
+        "question_reponse",
+        "action_puis_replique",
+        "description_puis_dialogue",
+        "liste_descripteurs",
+        "replique_seche"
+      ],
+      "type": "string"
+    },
+    "TourTraceView": {
+      "description": "Vue sérialisable d'un tour de trace (pour la vue dev côté UI).",
+      "properties": {
+        "commit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CommitTrace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "paquet_json": {
+          "type": "string"
+        },
+        "resamples": {
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "verdicts": {
+          "items": {
+            "$ref": "#/definitions/VerdictTrace"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "paquet_json",
+        "resamples",
+        "verdicts"
+      ],
+      "type": "object"
+    },
+    "VerdictTrace": {
+      "description": "Verdict sérialisable d'un candidat (US-1.2). `rejet: null` = candidat retenu.",
+      "properties": {
+        "index": {
+          "format": "uint",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "rejet": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rejet"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "index"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "Généré depuis cn-core (source de vérité). Le Hub et tout consommateur non-Rust valident contre #/$defs/<Type>. Les types internes porteurs de canon (World, Canon, Registry) n'y figurent PAS.",
+  "title": "choix-narratifs — schéma des types de frontière du moteur"
+}
