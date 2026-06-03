@@ -51,6 +51,12 @@ import { MODULES } from '../scripts/narrative/modules';
             <div class="el-csec-lbl">Grand secret</div>
             <div class="el-csec-val">{m.spec.secret}</div>
           </div>
+          {m.contexte && (
+            <div class="el-cctx">
+              {m.contexte.univers && <span class="el-ctag" title="Univers">🌍 {m.contexte.univers.nom}</span>}
+              {m.contexte.campagne && <span class="el-ctag" title="Campagne">🧵 {m.contexte.campagne.nom}</span>}
+            </div>
+          )}
           {m.disponible && <button class="el-btn pri el-cta" data-play={m.id}>Jouer ce module →</button>}
         </article>
       ))}
@@ -220,6 +226,9 @@ import { MODULES } from '../scripts/narrative/modules';
   .el-csec-val { font-size: .82rem; font-style: italic; transition: filter .3s; }
   .el[data-mode="jouer"] .el-csec-val { filter: blur(5px); }
   .el[data-mode="jouer"] .el-card:not(.dim):hover .el-csec-val { filter: blur(0); }
+  .el-cctx { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .7rem; }
+  .el-ctag { font-size: .68rem; color: var(--color-text-muted); background: var(--color-surface-alt);
+    border: 1px solid var(--color-border); border-radius: 999px; padding: .1rem .5rem; }
   .el-cta { display: none; width: 100%; margin-top: .9rem; }
   .el-card.sel .el-cta { display: block; }
 
@@ -305,6 +314,7 @@ import { MODULES } from '../scripts/narrative/modules';
     validateSceneSpec,
     type SceneSpec,
   } from '../scripts/narrative/scene-spec';
+  import { composeScene } from '../scripts/narrative/contexte';
   import { setPendingScene } from '../scripts/narrative/pending-scene';
 
   const root = document.querySelector('.el') as HTMLElement;
@@ -365,7 +375,8 @@ import { MODULES } from '../scripts/narrative/modules';
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const mod = findModule(btn.dataset.play!);
-      if (mod) launch(mod.spec);
+      // Replie le contexte (univers/campagne) dans le spec avant de jouer.
+      if (mod) launch(composeScene(mod.spec, mod.contexte));
     });
   });
 

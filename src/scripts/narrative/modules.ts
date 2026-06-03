@@ -6,6 +6,7 @@
 // sous forme de devis d'auteur, pour prouver l'équivalence des deux chemins.
 
 import type { SceneSpec } from './scene-spec';
+import type { Contexte } from './contexte';
 
 export interface NarrativeModule {
   id: string;
@@ -13,6 +14,11 @@ export interface NarrativeModule {
   /** Disponible = jouable ; sinon affiché grisé « bientôt ». */
   disponible: boolean;
   spec: SceneSpec;
+  /**
+   * Couches du vault dont la scène hérite (univers / campagne / système). Optionnel :
+   * un module plat (sans contexte) reste valide. Replié dans le spec par `composeScene`.
+   */
+  contexte?: Contexte;
 }
 
 export const MODULES: NarrativeModule[] = [
@@ -42,6 +48,22 @@ export const MODULES: NarrativeModule[] = [
     id: 'informateur',
     titre: "L'informateur nerveux",
     disponible: false,
+    // Démontre la composition : la scène hérite des faits du monde et de la campagne.
+    contexte: {
+      univers: {
+        id: 'port-franc',
+        nom: 'Le Port Franc',
+        faits_etablis: ['le couvre-feu tombe à minuit', 'la garde est corrompue'],
+        jetons_contradiction: ['aucun couvre-feu', 'la garde est intègre'],
+      },
+      campagne: {
+        id: 'les-plans-voles',
+        nom: 'Les plans volés',
+        faits_etablis: ['les plans ont disparu du coffre il y a trois jours'],
+        jetons_contradiction: ['les plans sont toujours au coffre'],
+      },
+      systeme: { id: 'cn-base', nom: 'Choix narratifs (base)' },
+    },
     spec: {
       lieu: "arrière-salle d'un café",
       ambiance: 'néons, fumée',
