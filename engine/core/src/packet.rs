@@ -57,6 +57,7 @@ pub const N_MAX: u8 = 5;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 // #[derive(JsonSchema)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ScenePacket {
     /// Version du contrat. Doit valoir [`PACKET_SCHEMA_VERSION`].
     pub schema_version: u32,
@@ -97,11 +98,13 @@ pub struct ScenePacket {
 /// Cadre non-secret de la scène.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Cadre {
     /// Lieu / décor, descriptible librement.
     pub lieu: String,
     /// Ambiance, si pertinente.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts", ts(optional))]
     pub ambiance: Option<String>,
     /// Autres présents : identités publiques uniquement.
     #[serde(default)]
@@ -110,6 +113,7 @@ pub struct Cadre {
 
 /// Le PNJ qui parle / agit ce beat.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(deny_unknown_fields)]
 pub struct Locuteur {
     /// Nom / identité publique (non-secret).
@@ -122,6 +126,7 @@ pub struct Locuteur {
 /// pas couloirs (dicter la phrase) — cf. §6.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Form {
     /// Registre / ton de ce beat.
     pub registre: Registre,
@@ -138,6 +143,7 @@ pub struct Form {
 /// Registre de ton. Palette bornée = une clôture de forme.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Registre {
     Sec,
     Neutre,
@@ -150,6 +156,7 @@ pub enum Registre {
 /// Dominante verbale / non-verbale du rendu.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Ratio {
     NonVerbalDominant,
     Equilibre,
@@ -161,6 +168,7 @@ pub enum Ratio {
 /// verifier (même crate).
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum ShapeTag {
     Monologue,
     QuestionReponse,

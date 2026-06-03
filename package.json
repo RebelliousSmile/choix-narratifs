@@ -11,6 +11,7 @@
     "check": "astro check",
     "test": "vitest run",
     "test:engine": "cargo test --manifest-path engine/Cargo.toml",
+    "gen:types": "node scripts/gen-types.mjs",
     "build:engine": "node scripts/build-engine.mjs",
     "gen:docs": "node scripts/gen-mues-doc.mjs",
     "deploy:prod": "pnpm build:engine && pnpm build && node scripts/deploy.mjs"

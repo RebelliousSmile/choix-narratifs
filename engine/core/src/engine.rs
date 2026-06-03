@@ -19,6 +19,7 @@ use crate::verifier::{self, Rejet};
 
 /// Sortie de `prepare` : ce qui part vers le relais (le paquet + le best-of-N).
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Prepared {
     pub packet: ScenePacket,
     pub n: u8,
@@ -27,6 +28,7 @@ pub struct Prepared {
 /// Info **publique** de la scène (décor + PNJ), pour l'en-tête de l'UI. N'expose
 /// aucun canon : ce sont les mêmes champs que le directeur copie déjà dans le paquet.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SceneInfo {
     pub lieu: String,
     pub ambiance: Option<String>,
@@ -36,6 +38,7 @@ pub struct SceneInfo {
 
 /// Décision de l'éditeur pour un secret resté caché en fin de partie (US-1.4).
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Decision {
     /// Le mur tombe : le secret est révélé, sous la formulation choisie par l'éditeur.
@@ -46,6 +49,7 @@ pub enum Decision {
 
 /// Entrée du producteur : la décision prise pour un secret donné.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SecretResolution {
     pub secret: String,
     pub decision: Decision,
@@ -53,12 +57,14 @@ pub struct SecretResolution {
 
 /// Une révélation publiée : la formulation de l'éditeur (jamais le canon brut).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct ResolutionPublique {
     pub revelation: String,
 }
 
 /// Un échange du compte rendu (forme close, déjà canon-free).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Echange {
     pub action: String,
     pub prose: String,
@@ -68,6 +74,7 @@ pub struct Echange {
 /// contient QUE du public : scène, échanges, faits appris, résolutions explicites.
 /// Aucun secret « caché vivant » n'y figure.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct CompteRendu {
     pub scene: SceneInfo,
     pub echanges: Vec<Echange>,
@@ -78,6 +85,7 @@ pub struct CompteRendu {
 /// Pourquoi la membrane refuse l'export.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(tag = "type", content = "detail", rename_all = "snake_case")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum ExportError {
     /// Un secret caché n'a reçu aucune décision (ni révélé, ni retiré).
     SecretNonResolu(String),
@@ -88,6 +96,7 @@ pub enum ExportError {
 
 /// Résultat de `resolve`.
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(tag = "outcome", rename_all = "snake_case")]
 pub enum Outcome {
     /// Un candidat valide a été retenu ; l'état a avancé.
@@ -114,6 +123,7 @@ pub struct TourTrace {
 
 /// Verdict sérialisable d'un candidat (US-1.2). `rejet: null` = candidat retenu.
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct VerdictTrace {
     pub index: usize,
     pub rejet: Option<Rejet>,
@@ -121,6 +131,7 @@ pub struct VerdictTrace {
 
 /// Commit sérialisable d'un tour.
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct CommitTrace {
     pub index: usize,
     pub diff: Vec<String>,
@@ -128,6 +139,7 @@ pub struct CommitTrace {
 
 /// Vue sérialisable d'un tour de trace (pour la vue dev côté UI).
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct TourTraceView {
     pub paquet_json: String,
     pub verdicts: Vec<VerdictTrace>,

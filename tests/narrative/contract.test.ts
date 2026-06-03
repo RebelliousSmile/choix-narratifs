@@ -10,9 +10,16 @@ import prepareFixture from './fixtures/prepare.json';
 import commitFixture from './fixtures/resolve_commit.json';
 import resampleFixture from './fixtures/resolve_resample.json';
 
+import { PACKET_SCHEMA_VERSION } from '../../src/scripts/narrative/types';
 import type { Outcome, Prepared } from '../../src/scripts/narrative/types';
 
 describe('contrat TS ↔ Rust (fixtures réelles)', () => {
+  it('PACKET_SCHEMA_VERSION (valeur TS) suit la version émise par Rust', () => {
+    // La seule valeur encore portée à la main : on la verrouille sur la sortie Rust.
+    const prep = prepareFixture as unknown as Prepared;
+    expect(PACKET_SCHEMA_VERSION).toBe(prep.packet.schema_version);
+  });
+
   it('prepare.json a la forme Prepared et reste canon-free', () => {
     const prep = prepareFixture as unknown as Prepared;
     expect(prep.n).toBe(3);

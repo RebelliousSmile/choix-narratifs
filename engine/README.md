@@ -107,6 +107,25 @@ voyage sous la clé `move` (rename serde) et reste la forme fermée du contrat.
 Vérifié : `cargo build --target wasm32-unknown-unknown -p cn-wasm --release`
 produit `cn_wasm.wasm` ; `tests/boundary.rs` fige la forme JSON côté hôte.
 
+### Le moteur EST la source de vérité des types (ts-rs)
+
+Les types de frontière (paquet, `SceneSpec`, `Outcome`, `Rejet`, `CompteRendu`,
+`Decision`, trace…) sont **générés depuis les types Rust** via `ts-rs`, dans
+`src/scripts/narrative/generated/`. Plus aucun miroir TS écrit à la main : les
+consommateurs (UI, et demain d'autres) **importent** ces types et s'y conforment.
+
+```bash
+pnpm gen:types   # cargo --features ts → réécrit generated/ + index.ts (barrel)
+```
+
+- Versionné comme `pkg/` (build/déploiement sans toolchain Rust). Régénérer **après
+  un changement des types de frontière Rust**, puis committer `generated/`.
+- La feature `ts` (et `ts-rs`) est **isolée** : le build wasm par défaut ne l'embarque pas.
+- Types **internes** porteurs de canon (`World`, `Canon`, `Registry`, `BeatPlan`) ne
+  sont **pas** exportés — le mur tient jusque dans le schéma publié.
+- Seule valeur encore à la main : `PACKET_SCHEMA_VERSION` (une valeur, pas un type),
+  verrouillée sur la sortie Rust par `tests/narrative/contract.test.ts`.
+
 ### Bindings JS : `pkg/` est VERSIONNÉ
 
 `src/scripts/narrative/pkg/` (glue JS + `cn_engine_bg.wasm` + `.d.ts`) est

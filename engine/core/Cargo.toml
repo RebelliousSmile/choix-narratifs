@@ -8,3 +8,9 @@ description = "Cœur déterministe du moteur narratif choix-narratifs (état, di
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+ts-rs = { version = "10", optional = true }
+
+[features]
+# Génération des types TS depuis les types Rust (le moteur = source de vérité).
+# Hors de cette feature, le build (et le wasm) n'embarque PAS ts-rs.
+ts = ["dep:ts-rs"]

@@ -1,47 +1,29 @@
 // Producteur d'export (Phase 5, US-1.4) — versant TS.
 //
-// La MEMBRANE est en Rust (Engine::export, autorité canon-aware). Ici : les types
-// miroir du compte rendu, le rendu Markdown (vue lisible — le JSON reste la source
-// de vérité), et l'interface `Publisher` (couture CN↔Suddenly, encore à spécifier).
-//
-// SOURCE DE VÉRITÉ des types : engine/core/src/engine.rs.
+// La MEMBRANE est en Rust (Engine::export, autorité canon-aware). Les TYPES du
+// compte rendu sont GÉNÉRÉS depuis Rust (./generated). Ici : le rendu Markdown (vue
+// lisible — le JSON reste la source de vérité) et l'interface `Publisher` (couture
+// CN↔Suddenly, encore à spécifier).
 
-/** Décision de l'éditeur pour un secret resté caché. Entrée de `WasmEngine.export`. */
-export type Decision = { type: 'reveler'; texte: string } | { type: 'retirer' };
+import type {
+  CompteRendu,
+  Decision,
+  Echange,
+  ExportError,
+  ResolutionPublique,
+  SceneInfo,
+  SecretResolution,
+} from './generated';
 
-export interface SecretResolution {
-  secret: string;
-  decision: Decision;
-}
-
-export interface Echange {
-  action: string;
-  prose: string;
-}
-
-export interface ResolutionPublique {
-  revelation: string;
-}
-
-export interface SceneInfo {
-  lieu: string;
-  ambiance: string | null;
-  pnj_nom: string;
-  pnj_voix: string;
-}
-
-/** Le compte rendu clos qui franchit la membrane. Aucun secret « caché vivant ». */
-export interface CompteRendu {
-  scene: SceneInfo;
-  echanges: Echange[];
-  faits_appris: string[];
-  resolutions: ResolutionPublique[];
-}
-
-/** Motif de refus de la membrane (renvoyé par `WasmEngine.export` comme JSON levé). */
-export type ExportError =
-  | { type: 'secret_non_resolu'; detail: string }
-  | { type: 'fuite_dans_prose'; detail: { secret: string; jeton: string } };
+export type {
+  CompteRendu,
+  Decision,
+  Echange,
+  ExportError,
+  ResolutionPublique,
+  SceneInfo,
+  SecretResolution,
+};
 
 /** Rend un compte rendu en Markdown lisible (éditeur + publication). */
 export function renderMarkdown(cr: CompteRendu): string {

@@ -321,23 +321,8 @@
   import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
   import { takePendingScene } from '../scripts/narrative/pending-scene';
   import { resolveNarrator } from '../scripts/narrative/runtime-config';
-
-  interface SceneInfo {
-    lieu: string;
-    ambiance: string | null;
-    pnj_nom: string;
-    pnj_voix: string;
-  }
-
-  type Rejet =
-    | { type: 'fuite'; detail: string }
-    | { type: 'contradiction'; detail: string }
-    | { type: 'move_non_execute' };
-  interface TraceTour {
-    verdicts: Array<{ index: number; rejet: Rejet | null }>;
-    resamples: number;
-    commit: { index: number; diff: string[] } | null;
-  }
+  // Types GÉNÉRÉS depuis le moteur (source de vérité) — pas de redéclaration locale.
+  import type { SceneInfo, Rejet, TourTraceView } from '../scripts/narrative/generated';
 
   const SESSION_ID = 'moteur-v1';
   const { narrator, mode: narratorMode } = resolveNarrator();
@@ -415,9 +400,9 @@
 
   function renderTrace(): void {
     if (!engine) return;
-    let tours: TraceTour[];
+    let tours: TourTraceView[];
     try {
-      tours = JSON.parse(engine.trace()) as TraceTour[];
+      tours = JSON.parse(engine.trace()) as TourTraceView[];
     } catch {
       return;
     }

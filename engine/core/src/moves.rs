@@ -10,6 +10,7 @@
 
 /// Un geste dramatique. `id` stable (agnostique), `libelle` = texte du beat.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Move {
     pub id: &'static str,
     pub libelle: &'static str,

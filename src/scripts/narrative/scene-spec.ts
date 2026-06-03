@@ -1,30 +1,11 @@
-// Devis d'élaboration côté auteur — miroir TS de `cn_core::state::SceneSpec`.
-// SOURCE DE VÉRITÉ : engine/core/src/state.rs.
-//
-// Ce type voyage de l'UI d'élaboration au moteur (`WasmEngine.fromScene`). Il porte
-// le secret EN CLAIR (l'auteur le saisit), vit côté client, et ne franchit jamais le
-// mur : `prepare` ne lit que les champs publics du World.
-//
-// La validation ci-dessous DOUBLE celle de Rust (qui reste l'autorité) : elle sert à
-// donner un retour immédiat dans le formulaire avant d'appeler le WASM.
+// Helpers d'élaboration côté auteur. Le TYPE `SceneSpec` est GÉNÉRÉ depuis Rust
+// (source de vérité : engine/core/src/state.rs → ./generated). Ce module ne porte
+// que la LOGIQUE de pré-remplissage/validation, qui DOUBLE celle de Rust (autorité)
+// pour un retour immédiat dans le formulaire avant l'appel WASM.
 
-export interface SceneSpec {
-  lieu: string;
-  /** Omis par serde quand absent. */
-  ambiance?: string;
-  pnj_nom: string;
-  pnj_voix: string;
-  /** Le grand secret (la réponse tue). */
-  secret: string;
-  /** Mots qui trahissent le secret. Si vide, Rust dérive les noms propres du secret. */
-  jetons_fuite: string[];
-  /** Ce que le PNJ peut lâcher. Sert aussi de preuve de move (couplage Rust). */
-  revealable: string[];
-  faits_etablis: string[];
-  jetons_contradiction: string[];
-  /** Étiquettes de sujet tu (jamais le contenu). */
-  withhold: string[];
-}
+import type { SceneSpec } from './generated';
+
+export type { SceneSpec };
 
 /** Mots-outils capitalisés à exclure de la dérivation (miroir du Rust). */
 const OUTILS = new Set([

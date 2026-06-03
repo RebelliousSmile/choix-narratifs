@@ -92,9 +92,11 @@ pub struct World {
 /// Il vit côté client (UI → moteur) et ne franchit JAMAIS le mur : `prepare` ne lit
 /// que les champs publics du `World`, pas le canon.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SceneSpec {
     pub lieu: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts", ts(optional))]
     pub ambiance: Option<String>,
     pub pnj_nom: String,
     pub pnj_voix: String,

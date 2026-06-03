@@ -11,8 +11,9 @@ dist/
 target/
 wasm/pkg/
 engine/wasm/pkg/
-# NB : src/scripts/narrative/pkg/ est VERSIONNÉ (artefact moteur committé) — voir
-# engine/README.md. La machine de déploiement n'a donc pas besoin de la toolchain Rust.
+# NB : src/scripts/narrative/pkg/ ET src/scripts/narrative/generated/ sont VERSIONNÉS
+# (artefacts moteur : wasm + types TS générés depuis Rust) — voir engine/README.md.
+# La machine de déploiement n'a donc pas besoin de la toolchain Rust.
 
 # Env & local
 .env
