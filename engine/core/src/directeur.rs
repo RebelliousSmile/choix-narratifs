@@ -3,6 +3,7 @@
 //! canon-free. Il ne lit jamais `world.canon` — la fuite est impossible par
 //! construction (il n'a aucune ligne qui touche le secret).
 
+use crate::moves::{self, Move};
 use crate::packet::{
     Cadre, Form, Locuteur, Ratio, Registre, ScenePacket, PACKET_SCHEMA_VERSION,
 };
@@ -30,15 +31,19 @@ pub struct BeatBrief {
 
 /// Produit le brief du beat. `world` n'est lu que pour ses champs **publics**.
 pub fn prepare(world: &World, action_joueur: &str) -> BeatBrief {
-    let hearing = if mentionne_le_sujet_tu(action_joueur) {
+    let menace = mentionne_le_sujet_tu(action_joueur);
+    let hearing = if menace {
         // La méprise est motivée (§6) : le docker entend une menace sur le secret.
         "menace sur le secret".to_string()
     } else {
         "demande anodine".to_string()
     };
 
-    // Phase 1 : un seul move possible — se fermer en ne lâchant que le fait mineur.
-    let mouvement = "se détourne, lâche 1 fait mineur".to_string();
+    // Le geste est choisi dans le catalogue AGNOSTIQUE (cf. moves.rs) selon l'état
+    // public — jamais le canon. La preuve d'exécution reste portée par la scène
+    // (`jetons_move`), donc le couplage de jouabilité est inchangé.
+    let geste = choisir_geste(menace);
+    let mouvement = geste.libelle.to_string();
     let budget = 1u8;
 
     // Interdit les 3 dernières shapes pour casser le lockstep (§6).
@@ -82,6 +87,17 @@ pub fn prepare(world: &World, action_joueur: &str) -> BeatBrief {
             revealable: world.revealable.clone(),
             budget,
         },
+    }
+}
+
+/// Sélection du geste dans le catalogue agnostique, selon l'état **public**.
+/// Temps 1 : choix minimal (sous tension → se fermer ; sinon → concéder). Le temps 2
+/// (profil de système) viendra restreindre le catalogue disponible avant ce choix.
+fn choisir_geste(menace: bool) -> &'static Move {
+    if menace {
+        &moves::SE_FERMER
+    } else {
+        &moves::CONCEDER
     }
 }
 

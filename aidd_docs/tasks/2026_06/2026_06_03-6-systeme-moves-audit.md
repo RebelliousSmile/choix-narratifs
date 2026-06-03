@@ -63,3 +63,14 @@ Faire le **temps 1 (catalogue agnostique + sélection par le directeur)** d'abor
 ossature testable sans aucun système. Le **temps 2 (profils de système)** ensuite :
 le moteur intersecte « moves possibles (préconditions publiques) » ∩ « moves
 autorisés par le profil ». **Ne touche pas** au contrat `packet.rs`.
+
+## État
+
+- **Temps 1 — FAIT.** `engine/core/src/moves.rs` : catalogue agnostique
+  (`se_fermer`, `conceder`, `devier`, `temporiser`, `reveler_partiellement`,
+  `presser`). Le directeur sélectionne le geste selon l'état public (tension →
+  `se_fermer`, sinon `conceder`) ; `jetons_move` reste porté par la scène (couplage
+  inchangé, tous tests verts). Tests : `engine/core/tests/moves.rs` (dont un garde-fou
+  « pas de jargon de système »).
+- **Temps 2 — à faire** : profil de système (sous-ensemble autorisé + préconditions).
+  Reste à trancher la **nature des préconditions** (faits connus ? jauges/horloges ?).

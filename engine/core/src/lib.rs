@@ -9,6 +9,7 @@
 
 pub mod directeur;
 pub mod engine;
+pub mod moves;
 pub mod packet;
 pub mod state;
 pub mod verifier;
