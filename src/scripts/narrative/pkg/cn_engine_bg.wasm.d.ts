@@ -12,6 +12,7 @@ export const wasmengine_savoirJoueur: (a: number) => [number, number];
 export const wasmengine_scene: (a: number) => [number, number, number, number];
 export const wasmengine_secretsEnAttente: (a: number) => [number, number];
 export const wasmengine_snapshot: (a: number) => [number, number];
+export const wasmengine_trace: (a: number) => [number, number, number, number];
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_externrefs: WebAssembly.Table;

@@ -14,10 +14,14 @@ const navItems = [
   { href: '/jeux', label: 'Jeux' },
   { href: '/solo', label: 'Solo' },
   { href: '/dialogues', label: 'Dialogues' },
+  { href: '/elaboration', label: 'Moteur' },
   { href: '/liens', label: 'Liens' },
 ];
 
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+// Pages du moteur narratif : l'entrée de nav « Moteur » reste active sur toutes.
+const moteurPaths = ['/elaboration', '/moteur-narratif', '/compte-rendu'];
 ---
 
 <!doctype html>
@@ -42,7 +46,9 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
             {
               navItems.map((item) => {
                 const itemPath = item.href.replace(/\/+$/, '') || '/';
-                const isCurrent = itemPath === currentPath;
+                const isCurrent =
+                  itemPath === currentPath ||
+                  (itemPath === '/elaboration' && moteurPaths.includes(currentPath));
                 return (
                   <li>
                     <a href={item.href} aria-current={isCurrent ? 'page' : undefined}>

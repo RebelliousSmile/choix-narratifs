@@ -47,7 +47,7 @@ export const MODULES: NarrativeModule[] = [
   {
     id: 'informateur',
     titre: "L'informateur nerveux",
-    disponible: false,
+    disponible: true,
     // Démontre la composition : la scène hérite des faits du monde et de la campagne.
     contexte: {
       univers: {
@@ -69,25 +69,27 @@ export const MODULES: NarrativeModule[] = [
       ambiance: 'néons, fumée',
       pnj_nom: 'Soren',
       pnj_voix: 'volubile, regarde ses mains',
-      secret: 'Soren a vendu les plans à la mauvaise personne',
-      jetons_fuite: ['Soren', 'plans'],
-      revealable: ["la livraison a eu lieu mardi"],
+      // Le secret porte sur un TIERS (le Renard) — jamais sur le PNJ lui-même, sinon
+      // le narrateur fuiterait en nommant simplement son interlocuteur.
+      secret: 'le Renard a commandité le vol',
+      jetons_fuite: ['Renard'],
+      revealable: ['la livraison a eu lieu mardi'],
       faits_etablis: [],
       jetons_contradiction: [],
-      withhold: ['à qui'],
+      withhold: ['qui a commandité'],
     },
   },
   {
     id: 'archives',
     titre: 'La gardienne des archives',
-    disponible: false,
+    disponible: true,
     spec: {
       lieu: 'salle des archives, midi',
       ambiance: 'silence, poussière',
       pnj_nom: 'Madame Veil',
       pnj_voix: 'précise, formulaire à la main',
-      secret: 'le dossier n°47 a été falsifié par son supérieur',
-      jetons_fuite: ['falsifié', 'supérieur'],
+      secret: 'le dossier a été falsifié par Aldren',
+      jetons_fuite: ['Aldren', 'falsifié'],
       revealable: ['le dossier a été consulté trois fois ce mois-ci'],
       faits_etablis: [],
       jetons_contradiction: [],

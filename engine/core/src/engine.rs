@@ -112,6 +112,29 @@ pub struct TourTrace {
     pub commit: Option<(usize, Vec<String>)>,
 }
 
+/// Verdict sérialisable d'un candidat (US-1.2). `rejet: null` = candidat retenu.
+#[derive(Debug, Clone, Serialize)]
+pub struct VerdictTrace {
+    pub index: usize,
+    pub rejet: Option<Rejet>,
+}
+
+/// Commit sérialisable d'un tour.
+#[derive(Debug, Clone, Serialize)]
+pub struct CommitTrace {
+    pub index: usize,
+    pub diff: Vec<String>,
+}
+
+/// Vue sérialisable d'un tour de trace (pour la vue dev côté UI).
+#[derive(Debug, Clone, Serialize)]
+pub struct TourTraceView {
+    pub paquet_json: String,
+    pub verdicts: Vec<VerdictTrace>,
+    pub resamples: u32,
+    pub commit: Option<CommitTrace>,
+}
+
 /// Le moteur. Détient l'état + le beat en cours + la trace.
 pub struct Engine {
     world: World,
@@ -217,6 +240,27 @@ impl Engine {
     /// Ce que le joueur sait à cet instant (fold du registre).
     pub fn savoir_joueur(&self) -> Vec<String> {
         self.world.registre.knows("joueur")
+    }
+
+    /// Vue sérialisable de la trace dev (US-1.2). Reflète les tours joués depuis le
+    /// chargement (la trace n'est pas persistée dans le snapshot).
+    pub fn trace_view(&self) -> Vec<TourTraceView> {
+        self.trace
+            .iter()
+            .map(|t| TourTraceView {
+                paquet_json: t.paquet_json.clone(),
+                verdicts: t
+                    .verdicts
+                    .iter()
+                    .map(|(i, r)| VerdictTrace { index: *i, rejet: r.clone().err() })
+                    .collect(),
+                resamples: t.resamples,
+                commit: t
+                    .commit
+                    .as_ref()
+                    .map(|(i, diff)| CommitTrace { index: *i, diff: diff.clone() }),
+            })
+            .collect()
     }
 
     /// Info publique de la scène (pour l'en-tête de l'UI). Aucun canon.

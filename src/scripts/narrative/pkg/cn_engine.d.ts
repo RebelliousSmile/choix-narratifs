@@ -51,6 +51,11 @@ export class WasmEngine {
      * Sérialise l'état pour persistance (IndexedDB / bucket).
      */
     snapshot(): Uint8Array;
+    /**
+     * Trace dev (US-1.2) en JSON : par tour, le paquet, les verdicts par candidat,
+     * les resamples et le commit. Reflète les tours joués depuis le chargement.
+     */
+    trace(): string;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -68,6 +73,7 @@ export interface InitOutput {
     readonly wasmengine_scene: (a: number) => [number, number, number, number];
     readonly wasmengine_secretsEnAttente: (a: number) => [number, number];
     readonly wasmengine_snapshot: (a: number) => [number, number];
+    readonly wasmengine_trace: (a: number) => [number, number, number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;

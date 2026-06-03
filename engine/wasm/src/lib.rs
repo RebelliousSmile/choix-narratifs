@@ -83,6 +83,12 @@ impl WasmEngine {
         self.inner.secrets_en_attente()
     }
 
+    /// Trace dev (US-1.2) en JSON : par tour, le paquet, les verdicts par candidat,
+    /// les resamples et le commit. Reflète les tours joués depuis le chargement.
+    pub fn trace(&self) -> Result<String, String> {
+        serde_json::to_string(&self.inner.trace_view()).map_err(|e| e.to_string())
+    }
+
     /// La membrane d'export (US-1.4). `resolutions_json` = tableau de
     /// `{ secret, decision: { type: "reveler", texte } | { type: "retirer" } }`.
     /// Retourne le `CompteRendu` en JSON, ou lève le JSON des `ExportError[]`.

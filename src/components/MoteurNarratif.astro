@@ -52,6 +52,14 @@
       </ul>
     </details>
 
+    <!-- Vue de trace dev (US-1.2) -->
+    <details class="mn-trace">
+      <summary class="mn-savoir__summary">Trace (dev) — verdict par candidat</summary>
+      <div id="mn-trace-body" class="mn-trace__body">
+        <p class="mn-savoir__empty">Aucun tour joué.</p>
+      </div>
+    </details>
+
     <!-- Pied de page -->
     <footer class="mn-footer">
       <button id="mn-new-session" class="mn-btn mn-btn--ghost">Nouvelle session</button>
@@ -270,6 +278,30 @@
     text-decoration: none;
     line-height: 1.2;
   }
+
+  /* ── Trace dev ─────────────────────────────────────────────────────────── */
+  .mn-trace {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+  .mn-trace__body {
+    padding: 0 var(--space-4) var(--space-3);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .mn-trace__tour {
+    border-left: 2px solid var(--color-border);
+    padding-left: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .mn-trace__tour-titre {
+    color: var(--color-text);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+  .mn-trace__verdict { font-family: ui-monospace, monospace; }
+  .mn-trace__ok { color: var(--color-accent-strong); }
+  .mn-trace__ko { color: #ff9a9a; }
   .mn-persist {
     font-size: 0.75rem;
     color: var(--color-accent);
@@ -297,6 +329,16 @@
     pnj_voix: string;
   }
 
+  type Rejet =
+    | { type: 'fuite'; detail: string }
+    | { type: 'contradiction'; detail: string }
+    | { type: 'move_non_execute' };
+  interface TraceTour {
+    verdicts: Array<{ index: number; rejet: Rejet | null }>;
+    resamples: number;
+    commit: { index: number; diff: string[] } | null;
+  }
+
   const SESSION_ID = 'moteur-v1';
   const narrator = new StubNarrator();
 
@@ -313,6 +355,7 @@
   const persistStatusEl = document.getElementById('mn-persist-status')!;
   const lieuEl = document.getElementById('mn-lieu')!;
   const ambianceEl = document.getElementById('mn-ambiance')!;
+  const traceBodyEl = document.getElementById('mn-trace-body')!;
 
   // ── Store ─────────────────────────────────────────────────────────────────
   let store: SnapshotStore = new MemorySnapshotStore();
@@ -362,6 +405,49 @@
         savoirListEl.appendChild(li);
       }
     }
+  }
+
+  function motif(r: Rejet): string {
+    if (r.type === 'fuite') return `fuite (« ${r.detail} »)`;
+    if (r.type === 'contradiction') return `contradiction (« ${r.detail} »)`;
+    return 'move non exécuté';
+  }
+
+  function renderTrace(): void {
+    if (!engine) return;
+    let tours: TraceTour[];
+    try {
+      tours = JSON.parse(engine.trace()) as TraceTour[];
+    } catch {
+      return;
+    }
+    traceBodyEl.replaceChildren();
+    if (tours.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'mn-savoir__empty';
+      p.textContent = 'Aucun tour joué.';
+      traceBodyEl.appendChild(p);
+      return;
+    }
+    tours.forEach((tour, i) => {
+      const bloc = document.createElement('div');
+      bloc.className = 'mn-trace__tour';
+      const titre = document.createElement('div');
+      titre.className = 'mn-trace__tour-titre';
+      titre.textContent = `Tour ${i + 1}${tour.resamples > 0 ? ` — ${tour.resamples} resample(s)` : ''}`;
+      bloc.appendChild(titre);
+      for (const v of tour.verdicts) {
+        const ligne = document.createElement('div');
+        ligne.className = 'mn-trace__verdict';
+        if (v.rejet === null) {
+          ligne.innerHTML = `<span class="mn-trace__ok">✓ #${v.index} retenu</span>`;
+        } else {
+          ligne.innerHTML = `<span class="mn-trace__ko">✗ #${v.index} — ${motif(v.rejet)}</span>`;
+        }
+        bloc.appendChild(ligne);
+      }
+      traceBodyEl.appendChild(bloc);
+    });
   }
 
   function addEntry(cls: string, text: string): void {
@@ -426,6 +512,7 @@
     showGame();
     renderScene();
     refreshSavoir();
+    renderTrace();
   }
 
   function resetLog(): void {
@@ -450,6 +537,7 @@
       addEntry('mn-log__response', result.commit.candidat);
       actionEl.value = '';
       refreshSavoir();
+      renderTrace();
     } catch (err) {
       if (err instanceof ResampleExhausted) {
         addEntry('mn-log__system', `[Aucun candidat valide après ${err.tentatives} tentative(s).]`);
@@ -476,6 +564,7 @@
     resetLog();
     renderScene();
     refreshSavoir();
+    renderTrace();
   });
 
   // ── Réessayer ─────────────────────────────────────────────────────────────
