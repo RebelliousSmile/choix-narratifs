@@ -29,14 +29,23 @@ execSync('cargo test -p cn-core --features ts export_bindings', {
   env: { ...process.env, TS_RS_EXPORT_DIR: OUT },
 })
 
-// 3. Contrat de données runtime (« possibles », façon template.json Foundry) :
-//    le moteur émet le JSON, on l'écrit à côté des types.
+// 3a. Contrat de données runtime (« possibles », façon template.json Foundry).
 console.log('\n[contrat] émission de contract.json (possibles)…')
 const contrat = execSync('cargo run -q -p cn-core --example emit_possibles', {
   cwd: ENGINE,
   encoding: 'utf8',
 })
 writeFileSync(resolve(OUT, 'contract.json'), contrat)
+
+// 3b. JSON Schema (validation-grade, agnostique) des types de frontière — la « dpc »
+//     que le Hub et tout consommateur non-Rust lisent pour valider.
+console.log('[schéma] émission de schema.json (JSON Schema)…')
+const schema = execSync('cargo run -q -p cn-core --features schema --example emit_schema', {
+  cwd: ENGINE,
+  encoding: 'utf8',
+  maxBuffer: 8 * 1024 * 1024,
+})
+writeFileSync(resolve(OUT, 'schema.json'), schema)
 
 // 4. Barrel index.ts : un point d'import unique pour les consommateurs.
 const fichiers = readdirSync(OUT)
@@ -50,5 +59,5 @@ const banniere =
 const corps = fichiers.map((nom) => `export type { ${nom} } from './${nom}';`).join('\n')
 writeFileSync(resolve(OUT, 'index.ts'), banniere + corps + '\n')
 
-console.log(`\n[types] ${fichiers.length} types + contract.json + index.ts ✓`)
+console.log(`\n[types] ${fichiers.length} types + contract.json + schema.json + index.ts ✓`)
 

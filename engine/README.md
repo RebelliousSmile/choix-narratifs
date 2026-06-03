@@ -26,7 +26,10 @@ consommateurs lisent son schéma et s'adaptent (jamais l'inverse).
   - **types** compile-time → `generated/*.ts` (ts-rs) ;
   - **contrat runtime** agnostique (façon `template.json` de FoundryVTT) →
     `generated/contract.json` : les « possibles » (catalogue de gestes, domaines
-    d'enums, bornes, version) que tout consommateur lit pour se data-driver.
+    d'enums, bornes, version) que tout consommateur lit pour se data-driver ;
+  - **JSON Schema** de validation (schemars) → `generated/schema.json` : la « dpc »
+    contre laquelle le Hub et tout consommateur non-Rust **valident** (bundle `$defs`).
+    Les types internes porteurs de canon n'y figurent pas — le mur tient dans le schéma.
 
 ```
 engine/

@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Elaboration from '../components/Elaboration.astro';
+// Les « possibles » lus DEPUIS le contrat émis par le moteur (data-driven, pas
+// codé en dur) : le catalogue de gestes que le directeur peut jouer.
+import { MOVES } from '../scripts/narrative/contract';
 ---
 
 <BaseLayout
@@ -9,6 +12,19 @@ import Elaboration from '../components/Elaboration.astro';
 >
   <main class="el-page">
     <Elaboration />
+
+    <details class="el-catalogue">
+      <summary>Gestes du moteur ({MOVES.length}) — ce que le PNJ peut faire</summary>
+      <p class="el-catalogue__note">
+        Lu depuis le contrat publié par le moteur. Le directeur choisit parmi ces
+        gestes agnostiques selon la situation — aucun n'est propre à un système de jeu.
+      </p>
+      <ul class="el-catalogue__list">
+        {MOVES.map((m) => (
+          <li><code>{m.id}</code> — {m.libelle}</li>
+        ))}
+      </ul>
+    </details>
   </main>
 </BaseLayout>
 
@@ -17,5 +33,33 @@ import Elaboration from '../components/Elaboration.astro';
     max-width: 56rem;
     margin: 0 auto;
     padding: var(--space-5) var(--space-4);
+  }
+  .el-catalogue {
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-3);
+  }
+  .el-catalogue summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+  }
+  .el-catalogue__note {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin: var(--space-2) 0;
+  }
+  .el-catalogue__list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.88rem;
+  }
+  .el-catalogue__list code {
+    color: var(--color-accent-strong);
+    font-size: 0.82rem;
   }
 </style>

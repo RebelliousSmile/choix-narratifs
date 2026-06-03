@@ -58,6 +58,7 @@ pub const N_MAX: u8 = 5;
 // #[derive(JsonSchema)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ScenePacket {
     /// Version du contrat. Doit valoir [`PACKET_SCHEMA_VERSION`].
     pub schema_version: u32,
@@ -99,6 +100,7 @@ pub struct ScenePacket {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Cadre {
     /// Lieu / décor, descriptible librement.
     pub lieu: String,
@@ -114,6 +116,7 @@ pub struct Cadre {
 /// Le PNJ qui parle / agit ce beat.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct Locuteur {
     /// Nom / identité publique (non-secret).
@@ -127,6 +130,7 @@ pub struct Locuteur {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Form {
     /// Registre / ton de ce beat.
     pub registre: Registre,
@@ -144,6 +148,7 @@ pub struct Form {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum Registre {
     Sec,
     Neutre,
@@ -157,6 +162,7 @@ pub enum Registre {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum Ratio {
     NonVerbalDominant,
     Equilibre,
@@ -169,6 +175,7 @@ pub enum Ratio {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum ShapeTag {
     Monologue,
     QuestionReponse,

@@ -93,6 +93,7 @@ pub struct World {
 /// que les champs publics du `World`, pas le canon.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SceneSpec {
     pub lieu: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]

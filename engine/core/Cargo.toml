@@ -9,8 +9,16 @@ description = "Cœur déterministe du moteur narratif choix-narratifs (état, di
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ts-rs = { version = "10", optional = true }
+schemars = { version = "0.8", optional = true }
 
 [features]
-# Génération des types TS depuis les types Rust (le moteur = source de vérité).
-# Hors de cette feature, le build (et le wasm) n'embarque PAS ts-rs.
-ts = ["dep:ts-rs"]
+# Génération du schéma publié depuis les types Rust (le moteur = source de vérité).
+# Hors de ces features, le build (et le wasm) n'embarque NI ts-rs NI schemars.
+ts = ["dep:ts-rs"]            # types TS compile-time (generated/*.ts)
+schema = ["dep:schemars"]     # JSON Schema runtime agnostique (generated/schema.json)
+
+# L'émetteur de schéma ne compile que sous la feature `schema` (sinon `cargo test`
+# par défaut tenterait de le compiler sans schemars).
+[[example]]
+name = "emit_schema"
+required-features = ["schema"]
