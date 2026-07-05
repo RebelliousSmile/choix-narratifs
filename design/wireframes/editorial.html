@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diffuse — registre éditorial (vitrine)</title>
+  <link rel="stylesheet" href="../adapters/tokens.css">
+  <style>
+    /* ================================================================
+       Wireframe baseline — registre ÉDITORIAL (« on lit en empattement »).
+       Titres en serif (Spectral → Georgia en fallback tant que la police
+       n'est pas auto-hébergée), corps en sans. Aéré, plat, accent magenta.
+       N'utilise que les classes du manifeste + les tokens de l'adapter.
+       Utilitaires de démo préfixés wf- (hors manifeste).
+       ================================================================ */
+    :root { color-scheme: dark; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--color-semantic-background);
+      color: var(--color-semantic-text);
+      font-family: var(--font-family-sans);
+      font-size: var(--font-size-base);
+      line-height: var(--font-line-height-base);
+    }
+    :focus-visible { outline: var(--border-width-thick) solid var(--color-semantic-focus); outline-offset: 2px; }
+    .wf-container { max-width: var(--size-container-default); margin-inline: auto; padding-inline: var(--space-3); }
+
+    /* ---- icon (Lucide outline inline) ---- */
+    .icon { width: var(--icon-size-md); height: var(--icon-size-md); display: inline-block; vertical-align: middle;
+      stroke: currentColor; stroke-width: var(--icon-stroke-default); fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .icon--sm { width: var(--icon-size-sm); height: var(--icon-size-sm); }
+
+    /* ---- hero (registre éditorial : serif display) ---- */
+    .hero { padding-block: var(--space-6); text-align: center; }
+    .hero__eyebrow { display: inline-block; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+      letter-spacing: var(--font-letter-spacing-eyebrow); text-transform: uppercase;
+      color: var(--color-semantic-accent-strong); margin-bottom: var(--space-3); }
+    .hero__headline { font-family: var(--font-family-serif); font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-display); line-height: var(--font-line-height-tight);
+      margin: 0 auto var(--space-4); max-width: 18ch; }
+    .hero__pitch { font-family: var(--font-family-serif); font-size: var(--font-size-xl);
+      line-height: var(--font-line-height-snug); color: var(--color-semantic-text);
+      margin: 0 auto var(--space-3); max-width: 34ch; }
+    .hero__body { font-size: var(--font-size-md); color: var(--color-semantic-text-muted);
+      margin: 0 auto var(--space-5); max-width: 52ch; }
+    .hero__cta { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
+
+    /* ---- btn ---- */
+    .btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--size-touch-min);
+      font: inherit; font-weight: var(--font-weight-medium); cursor: pointer; text-decoration: none;
+      padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm);
+      border: var(--border-width-default) solid var(--color-semantic-border);
+      background: var(--color-semantic-surface); color: var(--color-semantic-text); }
+    .btn--primary { background: var(--color-semantic-accent); border-color: var(--color-semantic-accent); color: #fff; }
+    .btn--primary:hover { background: var(--color-semantic-accent-strong); border-color: var(--color-semantic-accent-strong); }
+    .btn--secondary { background: var(--color-semantic-surface-raised); }
+    .btn--ghost { background: none; border-color: transparent; color: var(--color-semantic-text-muted); }
+    .btn--danger { background: var(--color-semantic-danger); border-color: var(--color-semantic-danger); color: #fff; }
+    .btn--sm { min-height: auto; padding: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
+    .btn--lg { font-size: var(--font-size-md); padding: var(--space-3) var(--space-5); }
+    .btn__icon { flex: none; }
+
+    /* ---- badge ---- */
+    .badge { display: inline-flex; align-items: center; font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+      padding: var(--space-1) var(--space-2); border-radius: var(--radius-full);
+      background: var(--color-semantic-surface-raised); color: var(--color-semantic-text-muted);
+      border: var(--border-width-default) solid var(--color-semantic-border); }
+    .badge--accent { color: var(--color-semantic-accent-strong); }
+    .badge--info { color: var(--color-semantic-info); }
+
+    /* ---- card (titre serif, corps sans) ---- */
+    .wf-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; padding-bottom: var(--space-6); }
+    .card { background: var(--color-semantic-surface);
+      border: var(--border-width-default) solid var(--color-semantic-border);
+      border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; }
+    .card__media { aspect-ratio: 16 / 9; background: var(--color-semantic-surface-raised);
+      border-bottom: var(--border-width-default) solid var(--color-semantic-border); }
+    .card__header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2);
+      padding: var(--space-3) var(--space-3) 0; }
+    .card__title { font-family: var(--font-family-serif); font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-lg); line-height: var(--font-line-height-snug); margin: 0; }
+    .card__badge { flex: none; }
+    .card__desc { padding: var(--space-2) var(--space-3) 0; color: var(--color-semantic-text-muted);
+      font-size: var(--font-size-sm); }
+    .card__body { padding: var(--space-3); flex: 1; }
+    .card__actions { padding: 0 var(--space-3) var(--space-3); display: flex; gap: var(--space-3); align-items: center; }
+    .card__cta { }
+    .card__link { color: var(--color-semantic-accent-strong); text-decoration: none; font-size: var(--font-size-sm); }
+    .card__link:hover { text-decoration: underline; }
+
+    /* ---- section titles (démo) ---- */
+    .wf-section { padding-top: var(--space-6); }
+    .wf-h2 { font-family: var(--font-family-serif); font-size: var(--font-size-2xl);
+      line-height: var(--font-line-height-snug); margin: 0 0 var(--space-4); }
+    .wf-swatch { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+
+    @media (min-width: 768px) { /* --breakpoint-md */
+      .wf-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wf-container">
+
+    <!-- ===== HERO (registre éditorial) ===== -->
+    <section class="hero" role="region" aria-label="Accroche">
+      <span class="hero__eyebrow">Moteur narratif</span>
+      <h1 class="hero__headline">Un partenaire de scène qui vous surprend vraiment</h1>
+      <p class="hero__pitch">Le secret ne franchit jamais le mur vers le narrateur.</p>
+      <p class="hero__body">
+        La méprise du personnage est motivée — peur, agenda, savoir limité — jamais du bruit.
+        Un moteur déterministe, agnostique du jeu, qui décide de ce qui se publie après la partie.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--primary btn--lg" href="#">
+          <span class="btn__label">Essayer le moteur</span>
+          <svg class="icon icon--sm btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn--ghost btn--lg" href="#"><span class="btn__label">Lire le concept</span></a>
+      </div>
+    </section>
+
+    <!-- ===== CARTES (titre serif, corps sans) ===== -->
+    <section class="wf-section">
+      <h2 class="wf-h2">Trois temps, chacun autonome</h2>
+      <div class="wf-grid">
+
+        <article class="card">
+          <div class="card__media"></div>
+          <div class="card__header">
+            <h3 class="card__title">Élaborer</h3>
+            <span class="badge badge--accent card__badge">1</span>
+          </div>
+          <p class="card__desc">Construire le personnage et son secret, derrière le mur.</p>
+          <div class="card__body"></div>
+          <div class="card__actions">
+            <a class="btn btn--secondary btn--sm card__cta" href="#">Ouvrir</a>
+            <a class="card__link" href="#">En savoir plus</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card__media"></div>
+          <div class="card__header">
+            <h3 class="card__title">Jouer</h3>
+            <span class="badge badge--accent card__badge">2</span>
+          </div>
+          <p class="card__desc">Seul le paquet sans canon franchit le mur vers le narrateur.</p>
+          <div class="card__body"></div>
+          <div class="card__actions">
+            <a class="btn btn--secondary btn--sm card__cta" href="#">Ouvrir</a>
+            <a class="card__link" href="#">En savoir plus</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card__media"></div>
+          <div class="card__header">
+            <h3 class="card__title">Clore</h3>
+            <span class="badge badge--info card__badge">3</span>
+          </div>
+          <p class="card__desc">La membrane d'export décide de ce qui se publie après la partie.</p>
+          <div class="card__body"></div>
+          <div class="card__actions">
+            <a class="btn btn--secondary btn--sm card__cta" href="#">Ouvrir</a>
+            <a class="card__link" href="#">En savoir plus</a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ===== BOUTONS (référence de variantes) ===== -->
+    <section class="wf-section" style="padding-bottom: var(--space-6)">
+      <h2 class="wf-h2">Boutons</h2>
+      <div class="wf-swatch">
+        <button type="button" class="btn btn--primary">Primary</button>
+        <button type="button" class="btn btn--secondary">Secondary</button>
+        <button type="button" class="btn btn--ghost">Ghost</button>
+        <button type="button" class="btn btn--danger">Danger</button>
+        <button type="button" class="btn btn--sm">Small</button>
+        <button type="button" class="btn btn--lg">Large</button>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

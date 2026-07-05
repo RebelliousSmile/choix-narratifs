@@ -1,0 +1,248 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const REPO_URL = 'https://github.com/RebelliousSmile/choix-narratifs';
+const ENGINE_README = `${REPO_URL}/blob/main/engine/README.md`;
+
+const title = 'Documentation — Moteur narratif';
+const description =
+  'Architecture du moteur narratif : cœur Rust pur, contrat publié, les deux murs qui protègent le canon, la boucle prepare → narrate → resolve.';
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="doc">
+    <header class="doc__header">
+      <p class="doc__eyebrow">Documentation</p>
+      <h1>Architecture du moteur narratif</h1>
+      <p class="doc__intro">
+        Lecture DDD / hexagonale. Le moteur (<code>cn-core</code>, Rust pur) est
+        la <strong>référence des données</strong> : les consommateurs lisent son
+        schéma et s’adaptent — jamais l’inverse. Le cœur est compilable en WASM
+        <em>et</em> en natif ; il n’a aucune I/O.
+      </p>
+    </header>
+
+    <nav class="doc__toc" aria-label="Sommaire">
+      <a href="#couches">Les couches</a>
+      <a href="#contrat">Le schéma publié</a>
+      <a href="#murs">Les deux murs</a>
+      <a href="#boucle">La boucle</a>
+      <a href="#coutures">Coutures externes</a>
+      <a href="#build">Build &amp; WASM</a>
+    </nav>
+
+    <section id="couches" aria-labelledby="couches-t">
+      <h2 id="couches-t">Les couches</h2>
+      <dl class="doc__dl">
+        <dt>Domaine — <code>cn-core</code></dt>
+        <dd>
+          Modèle et règles purs, sans I/O : état (event-sourced), directeur,
+          verifier, catalogue de gestes, contrat. C’est l’autorité du modèle de
+          données.
+        </dd>
+        <dt>Adaptateurs</dt>
+        <dd>
+          <code>cn-wasm</code> (port JS), l’orchestration TypeScript, les pages
+          Astro. Ils n’inventent aucune donnée : ils consomment ce que le domaine
+          publie.
+        </dd>
+      </dl>
+    </section>
+
+    <section id="contrat" aria-labelledby="contrat-t">
+      <h2 id="contrat-t">Le schéma publié (« dpc »)</h2>
+      <p>
+        Émis depuis le domaine et <strong>versionné</strong> (build et déploiement
+        sans toolchain Rust), sous trois formes :
+      </p>
+      <ul>
+        <li>
+          <strong>types compile-time</strong> → <code>generated/*.ts</code> (ts-rs) :
+          plus aucun miroir TS écrit à la main ;
+        </li>
+        <li>
+          <strong>contrat runtime</strong> agnostique (façon <code>template.json</code>
+          de FoundryVTT) → <code>generated/contract.json</code> : les « possibles »
+          (catalogue de gestes, domaines d’enums, bornes, version) que tout
+          consommateur lit pour se data-driver ;
+        </li>
+        <li>
+          <strong>JSON Schema</strong> de validation (schemars) →
+          <code>generated/schema.json</code> : la « dpc » contre laquelle tout
+          consommateur non-Rust valide. Les types internes porteurs de canon n’y
+          figurent pas — le mur tient jusque dans le schéma.
+        </li>
+      </ul>
+    </section>
+
+    <section id="murs" aria-labelledby="murs-t">
+      <h2 id="murs-t">Les deux murs</h2>
+      <div class="doc__cards">
+        <div class="doc__card">
+          <h3>Mur d’entrée — le paquet</h3>
+          <p>
+            <code>packet.rs</code> est le contrat CN ↔ narrateur. Seul le
+            <strong>paquet canon-free</strong> franchit la frontière vers le
+            narrateur ; le canon (le secret) ne quitte jamais le moteur. Le mur est
+            <strong>structurel</strong> (aucun champ canon, champs surnuméraires
+            rejetés), pas sémantique — la fuite de sens est coupée par le verifier.
+          </p>
+        </div>
+        <div class="doc__card">
+          <h3>Mur de sortie — la membrane</h3>
+          <p>
+            <code>Engine::export</code> décide ce qui sort <em>après</em> le jeu.
+            Un secret resté caché exige une décision éditeur : <em>révéler</em>
+            (seule la formulation de l’éditeur sort) ou <em>retirer</em> (rien ne
+            sort). L’export refuse tant qu’un secret est indécis.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="boucle" aria-labelledby="boucle-t">
+      <h2 id="boucle-t">La boucle</h2>
+      <pre class="doc__api"><code>Engine::restore(snapshot?) -&gt; Engine
+engine.prepare(action)     -&gt; Prepared &#123; packet, n &#125;   // directeur → paquet canon-free
+engine.resolve(candidates) -&gt; Outcome                  // verifier → Commit | ResampleNeeded
+engine.snapshot()          -&gt; bytes</code></pre>
+      <p>
+        Le verifier écarte le candidat qui fuiterait le secret ou contredirait le
+        canon. Un tour « tous invalides » déclenche un <strong>resample
+        invisible</strong> avant le commit — la couture reste propre côté joueur.
+      </p>
+    </section>
+
+    <section id="coutures" aria-labelledby="coutures-t">
+      <h2 id="coutures-t">Coutures externes</h2>
+      <p>
+        Résolues par <code>runtime-config.ts</code> : sans configuration, on retombe
+        sur des stubs (démo) ; avec configuration, sur des implémentations HTTP —
+        aucun changement de code. Le token (portefeuille) n’est jamais en build : il
+        vit en <code>localStorage</code>.
+      </p>
+      <ul>
+        <li>Hub <code>/narrate</code> — <code>StubNarrator</code> → <code>HttpNarrator</code></li>
+        <li>Publication — <code>DownloadPublisher</code> → <code>HttpPublisher</code></li>
+      </ul>
+    </section>
+
+    <section id="build" aria-labelledby="build-t">
+      <h2 id="build-t">Build &amp; WASM</h2>
+      <p>
+        Le <code>pkg/</code> WASM (glue JS + <code>.wasm</code>) et les
+        <code>generated/</code> sont <strong>versionnés</strong> : builder ou
+        déployer le site n’exige aucune toolchain Rust. On ne les régénère que
+        lorsque le code Rust change.
+      </p>
+      <pre class="doc__api"><code>pnpm gen:types    # réécrit generated/ depuis les types Rust (ts-rs)
+pnpm test:engine  # cargo test du crate
+pnpm build:engine # tests + (re)build wasm → src/scripts/narrative/pkg/</code></pre>
+    </section>
+
+    <footer class="doc__footer">
+      <p>
+        Référence complète (challenge de <code>packet.rs</code>, membrane d’export,
+        régénération du <code>pkg/</code>) :
+        <a href={ENGINE_README} target="_blank" rel="noopener noreferrer">
+          engine/README.md sur le dépôt ↗
+        </a>
+      </p>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .doc {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+  .doc__header {
+    margin-bottom: var(--space-4);
+  }
+  .doc__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.8rem;
+    color: var(--color-semantic-accent-strong);
+    margin: 0 0 var(--space-2);
+  }
+  .doc__header h1 {
+    margin: 0 0 var(--space-3);
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+  }
+  .doc__intro {
+    color: var(--color-semantic-text-muted);
+    font-size: 1.05rem;
+  }
+  .doc__toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    background: var(--color-semantic-surface);
+    margin-bottom: var(--space-5);
+    font-size: 0.9rem;
+  }
+  .doc section {
+    margin-bottom: var(--space-5);
+    scroll-margin-top: var(--space-4);
+  }
+  .doc h2 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid var(--color-semantic-border);
+    padding-bottom: var(--space-2);
+  }
+  .doc__dl dt {
+    font-weight: 700;
+    margin-top: var(--space-3);
+  }
+  .doc__dl dd {
+    margin: var(--space-1) 0 0;
+    color: var(--color-semantic-text-muted);
+  }
+  .doc__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-3);
+  }
+  .doc__card {
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .doc__card h3 {
+    margin: 0 0 var(--space-2);
+    color: var(--color-semantic-accent-strong);
+    font-size: 1.05rem;
+  }
+  .doc__card p {
+    margin: 0;
+    color: var(--color-semantic-text-muted);
+    font-size: 0.95rem;
+  }
+  .doc code {
+    color: var(--color-semantic-accent-strong);
+    font-size: 0.9em;
+  }
+  .doc__api {
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .doc__api code {
+    color: var(--color-semantic-text);
+  }
+  .doc__footer {
+    border-top: 1px solid var(--color-semantic-border);
+    padding-top: var(--space-3);
+    color: var(--color-semantic-text-muted);
+    font-size: 0.95rem;
+  }
+</style>

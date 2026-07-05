@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Conditions générales d'utilisation — Choix narratifs"
+  description="Conditions générales d'utilisation du site Choix narratifs."
+>
+  <article class="legal">
+    <h1>Conditions générales d'utilisation</h1>
+
+    <p class="legal__note">
+      Texte provisoire — à affiner. Cette page existe pour poser la structure ;
+      le contenu définitif sera précisé ultérieurement.
+    </p>
+
+    <section>
+      <h2>Objet</h2>
+      <p>
+        Les présentes conditions régissent l'utilisation du site Choix narratifs.
+        En y accédant, l'utilisateur accepte de s'y conformer.
+      </p>
+    </section>
+
+    <section>
+      <h2>Accès au service</h2>
+      <p>
+        Le site est accessible gratuitement. L'éditeur ne garantit pas une
+        disponibilité ininterrompue et peut en modifier le contenu à tout moment.
+      </p>
+    </section>
+
+    <section>
+      <h2>Responsabilité</h2>
+      <p>À compléter (limites de responsabilité, usage des contenus).</p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>
+        Pour toute question :
+        <a href="https://fxguillois.fr" target="_blank" rel="noopener noreferrer">fxguillois.fr</a>
+      </p>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .legal {
+    max-width: 44rem;
+    margin: 0 auto;
+  }
+  .legal h1 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    margin: 0 0 var(--space-3);
+  }
+  .legal__note {
+    color: var(--color-semantic-text-muted);
+    font-style: italic;
+    border-left: 3px solid var(--color-semantic-border);
+    padding-left: var(--space-3);
+  }
+  .legal section {
+    margin-top: var(--space-5);
+  }
+  .legal h2 {
+    font-size: 1.25rem;
+    margin: 0 0 var(--space-2);
+  }
+</style>

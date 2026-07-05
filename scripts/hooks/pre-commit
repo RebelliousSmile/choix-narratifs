@@ -1,0 +1,25 @@
+#!/bin/sh
+# Design-system lint — gate pre-commit.
+# Abort commit if any staged .astro/.html file violates the frozen contract
+# (design/tokens.json + design/components.json).
+#
+# Arm this hook once per clone:
+#   git config core.hooksPath scripts/hooks
+# (also wired via package.json "postinstall").
+
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(astro|html)$')
+
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+echo "[design lint] checking staged .astro/.html files..."
+FAIL=0
+for f in $CHANGED; do
+  node design/lint/lint-core.mjs "$f" design || FAIL=1
+done
+
+if [ "$FAIL" = "1" ]; then
+  echo "[design lint] FAIL — fix design-system violations before committing (see design/design-system.md)."
+  exit 1
+fi

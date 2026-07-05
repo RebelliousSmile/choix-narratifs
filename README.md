@@ -1,9 +1,13 @@
-# Choix narratifs & JdR narratifs
+# Choix narratifs — moteur narratif
 
-Site statique d'outils interactifs pour le jeu de rôle narratif (joueurs solo et
-meneurs de jeu), en français. Stack : **Astro 5** + **TypeScript** (sortie 100 %
-statique), tests avec **vitest**. Le **moteur narratif** ajoute un cœur **Rust →
-WASM** (déterministe) embarqué dans le site.
+Site statique, en français, centré sur un **moteur narratif** : un cœur **Rust →
+WASM** déterministe et agnostique du système de jeu, embarqué dans le site et
+donné comme **source de vérité** des données. Stack : **Astro 5** + **TypeScript**
+(sortie 100 % statique), tests avec **vitest**.
+
+Le site présente le **concept**, la **documentation** du moteur, quelques
+**articles**, et son **usage** (élaboration → jeu → compte-rendu). Code source :
+<https://github.com/RebelliousSmile/choix-narratifs>.
 
 ## Prérequis
 
@@ -36,12 +40,14 @@ Rust manque, et garde le `pkg/` versionné). Drapeaux : `ENGINE_STRICT=1` (gate)
 
 ## Le moteur narratif
 
-Un produit **à part** des outils v1 (cartes, plan de classe, sélecteurs de
-mues/playbooks, parallaxe, Jauges & Tarot). Cœur Rust pur (`cn-core`) compilé en
-WASM, orchestré côté client, avec deux frontières « murs » qui protègent le canon.
+Cœur Rust pur (`cn-core`) compilé en WASM, orchestré côté client, avec deux
+frontières « murs » qui protègent le canon. C'est le produit du site.
 
 | Page | Rôle |
 | --- | --- |
+| `/` | le **concept** (landing) |
+| `/documentation` | l'**architecture** du moteur, rendue sur le site |
+| `/articles` | notes et articles (collection de contenu Astro) |
 | `/elaboration` | composer une scène (bucket de modules **ou** formulaire), jouer/préparer |
 | `/moteur-narratif` | jouer la scène (boucle prepare → narrate → resolve), trace dev |
 | `/compte-rendu` | clore : résoudre les secrets (membrane), exporter le récit |

@@ -31,11 +31,11 @@ const { title, description, href, badge } = Astro.props;
     gap: var(--space-2);
     height: 100%;
     padding: var(--space-4);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
     border-radius: var(--radius-md);
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-semantic-text);
     transition:
       border-color 0.15s ease,
       transform 0.15s ease,
@@ -43,8 +43,8 @@ const { title, description, href, badge } = Astro.props;
   }
 
   .card__link:hover {
-    border-color: var(--color-accent);
-    background: var(--color-surface-alt);
+    border-color: var(--color-semantic-accent);
+    background: var(--color-semantic-surface-raised);
     transform: translateY(-2px);
   }
 
@@ -66,19 +66,19 @@ const { title, description, href, badge } = Astro.props;
     font-weight: 600;
     padding: 0.1rem 0.5rem;
     border-radius: 999px;
-    background: var(--color-accent);
+    background: var(--color-semantic-accent);
     color: #fff;
   }
 
   .card__desc {
     margin: 0;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-size: 0.95rem;
   }
 
   .card__cta {
     margin-top: auto;
-    color: var(--color-accent-strong);
+    color: var(--color-semantic-accent-strong);
     font-weight: 600;
     font-size: 0.9rem;
   }

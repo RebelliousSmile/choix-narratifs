@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diffuse — app-shell (registre applicatif)</title>
+  <link rel="stylesheet" href="../adapters/tokens.css">
+  <style>
+    /* ================================================================
+       Wireframe baseline — registre APPLICATIF (« on opère en linéale »).
+       N'utilise que les classes du manifeste + les tokens de l'adapter.
+       Les classes utilitaires de démo sont préfixées wf- (hors manifeste).
+       ================================================================ */
+    :root { color-scheme: dark; }
+    * , *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--color-semantic-background);
+      color: var(--color-semantic-text);
+      font-family: var(--font-family-sans);
+      font-size: var(--font-size-base);
+      line-height: var(--font-line-height-base);
+    }
+    :focus-visible { outline: var(--border-width-thick) solid var(--color-semantic-focus); outline-offset: 2px; }
+
+    /* ---- icon (Lucide outline inline) ---- */
+    .icon { width: var(--icon-size-md); height: var(--icon-size-md); display: inline-block; vertical-align: middle;
+      stroke: currentColor; stroke-width: var(--icon-stroke-default); fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .icon--sm { width: var(--icon-size-sm); height: var(--icon-size-sm); }
+    .icon--lg { width: var(--icon-size-lg); height: var(--icon-size-lg); }
+
+    /* ---- app-shell : grille du poste de travail ---- */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 15rem 1fr 18rem;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        "toolbar   toolbar   toolbar"
+        "sidebar   workspace rail"
+        "statusbar statusbar statusbar";
+      min-height: 100vh;
+    }
+    .app-shell__toolbar   { grid-area: toolbar; }
+    .app-shell__sidebar   { grid-area: sidebar; background: var(--color-semantic-surface);
+      border-right: var(--border-width-default) solid var(--color-semantic-border); padding: var(--space-3); }
+    .app-shell__workspace { grid-area: workspace; padding: var(--space-4); overflow: auto;
+      max-width: var(--size-container-wide); width: 100%; }
+    .app-shell__rail      { grid-area: rail; background: var(--color-semantic-surface);
+      border-left: var(--border-width-default) solid var(--color-semantic-border); padding: var(--space-3); }
+    .app-shell__statusbar { grid-area: statusbar; background: var(--color-semantic-surface-sunken);
+      border-top: var(--border-width-default) solid var(--color-semantic-border);
+      padding: var(--space-2) var(--space-3); display: flex; align-items: center; gap: var(--space-3);
+      font-family: var(--font-family-mono); font-size: var(--font-size-xs); color: var(--color-semantic-text-muted); }
+
+    /* ---- toolbar ---- */
+    .toolbar { display: flex; align-items: center; gap: var(--space-3);
+      background: var(--color-semantic-surface);
+      border-bottom: var(--border-width-default) solid var(--color-semantic-border);
+      padding: var(--space-2) var(--space-3); }
+    .toolbar__group { display: flex; align-items: center; gap: var(--space-2); }
+    .toolbar__title { font-weight: var(--font-weight-semibold); font-size: var(--font-size-sm);
+      letter-spacing: var(--font-letter-spacing-eyebrow); text-transform: uppercase; color: var(--color-semantic-text-muted); }
+    .toolbar__actions { margin-inline-start: auto; display: flex; align-items: center; gap: var(--space-2); }
+
+    /* ---- panel (plat : bordure + surface, pas d'ombre) ---- */
+    .panel { background: var(--color-semantic-surface);
+      border: var(--border-width-default) solid var(--color-semantic-border);
+      border-radius: var(--radius-md); margin-bottom: var(--space-4); }
+    .panel--raised { background: var(--color-semantic-surface-raised); }
+    .panel--sunken { background: var(--color-semantic-surface-sunken); }
+    .panel__header { display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-3); border-bottom: var(--border-width-default) solid var(--color-semantic-border); }
+    .panel__title { margin: 0; font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); }
+    .panel__body { padding: var(--space-3); }
+    .panel__footer { padding: var(--space-3); border-top: var(--border-width-default) solid var(--color-semantic-border);
+      display: flex; justify-content: flex-end; gap: var(--space-2); }
+
+    /* ---- tabs ---- */
+    .tabs__list { display: flex; gap: var(--space-1); border-bottom: var(--border-width-default) solid var(--color-semantic-border); }
+    .tabs__tab { appearance: none; background: none; border: none; color: var(--color-semantic-text-muted);
+      font: inherit; padding: var(--space-2) var(--space-3); cursor: pointer;
+      border-bottom: var(--border-width-thick) solid transparent; }
+    .tabs__tab[aria-selected="true"] { color: var(--color-semantic-text); border-bottom-color: var(--color-semantic-accent); }
+    .tabs__panel { padding-block: var(--space-3); }
+
+    /* ---- field / input ---- */
+    .field { display: block; margin-bottom: var(--space-3); }
+    .field__label { display: block; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+      margin-bottom: var(--space-1); }
+    .field__hint { font-size: var(--font-size-xs); color: var(--color-semantic-text-muted); margin-top: var(--space-1); }
+    .field__error { font-size: var(--font-size-xs); color: var(--color-semantic-danger); margin-top: var(--space-1); }
+    .input { width: 100%; min-height: var(--size-touch-min); font: inherit; color: var(--color-semantic-text);
+      background: var(--color-semantic-surface-sunken);
+      border: var(--border-width-default) solid var(--color-semantic-border); border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3); }
+    .input:focus-visible { border-color: var(--color-semantic-accent); }
+    .input--sm { min-height: auto; padding: var(--space-1) var(--space-2); font-size: var(--font-size-sm); }
+    .input--lg { font-size: var(--font-size-md); }
+    .field--invalid .input { border-color: var(--color-semantic-danger); }
+
+    /* ---- badge ---- */
+    .badge { display: inline-flex; align-items: center; gap: var(--space-1);
+      font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+      padding: var(--space-1) var(--space-2); border-radius: var(--radius-full);
+      background: var(--color-semantic-surface-raised); color: var(--color-semantic-text-muted);
+      border: var(--border-width-default) solid var(--color-semantic-border); }
+    .badge--accent  { color: var(--color-semantic-accent-strong); }
+    .badge--danger  { color: var(--color-semantic-danger); }
+    .badge--success { color: var(--color-semantic-success); }
+    .badge--info    { color: var(--color-semantic-info); }
+    .badge--neutral { color: var(--color-semantic-text-muted); }
+
+    /* ---- status-dot ---- */
+    .status-dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-full);
+      display: inline-block; background: var(--color-semantic-text-muted); }
+    .status-dot--active { background: var(--color-semantic-success); }
+    .status-dot--idle   { background: var(--color-semantic-warning); }
+    .status-dot--error  { background: var(--color-semantic-danger); }
+
+    /* ---- timeline (event-sourcing, rail) ---- */
+    .timeline { list-style: none; margin: 0; padding: 0; }
+    .timeline__item { position: relative; padding-left: var(--space-4); padding-bottom: var(--space-3);
+      border-left: var(--border-width-default) solid var(--color-semantic-border); }
+    .timeline__item:last-child { border-left-color: transparent; }
+    .timeline__marker { position: absolute; left: calc(var(--space-2) * -0.5); top: 0;
+      width: var(--space-2); height: var(--space-2); border-radius: var(--radius-full);
+      background: var(--color-semantic-accent); }
+    .timeline__body { font-size: var(--font-size-sm); }
+    .timeline__time { display: block; font-family: var(--font-family-mono); font-size: var(--font-size-xs);
+      color: var(--color-semantic-text-muted); }
+
+    /* ---- empty-state ---- */
+    .empty-state { text-align: center; padding: var(--space-6) var(--space-4); color: var(--color-semantic-text-muted); }
+    .empty-state__icon { color: var(--color-semantic-border); margin-bottom: var(--space-3); }
+    .empty-state__title { margin: 0 0 var(--space-2); font-size: var(--font-size-md); color: var(--color-semantic-text); }
+    .empty-state__body { margin: 0 auto var(--space-4); max-width: 24rem; }
+    .empty-state__actions { display: flex; justify-content: center; gap: var(--space-2); }
+
+    /* ---- toast (SEULE ombre du système) ---- */
+    .toast { position: fixed; right: var(--space-4); bottom: var(--space-6); z-index: var(--z-index-toast);
+      display: flex; align-items: flex-start; gap: var(--space-2); max-width: 22rem;
+      background: var(--color-semantic-surface-raised);
+      border: var(--border-width-default) solid var(--color-semantic-border);
+      border-left-width: var(--border-width-thick); border-radius: var(--radius-md);
+      padding: var(--space-3); box-shadow: var(--shadow-overlay); }
+    .toast--success { border-left-color: var(--color-semantic-success); }
+    .toast--danger  { border-left-color: var(--color-semantic-danger); }
+    .toast--info    { border-left-color: var(--color-semantic-info); }
+    .toast__icon { flex: none; }
+    .toast--success .toast__icon { color: var(--color-semantic-success); }
+    .toast__body { font-size: var(--font-size-sm); }
+    .toast__close { appearance: none; background: none; border: none; color: var(--color-semantic-text-muted);
+      cursor: pointer; margin-inline-start: auto; padding: 0; }
+
+    /* ---- btn ---- */
+    .btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--size-touch-min);
+      font: inherit; font-weight: var(--font-weight-medium); cursor: pointer;
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+      border: var(--border-width-default) solid var(--color-semantic-border);
+      background: var(--color-semantic-surface); color: var(--color-semantic-text); }
+    .btn--primary { background: var(--color-semantic-accent); border-color: var(--color-semantic-accent); color: #fff; }
+    .btn--primary:hover { background: var(--color-semantic-accent-strong); border-color: var(--color-semantic-accent-strong); }
+    .btn--secondary { background: var(--color-semantic-surface-raised); }
+    .btn--ghost { background: none; border-color: transparent; color: var(--color-semantic-text-muted); }
+    .btn--danger { background: var(--color-semantic-danger); border-color: var(--color-semantic-danger); color: #fff; }
+    .btn--sm { min-height: auto; padding: var(--space-1) var(--space-2); font-size: var(--font-size-sm); }
+    .btn--lg { font-size: var(--font-size-md); padding: var(--space-3) var(--space-4); }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+    .btn__icon { flex: none; }
+
+    /* ---- démo (hors manifeste) ---- */
+    .wf-side-title { font-size: var(--font-size-xs); letter-spacing: var(--font-letter-spacing-eyebrow);
+      text-transform: uppercase; color: var(--color-semantic-text-muted); margin: 0 0 var(--space-2); }
+    .wf-side-link { display: block; padding: var(--space-2); border-radius: var(--radius-sm);
+      color: var(--color-semantic-text-muted); text-decoration: none; }
+    .wf-side-link[aria-current="page"] { background: var(--color-semantic-surface-raised); color: var(--color-semantic-text); }
+    .wf-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+
+    @media (max-width: 1024px) { /* --breakpoint-lg : l'app s'empile sous lg */
+      .app-shell { grid-template-columns: 1fr; grid-template-areas: "toolbar" "workspace" "rail" "statusbar"; }
+      .app-shell__sidebar { display: none; }
+      .app-shell__rail { border-left: none; border-top: var(--border-width-default) solid var(--color-semantic-border); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ===== TOOLBAR ===== -->
+    <header class="app-shell__toolbar">
+      <div class="toolbar" role="toolbar" aria-label="Actions de la session">
+        <div class="toolbar__group">
+          <span class="toolbar__title">Moteur · Élaboration</span>
+          <span class="badge badge--info">brouillon</span>
+        </div>
+        <div class="toolbar__actions">
+          <button type="button" class="btn btn--ghost btn--sm">
+            <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            <span class="btn__label">Vue</span>
+          </button>
+          <button type="button" class="btn btn--primary btn--sm">
+            <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 9-14 9V3z"/></svg>
+            <span class="btn__label">Jouer</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="app-shell__sidebar" aria-label="Navigation de l'application">
+      <p class="wf-side-title">Pipeline</p>
+      <a class="wf-side-link" aria-current="page" href="#">Élaboration</a>
+      <a class="wf-side-link" href="#">Jeu</a>
+      <a class="wf-side-link" href="#">Compte-rendu</a>
+    </nav>
+
+    <!-- ===== WORKSPACE ===== -->
+    <main class="app-shell__workspace">
+
+      <div class="panel panel--raised" role="region" aria-label="Personnage non-joueur">
+        <div class="panel__header">
+          <h2 class="panel__title">Personnage — le secret</h2>
+          <span class="badge badge--accent">agnostique du jeu</span>
+        </div>
+        <div class="tabs">
+          <div class="tabs__list" role="tablist">
+            <button class="tabs__tab" role="tab" aria-selected="true" type="button">Façade</button>
+            <button class="tabs__tab" role="tab" aria-selected="false" type="button">Mur (secret)</button>
+          </div>
+          <div class="tabs__panel" role="tabpanel">
+            <div class="field">
+              <label class="field__label" for="wf-nom">Nom en scène</label>
+              <input class="input" id="wf-nom" type="text" value="La voisine du dessus">
+              <p class="field__hint">Ce que le narrateur voit franchir le mur.</p>
+            </div>
+            <div class="field field--invalid">
+              <label class="field__label" for="wf-mot">Geste dominant</label>
+              <input class="input" id="wf-mot" type="text" value="" aria-invalid="true">
+              <p class="field__error">Choisir un geste du catalogue (se_fermer, dévier, temporiser…).</p>
+            </div>
+          </div>
+        </div>
+        <div class="panel__footer">
+          <button type="button" class="btn btn--ghost">Réinitialiser</button>
+          <button type="button" class="btn btn--primary">
+            <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span class="btn__label">Valider</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel panel--sunken" role="region" aria-label="Aperçu du paquet">
+        <div class="panel__body">
+          <div class="empty-state">
+            <svg class="icon icon--lg empty-state__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+            <h3 class="empty-state__title">Aucun paquet exporté</h3>
+            <p class="empty-state__body">Le secret ne franchit jamais le mur. Lancez une scène pour produire un paquet sans canon.</p>
+            <div class="empty-state__actions">
+              <button type="button" class="btn btn--secondary">Documentation</button>
+              <button type="button" class="btn btn--primary">Lancer une scène</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ===== RAIL (timeline event-sourcing) ===== -->
+    <aside class="app-shell__rail" aria-label="Fil des événements">
+      <p class="wf-side-title">Événements</p>
+      <ol class="timeline">
+        <li class="timeline__item">
+          <span class="timeline__marker"></span>
+          <div class="timeline__body">
+            Session créée
+            <span class="timeline__time">evt#001 · 00:00:00</span>
+          </div>
+        </li>
+        <li class="timeline__item">
+          <span class="timeline__marker"></span>
+          <div class="timeline__body">
+            Personnage ajouté
+            <span class="timeline__time">evt#002 · 00:00:12</span>
+          </div>
+        </li>
+        <li class="timeline__item">
+          <span class="timeline__marker"></span>
+          <div class="timeline__body">
+            Geste dominant manquant
+            <span class="timeline__time">evt#003 · 00:00:20</span>
+          </div>
+        </li>
+      </ol>
+    </aside>
+
+    <!-- ===== STATUSBAR ===== -->
+    <footer class="app-shell__statusbar">
+      <span class="wf-row"><span class="status-dot status-dot--active"></span> moteur prêt</span>
+      <span class="wf-row"><span class="status-dot status-dot--idle"></span> 1 validation en attente</span>
+      <span style="margin-inline-start:auto">seed 0x8F3A21 · déterministe</span>
+    </footer>
+
+  </div>
+
+  <!-- ===== TOAST (couche flottante) ===== -->
+  <div class="toast toast--success" role="status">
+    <svg class="icon icon--sm toast__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+    <p class="toast__body">Personnage enregistré — le secret reste côté moteur.</p>
+    <button type="button" class="toast__close" aria-label="Fermer">
+      <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+</body>
+</html>

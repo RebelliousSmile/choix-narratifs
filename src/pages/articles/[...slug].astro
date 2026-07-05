@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles', ({ data }) => !data.draft);
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: { article },
+  }));
+}
+
+type Props = { article: CollectionEntry<'articles'> };
+
+const { article } = Astro.props as Props;
+const { Content } = await render(article);
+
+const dateFmt = new Intl.DateTimeFormat('fr-FR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={`${article.data.title} — Articles`} description={article.data.description}>
+  <article class="post">
+    <header class="post__header">
+      <a class="post__back" href="/articles">← Tous les articles</a>
+      <h1>{article.data.title}</h1>
+      <time datetime={article.data.pubDate.toISOString()}>
+        {dateFmt.format(article.data.pubDate)}
+      </time>
+    </header>
+
+    <div class="post__body">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    max-width: 44rem;
+    margin: 0 auto;
+  }
+  .post__back {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    font-size: 0.9rem;
+    color: var(--color-semantic-text-muted);
+  }
+  .post__header h1 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+  }
+  .post__header time {
+    color: var(--color-semantic-text-muted);
+    font-size: 0.9rem;
+  }
+  .post__body {
+    margin-top: var(--space-5);
+    line-height: 1.7;
+  }
+  .post__body :global(h2) {
+    margin-top: var(--space-5);
+  }
+  .post__body :global(pre) {
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    overflow-x: auto;
+  }
+</style>

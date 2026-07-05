@@ -1,6 +1,6 @@
 ---
 // Island du moteur narratif.
-// Pattern : <script> Astro (module ES bundlé par Vite) — pas de client:only.
+// Pattern : bloc script Astro (module ES bundlé par Vite) — pas de client:only.
 // Le WASM est chargé de façon asynchrone par init() ; l'UI gère l'état de chargement.
 ---
 
@@ -72,7 +72,7 @@
 
 <style>
   .mn {
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-semantic-border);
     border-radius: 0.5rem;
     overflow: hidden;
   }
@@ -83,7 +83,7 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-4);
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     min-height: 6rem;
   }
   /* `[hidden]` (UA : display:none) est sinon battu par `.mn-state { display:flex }`,
@@ -94,13 +94,13 @@
   .mn-state--error {
     flex-direction: column;
     align-items: flex-start;
-    color: var(--color-text);
+    color: var(--color-semantic-text);
   }
   .mn-state__spinner {
     width: 1rem;
     height: 1rem;
-    border: 2px solid var(--color-border);
-    border-top-color: var(--color-accent);
+    border: 2px solid var(--color-semantic-border);
+    border-top-color: var(--color-semantic-accent);
     border-radius: 50%;
     animation: mn-spin 0.8s linear infinite;
   }
@@ -111,17 +111,17 @@
   /* ── Scène ──────────────────────────────────────────────────────────────── */
   .mn-scene {
     padding: var(--space-3) var(--space-4);
-    background: var(--color-surface-alt);
-    border-bottom: 1px solid var(--color-border);
+    background: var(--color-semantic-surface-raised);
+    border-bottom: 1px solid var(--color-semantic-border);
   }
   .mn-scene__lieu {
     font-weight: 600;
     font-size: 0.95rem;
-    color: var(--color-text);
+    color: var(--color-semantic-text);
   }
   .mn-scene__ambiance {
     font-size: 0.875rem;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     margin-top: 0.2rem;
   }
 
@@ -134,26 +134,26 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    background: var(--color-surface);
+    background: var(--color-semantic-surface);
   }
   .mn-log__intro {
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-style: italic;
     font-size: 0.9rem;
   }
   .mn-log :global(.mn-log__action) {
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-size: 0.875rem;
     padding-left: var(--space-2);
-    border-left: 2px solid var(--color-border);
+    border-left: 2px solid var(--color-semantic-border);
   }
   .mn-log :global(.mn-log__response) {
-    color: var(--color-text);
+    color: var(--color-semantic-text);
     font-size: 0.95rem;
     line-height: 1.6;
   }
   .mn-log :global(.mn-log__system) {
-    color: var(--color-accent);
+    color: var(--color-semantic-accent);
     font-size: 0.85rem;
     font-style: italic;
   }
@@ -164,19 +164,19 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    border-top: 1px solid var(--color-semantic-border);
+    background: var(--color-semantic-surface);
   }
   .mn-form__label {
     font-size: 0.85rem;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
   }
   .mn-form__input {
-    background: var(--color-surface-alt);
-    border: 1px solid var(--color-border);
+    background: var(--color-semantic-surface-raised);
+    border: 1px solid var(--color-semantic-border);
     border-radius: 0.25rem;
-    color: var(--color-text);
-    font-family: var(--font-base);
+    color: var(--color-semantic-text);
+    font-family: var(--font-family-sans);
     font-size: 0.95rem;
     padding: var(--space-2) var(--space-3);
     resize: vertical;
@@ -184,7 +184,7 @@
     box-sizing: border-box;
   }
   .mn-form__input:focus {
-    outline: 2px solid var(--color-focus);
+    outline: 2px solid var(--color-semantic-focus);
     outline-offset: 1px;
   }
   .mn-form__input:disabled {
@@ -195,20 +195,20 @@
   /* ── Boutons ───────────────────────────────────────────────────────────── */
   .mn-btn {
     cursor: pointer;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-semantic-border);
     border-radius: 0.25rem;
-    background: var(--color-surface-alt);
-    color: var(--color-text);
-    font-family: var(--font-base);
+    background: var(--color-semantic-surface-raised);
+    color: var(--color-semantic-text);
+    font-family: var(--font-family-sans);
     font-size: 0.875rem;
     padding: var(--space-1) var(--space-3);
     transition: border-color 0.15s;
   }
   .mn-btn:hover {
-    border-color: var(--color-accent);
+    border-color: var(--color-semantic-accent);
   }
   .mn-btn:focus {
-    outline: 2px solid var(--color-focus);
+    outline: 2px solid var(--color-semantic-focus);
     outline-offset: 1px;
   }
   .mn-btn:disabled {
@@ -216,36 +216,36 @@
     cursor: not-allowed;
   }
   .mn-btn--primary {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
+    background: var(--color-semantic-accent);
+    border-color: var(--color-semantic-accent);
     color: #fff;
     font-weight: 600;
     align-self: flex-end;
   }
   .mn-btn--primary:hover {
-    background: var(--color-accent-strong);
-    border-color: var(--color-accent-strong);
+    background: var(--color-semantic-accent-strong);
+    border-color: var(--color-semantic-accent-strong);
   }
   .mn-btn--ghost {
     background: transparent;
     border-color: transparent;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-size: 0.8rem;
   }
   .mn-btn--ghost:hover {
-    color: var(--color-text);
-    border-color: var(--color-border);
+    color: var(--color-semantic-text);
+    border-color: var(--color-semantic-border);
   }
 
   /* ── Savoir ────────────────────────────────────────────────────────────── */
   .mn-savoir {
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    border-top: 1px solid var(--color-semantic-border);
+    background: var(--color-semantic-surface);
   }
   .mn-savoir__summary {
     padding: var(--space-2) var(--space-4);
     font-size: 0.85rem;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     cursor: pointer;
     user-select: none;
   }
@@ -260,10 +260,10 @@
   }
   .mn-savoir__list li::before {
     content: '— ';
-    color: var(--color-accent);
+    color: var(--color-semantic-accent);
   }
   .mn-savoir__empty {
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-style: italic;
   }
   .mn-savoir__empty::before {
@@ -276,8 +276,8 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-2) var(--space-4);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface-alt);
+    border-top: 1px solid var(--color-semantic-border);
+    background: var(--color-semantic-surface-raised);
   }
   .mn-export {
     text-decoration: none;
@@ -286,35 +286,35 @@
 
   /* ── Trace dev ─────────────────────────────────────────────────────────── */
   .mn-trace {
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    border-top: 1px solid var(--color-semantic-border);
+    background: var(--color-semantic-surface);
   }
   .mn-trace__body {
     padding: 0 var(--space-4) var(--space-3);
     font-size: 0.8rem;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
   }
   .mn-trace__tour {
-    border-left: 2px solid var(--color-border);
+    border-left: 2px solid var(--color-semantic-border);
     padding-left: var(--space-3);
     margin-bottom: var(--space-3);
   }
   .mn-trace__tour-titre {
-    color: var(--color-text);
+    color: var(--color-semantic-text);
     font-weight: 600;
     margin-bottom: 0.2rem;
   }
   .mn-trace__verdict { font-family: ui-monospace, monospace; }
-  .mn-trace__ok { color: var(--color-accent-strong); }
+  .mn-trace__ok { color: var(--color-semantic-accent-strong); }
   .mn-trace__ko { color: #ff9a9a; }
   .mn-persist {
     font-size: 0.75rem;
-    color: var(--color-accent);
+    color: var(--color-semantic-accent);
   }
   .mn-mode {
     margin-left: auto;
     font-size: 0.75rem;
-    color: var(--color-text-muted);
+    color: var(--color-semantic-text-muted);
     font-style: italic;
   }
 </style>

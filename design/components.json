@@ -1,0 +1,133 @@
+{
+  "$schema": "design/references/manifest-schema#",
+  "$version": "1.1.0",
+  "components": {
+    "site-header": {
+      "base": "site-header",
+      "elements": { "inner": "site-header__inner", "brand": "brand" },
+      "backgrounds": ["color.semantic.surface"],
+      "a11y": { "role": "banner", "requires": [] }
+    },
+    "site-nav": {
+      "base": "site-nav",
+      "elements": { "external": "site-nav__external" },
+      "a11y": { "role": "navigation", "requires": ["aria-label"] }
+    },
+    "site-footer": {
+      "base": "site-footer",
+      "elements": { "inner": "site-footer__inner", "copy": "site-footer__copy", "legal": "site-footer__legal" },
+      "backgrounds": ["color.semantic.surface"],
+      "a11y": { "role": "contentinfo", "requires": [] }
+    },
+    "skip-link": {
+      "base": "skip-link",
+      "backgrounds": ["color.brand.primary"]
+    },
+    "hero": {
+      "base": "hero",
+      "elements": { "eyebrow": "hero__eyebrow", "headline": "hero__headline", "pitch": "hero__pitch", "body": "hero__body", "cta": "hero__cta" },
+      "backgrounds": ["color.semantic.background"],
+      "a11y": { "role": "region", "requires": ["aria-label"] }
+    },
+    "btn": {
+      "base": "btn",
+      "elements": { "icon": "btn__icon", "label": "btn__label" },
+      "modifiers": {
+        "primary": "btn--primary",
+        "secondary": "btn--secondary",
+        "ghost": "btn--ghost",
+        "danger": "btn--danger",
+        "sm": "btn--sm",
+        "lg": "btn--lg"
+      },
+      "backgrounds": ["color.semantic.background", "color.semantic.surface", "color.brand.primary"],
+      "a11y": { "role": "button", "requires": [] }
+    },
+    "card": {
+      "base": "card",
+      "elements": { "media": "card__media", "header": "card__header", "title": "card__title", "badge": "card__badge", "desc": "card__desc", "body": "card__body", "actions": "card__actions", "link": "card__link", "cta": "card__cta" },
+      "backgrounds": ["color.semantic.surface"],
+      "a11y": { "role": "article", "requires": [] }
+    },
+    "post": {
+      "base": "post",
+      "elements": { "header": "post__header", "back": "post__back", "title": "post__title", "time": "post__time", "body": "post__body" }
+    },
+    "legal": {
+      "base": "legal",
+      "elements": { "note": "legal__note" }
+    },
+    "wall": {
+      "base": "wall",
+      "elements": { "grid": "wall__grid", "panel": "wall__panel", "bar": "wall__bar", "flow": "wall__flow", "side": "wall__side", "dir": "wall__dir", "tag": "wall__tag" },
+      "modifiers": { "side-engine": "wall__side--engine", "side-ai": "wall__side--ai", "dir-loop": "wall__dir--loop" },
+      "backgrounds": ["color.semantic.surface"]
+    },
+    "cycle": {
+      "base": "cycle",
+      "elements": { "row": "cycle__row", "step": "cycle__step", "arrow": "cycle__arrow", "n": "cycle__n", "desc": "cycle__desc" }
+    },
+    "app-shell": {
+      "base": "app-shell",
+      "elements": { "sidebar": "app-shell__sidebar", "rail": "app-shell__rail", "toolbar": "app-shell__toolbar", "workspace": "app-shell__workspace", "statusbar": "app-shell__statusbar" },
+      "backgrounds": ["color.semantic.background", "color.semantic.surface"]
+    },
+    "toolbar": {
+      "base": "toolbar",
+      "elements": { "group": "toolbar__group", "title": "toolbar__title", "actions": "toolbar__actions" },
+      "backgrounds": ["color.semantic.surface"],
+      "a11y": { "role": "toolbar", "requires": ["aria-label"] }
+    },
+    "panel": {
+      "base": "panel",
+      "elements": { "header": "panel__header", "title": "panel__title", "body": "panel__body", "footer": "panel__footer" },
+      "modifiers": { "raised": "panel--raised", "sunken": "panel--sunken" },
+      "backgrounds": ["color.semantic.surface", "color.semantic.surface-raised", "color.semantic.surface-sunken"],
+      "a11y": { "role": "region", "requires": ["aria-label"] }
+    },
+    "field": {
+      "base": "field",
+      "elements": { "label": "field__label", "control": "field__control", "hint": "field__hint", "error": "field__error" },
+      "modifiers": { "invalid": "field--invalid" }
+    },
+    "input": {
+      "base": "input",
+      "modifiers": { "sm": "input--sm", "lg": "input--lg" },
+      "backgrounds": ["color.semantic.surface-sunken"]
+    },
+    "tabs": {
+      "base": "tabs",
+      "elements": { "list": "tabs__list", "tab": "tabs__tab", "panel": "tabs__panel" },
+      "a11y": { "role": "tablist", "requires": [] }
+    },
+    "badge": {
+      "base": "badge",
+      "modifiers": { "accent": "badge--accent", "danger": "badge--danger", "success": "badge--success", "info": "badge--info", "neutral": "badge--neutral" },
+      "backgrounds": ["color.semantic.surface", "color.semantic.surface-raised"]
+    },
+    "status-dot": {
+      "base": "status-dot",
+      "modifiers": { "active": "status-dot--active", "idle": "status-dot--idle", "error": "status-dot--error" }
+    },
+    "timeline": {
+      "base": "timeline",
+      "elements": { "item": "timeline__item", "marker": "timeline__marker", "body": "timeline__body", "time": "timeline__time" }
+    },
+    "empty-state": {
+      "base": "empty-state",
+      "elements": { "icon": "empty-state__icon", "title": "empty-state__title", "body": "empty-state__body", "actions": "empty-state__actions" }
+    },
+    "toast": {
+      "base": "toast",
+      "elements": { "icon": "toast__icon", "body": "toast__body", "close": "toast__close" },
+      "modifiers": { "success": "toast--success", "danger": "toast--danger", "info": "toast--info" },
+      "backgrounds": ["color.semantic.surface-raised"],
+      "a11y": { "role": "status", "requires": [] }
+    },
+    "icon": {
+      "base": "icon",
+      "modifiers": { "sm": "icon--sm", "lg": "icon--lg" },
+      "a11y": { "role": "img", "requires": [] }
+    }
+  }
+}

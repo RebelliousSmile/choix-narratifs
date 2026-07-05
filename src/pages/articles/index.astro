@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// Articles publiés (hors brouillons), du plus récent au plus ancien.
+const articles = (await getCollection('articles', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+
+const dateFmt = new Intl.DateTimeFormat('fr-FR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout
+  title="Articles — Choix narratifs"
+  description="Notes et articles autour du moteur narratif : conception, décisions d’architecture, exploration du jeu narratif déterministe."
+>
+  <article class="articles">
+    <header class="articles__header">
+      <p class="articles__eyebrow">Articles</p>
+      <h1>Notes autour du moteur</h1>
+      <p class="articles__intro">
+        Conception, décisions d’architecture et exploration du jeu narratif
+        déterministe.
+      </p>
+    </header>
+
+    {
+      articles.length > 0 ? (
+        <ul class="articles__list">
+          {articles.map((a) => (
+            <li class="articles__item">
+              <a href={`/articles/${a.id}`}>
+                <h2>{a.data.title}</h2>
+                <time datetime={a.data.pubDate.toISOString()}>
+                  {dateFmt.format(a.data.pubDate)}
+                </time>
+                <p>{a.data.description}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="articles__empty">
+          Aucun article pour l’instant. Les premières notes arriveront bientôt.
+        </p>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .articles {
+    max-width: 44rem;
+    margin: 0 auto;
+  }
+  .articles__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.8rem;
+    color: var(--color-semantic-accent-strong);
+    margin: 0 0 var(--space-2);
+  }
+  .articles__header h1 {
+    margin: 0 0 var(--space-3);
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+  }
+  .articles__intro {
+    color: var(--color-semantic-text-muted);
+    font-size: 1.05rem;
+  }
+  .articles__list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .articles__item a {
+    display: block;
+    padding: var(--space-4);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    background: var(--color-semantic-surface);
+    text-decoration: none;
+    color: var(--color-semantic-text);
+  }
+  .articles__item a:hover {
+    background: var(--color-semantic-surface-raised);
+  }
+  .articles__item h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--color-semantic-accent-strong);
+  }
+  .articles__item time {
+    display: block;
+    color: var(--color-semantic-text-muted);
+    font-size: 0.85rem;
+    margin: var(--space-1) 0 var(--space-2);
+  }
+  .articles__item p {
+    margin: 0;
+    color: var(--color-semantic-text-muted);
+  }
+  .articles__empty {
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+    border: 1px dashed var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    color: var(--color-semantic-text-muted);
+    text-align: center;
+  }
+</style>

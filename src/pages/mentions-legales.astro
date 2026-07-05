@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Mentions légales — Choix narratifs"
+  description="Mentions légales du site Choix narratifs."
+>
+  <article class="legal">
+    <h1>Mentions légales</h1>
+
+    <p class="legal__note">
+      Texte provisoire — à affiner. Cette page existe pour poser la structure ;
+      le contenu définitif sera précisé ultérieurement.
+    </p>
+
+    <section>
+      <h2>Éditeur</h2>
+      <p>
+        Ce site est édité par François-Xavier Guillois.<br />
+        Contact : <a href="https://fxguillois.fr" target="_blank" rel="noopener noreferrer">fxguillois.fr</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Hébergement</h2>
+      <p>À compléter (nom et coordonnées de l'hébergeur).</p>
+    </section>
+
+    <section>
+      <h2>Propriété intellectuelle</h2>
+      <p>
+        Sauf mention contraire, les contenus de ce site sont la propriété de
+        leur auteur. Toute reproduction sans autorisation est interdite.
+      </p>
+    </section>
+
+    <section>
+      <h2>Données personnelles</h2>
+      <p>À compléter (traitement des données, cookies, droits d'accès).</p>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .legal {
+    max-width: 44rem;
+    margin: 0 auto;
+  }
+  .legal h1 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    margin: 0 0 var(--space-3);
+  }
+  .legal__note {
+    color: var(--color-semantic-text-muted);
+    font-style: italic;
+    border-left: 3px solid var(--color-semantic-border);
+    padding-left: var(--space-3);
+  }
+  .legal section {
+    margin-top: var(--space-5);
+  }
+  .legal h2 {
+    font-size: 1.25rem;
+    margin: 0 0 var(--space-2);
+  }
+</style>

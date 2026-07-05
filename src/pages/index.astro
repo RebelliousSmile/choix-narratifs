@@ -1,88 +1,491 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Card from '../components/Card.astro';
 
-const title = 'Choix narratifs & JdR narratifs';
+const title = 'Choix narratifs — jouer une scène avec un personnage qui vous cache des choses';
 const pitch =
-  'Une boîte à outils interactifs pour le jeu de rôle narratif, pensée pour les joueuses et joueurs solo comme pour les meneuses et meneurs de jeu.';
+  'Un moteur de jeu narratif. En face de vous, un personnage joué par une IA — mais une IA qui ne connaît pas le secret de la scène, et ne peut donc pas vous le vendre par mégarde. À vous de le faire parler.';
 
-const tools = [
-  {
-    title: 'Sélecteur de mues — Monsterhearts',
-    description: "Quelques questions en entonnoir pour trouver la mue qui colle à votre personnage.",
-    href: '/monsterhearts/selecteur-de-mues',
-    badge: 'Monsterhearts',
-  },
-  {
-    title: 'Sélecteur de playbook — Monster of the Week',
-    description: 'Un questionnaire guidé vers le playbook MotW le plus adapté à votre style.',
-    href: '/monster-of-the-week/selecteur-de-playbooks',
-    badge: 'Monster of the Week',
-  },
-  {
-    title: 'Plan de classe',
-    description: 'Esquisse automatique puis retouche manuelle du plan de classe de vos personnages.',
-    href: '/monsterhearts/plan-de-classe',
-    badge: 'Monsterhearts',
-  },
-  {
-    title: 'Plan de Snake Bay',
-    description: 'Génération et édition de la carte de Snake Bay pour la saison 2.',
-    href: '/monsterhearts/snake-bay',
-    badge: 'Monsterhearts',
-  },
-  {
-    title: 'Création narrative solo',
-    description: 'Oracles, jauges et outils pour structurer et nourrir vos récits en solo.',
-    href: '/solo',
-  },
-  {
-    title: 'Dialogues interactifs',
-    description: 'Outils de conversation et de dialogue pour vos scènes narratives.',
-    href: '/dialogues',
-  },
+const principes = [
+  { titre: 'Déterministe', texte: 'Même situation, mêmes gestes → même issue. Une partie se rejoue et se restaure à l’identique depuis une sauvegarde.' },
+  { titre: 'Agnostique du jeu', texte: 'Les gestes du personnage sont universels. Brancher un jeu de rôle précis, c’est fournir un profil de données — pas modifier le moteur.' },
+  { titre: 'Le moteur décide', texte: 'C’est le cœur (Rust) qui porte la vérité et les règles. L’interface lit ce qu’il publie et s’y conforme, jamais l’inverse.' },
+  { titre: 'Ouvert', texte: 'Le code est public. Le moteur peut servir d’autres interfaces que ce site — c’est un composant, pas une boîte noire.' },
 ];
 ---
 
 <BaseLayout title={title} description={pitch}>
+  <!-- HERO : pousser vers le moteur -->
   <section class="hero">
-    <h1>{title}</h1>
+    <p class="hero__eyebrow">Moteur narratif · open source</p>
+    <h1>Jouez une scène avec un personnage qui vous cache des choses</h1>
     <p class="hero__pitch">{pitch}</p>
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="/elaboration">Essayer le moteur →</a>
+    </div>
   </section>
 
-  <section aria-labelledby="outils-titre">
-    <h2 id="outils-titre">Les outils</h2>
-    <div class="card-grid">
+  <!-- LE PROJET, en clair pour un néophyte -->
+  <section id="le-projet" class="prose" aria-labelledby="projet-titre">
+    <h2 id="projet-titre">Le projet, en clair</h2>
+    <p>
+      <strong>Choix narratifs</strong> est un petit moteur pour <strong>jouer et
+      préparer des scènes narratives</strong> : du jeu de rôle en solo, de la
+      préparation pour une table, ou simplement s’entraîner à mener une
+      conversation qui a des enjeux. Vous menez ; en face, un personnage réagit.
+    </p>
+    <p>
+      Faire jouer un tel personnage par une IA se heurte à un mur — au sens propre,
+      comme on va le voir. Deux problèmes reviennent toujours :
+    </p>
+    <div class="ecueils">
+      <div class="ecueil">
+        <span class="ecueil__num">1</span>
+        <h3>Le secret est dans ses instructions…</h3>
+        <p>…alors l’IA finit par le lâcher, par excès de zèle ou maladresse. Le mystère s’effondre en quelques échanges.</p>
+      </div>
+      <div class="ecueil">
+        <span class="ecueil__num">2</span>
+        <h3>…ou c’est vous qui l’avez écrit</h3>
+        <p>Et alors plus rien ne vous surprend : vous connaissez déjà la fin. Vous jouez une scène dont vous tenez le fil.</p>
+      </div>
+    </div>
+    <p class="prose__punch">
+      Le pari du projet : mettre le secret <em>là où l’IA ne le voit jamais</em>. Un
+      cœur séparé, déterministe, garde la vérité et vérifie chaque réplique avant
+      qu’elle ne s’affiche. L’IA, elle, ne joue que les <em>réactions</em> — à
+      l’aveugle.
+    </p>
+  </section>
+
+  <!-- SCHÉMA 1 : le mur -->
+  <section class="diagram-section" aria-labelledby="mur-titre">
+    <h2 id="mur-titre">L’idée centrale : un mur</h2>
+    <p class="diagram-section__lead">
+      Le moteur et le narrateur (l’IA) sont deux mondes séparés par une frontière
+      qu’aucun secret ne franchit.
+    </p>
+
+    <figure class="diagram wall">
+      <div class="wall__grid">
+        <div class="wall__side wall__side--engine">
+          <span class="wall__tag">Dans le moteur</span>
+          <h3>Le moteur</h3>
+          <ul>
+            <li>Détient le <strong>canon</strong> : les secrets, la vérité de la scène.</li>
+            <li>Un <strong>verifier</strong> voit tout et contrôle chaque réplique.</li>
+          </ul>
+        </div>
+
+        <div class="wall__bar" aria-hidden="true"><span>LE&nbsp;MUR</span></div>
+
+        <div class="wall__side wall__side--ai">
+          <span class="wall__tag">Hors du moteur</span>
+          <h3>Le narrateur (IA)</h3>
+          <ul>
+            <li>Reçoit un <strong>paquet fermé</strong>, décrit sans le secret.</li>
+            <li>Joue les réactions du personnage — <strong>à l’aveugle</strong>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <ol class="wall__flow">
+        <li>
+          <span class="wall__dir" aria-hidden="true">→</span>
+          Le moteur envoie un paquet <em>sans le secret</em>. Seule cette forme fermée traverse le mur.
+        </li>
+        <li>
+          <span class="wall__dir" aria-hidden="true">←</span>
+          L’IA propose plusieurs répliques ; le verifier écarte celles qui trahiraient le secret ou se contrediraient.
+        </li>
+        <li>
+          <span class="wall__dir wall__dir--loop" aria-hidden="true">↺</span>
+          Si toutes trahissent, le moteur relance en silence, puis valide une réplique propre.
+        </li>
+      </ol>
+
+      <figcaption>
+        Le secret ne <strong>peut pas</strong> fuiter : il n’est jamais de l’autre
+        côté du mur. Ce n’est pas une question de confiance dans un prompt, c’est
+        une propriété de l’architecture.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- CE QUE ÇA CHANGE -->
+  <section class="prose" aria-labelledby="experience-titre">
+    <h2 id="experience-titre">Ce que ça change quand vous jouez</h2>
+    <div class="experience">
+      <article class="experience__card">
+        <h3>La méprise est motivée</h3>
+        <p>
+          Le personnage ne fait pas barrage au hasard. Il <strong>se ferme,
+          dévie, temporise, concède ou révèle à demi</strong> — parce qu’il a peur,
+          un intérêt à défendre, un savoir incomplet. Ce sont des gestes de scène
+          universels, joués à propos : un vrai partenaire, pas du bruit.
+        </p>
+      </article>
+      <article class="experience__card">
+        <h3>La surprise est réelle</h3>
+        <p>
+          Vous pouvez jouer une scène que <strong>vous n’avez pas écrite</strong>,
+          et même quand vous l’avez posée, <strong>l’acte de cacher peut vous
+          échapper</strong> (tirage, hasard). La scène vous surprend, vous aussi —
+          il y a quelque chose à découvrir, pas seulement à dérouler.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- SCHÉMA 2 : les trois temps -->
+  <section class="diagram-section" aria-labelledby="temps-titre">
+    <h2 id="temps-titre">Trois temps, chacun autonome</h2>
+    <p class="diagram-section__lead">
+      Élaboration, jeu et clôture forment un cycle — mais on peut n’en prendre
+      qu’un morceau.
+    </p>
+
+    <figure class="diagram cycle">
+      <ol class="cycle__row">
+        <li class="cycle__step">
+          <a href="/elaboration">
+            <span class="cycle__n">1</span>
+            <strong>Élaborer</strong>
+            <span class="cycle__desc">Poser le canon : personnages, secrets, faits que l’on peut révéler. Au formulaire, sans écrire de code.</span>
+          </a>
+        </li>
+        <li class="cycle__arrow" aria-hidden="true">→</li>
+        <li class="cycle__step">
+          <a href="/moteur-narratif">
+            <span class="cycle__n">2</span>
+            <strong>Jouer</strong>
+            <span class="cycle__desc">Dérouler la scène. Le personnage réagit, se méprend, résiste. Vous lisez, vous relancez.</span>
+          </a>
+        </li>
+        <li class="cycle__arrow" aria-hidden="true">→</li>
+        <li class="cycle__step">
+          <a href="/compte-rendu">
+            <span class="cycle__n">3</span>
+            <strong>Clore</strong>
+            <span class="cycle__desc">Résoudre les secrets restés cachés, puis produire un compte-rendu publiable.</span>
+          </a>
+        </li>
+      </ol>
+      <figcaption>
+        Chaque temps tient debout seul : jouer une scène presque sans préparation
+        (s’entraîner à l’improvisation), ou préparer un canon pour une table
+        humaine (le meneur, lui, voit tout) sans jamais jouer en solo.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- PRINCIPES condensés + renvoi doc -->
+  <section class="prose" aria-labelledby="principes-titre">
+    <h2 id="principes-titre">Sous le capot</h2>
+    <div class="principes__grid">
       {
-        tools.map((tool) => (
-          <Card title={tool.title} description={tool.description} href={tool.href} badge={tool.badge} />
+        principes.map((p) => (
+          <article class="principe">
+            <h3>{p.titre}</h3>
+            <p>{p.texte}</p>
+          </article>
         ))
       }
     </div>
+    <p class="prose__more">
+      Le détail de l’architecture — les deux murs, le contrat publié, la boucle
+      complète — est sur la <a href="/documentation">page Documentation</a>.
+    </p>
+  </section>
+
+  <!-- CTA final -->
+  <section class="final-cta" aria-label="Essayer le moteur">
+    <h2>Le mieux, c’est d’essayer</h2>
+    <p>Composez une scène, ou reprenez un module tout prêt, et faites parler le personnage.</p>
+    <a class="btn btn--primary" href="/elaboration">Essayer le moteur →</a>
   </section>
 </BaseLayout>
 
 <style>
+  /* HERO */
   .hero {
-    margin-bottom: var(--space-5);
+    max-width: 46rem;
   }
-
+  .hero__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.8rem;
+    color: var(--color-semantic-accent-strong);
+    margin: 0 0 var(--space-2);
+  }
   .hero h1 {
     margin: 0 0 var(--space-3);
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
   }
-
   .hero__pitch {
-    margin: 0;
-    max-width: 42rem;
-    color: var(--color-text-muted);
+    margin: 0 0 var(--space-4);
+    color: var(--color-semantic-text-muted);
+    font-size: 1.2rem;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .btn {
+    display: inline-block;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-semantic-border);
+    text-decoration: none;
+    color: var(--color-semantic-text);
+    font-weight: 600;
+  }
+  .btn:hover { background: var(--color-semantic-surface-raised); }
+  .btn--primary {
+    background: var(--color-semantic-accent);
+    border-color: var(--color-semantic-accent);
+    color: #fff;
+  }
+  .btn--primary:hover { background: var(--color-semantic-accent-strong); }
+  .btn--ghost { color: var(--color-semantic-text-muted); }
+
+  /* SECTIONS génériques */
+  .prose,
+  .diagram-section {
+    margin-top: var(--space-6);
+    scroll-margin-top: var(--space-4);
+  }
+  .prose { max-width: 46rem; }
+  .prose p { color: var(--color-semantic-text-muted); }
+  .prose p strong,
+  .prose__punch em { color: var(--color-semantic-text); }
+  .prose__punch {
+    border-left: 3px solid var(--color-semantic-accent);
+    padding-left: var(--space-3);
     font-size: 1.1rem;
   }
+  .prose__more { font-size: 0.95rem; }
+  .diagram-section__lead {
+    color: var(--color-semantic-text-muted);
+    font-size: 1.05rem;
+    max-width: 46rem;
+    margin: var(--space-2) 0 var(--space-4);
+  }
 
-  .card-grid {
+  /* Écueils (1 / 2) */
+  .ecueils {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+  .ecueil {
+    position: relative;
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .ecueil__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem; height: 1.6rem;
+    border-radius: 50%;
+    background: var(--color-semantic-surface-raised);
+    color: var(--color-semantic-accent-strong);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: var(--space-2);
+  }
+  .ecueil h3 { margin: 0 0 var(--space-2); font-size: 1rem; }
+  .ecueil p { margin: 0; color: var(--color-semantic-text-muted); font-size: 0.95rem; }
+
+  /* DIAGRAMME : le mur */
+  .diagram {
+    margin: 0;
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .wall__grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .wall__side {
+    background: var(--color-semantic-background);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+  }
+  .wall__side--ai { border-style: dashed; }
+  .wall__tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-semantic-text-muted);
+    margin-bottom: var(--space-1);
+  }
+  .wall__side h3 { margin: 0 0 var(--space-2); font-size: 1.05rem; color: var(--color-semantic-accent-strong); }
+  .wall__side ul { margin: 0; padding-left: 1.1rem; color: var(--color-semantic-text-muted); font-size: 0.9rem; }
+  .wall__side li + li { margin-top: var(--space-1); }
+  .wall__side strong { color: var(--color-semantic-text); }
+
+  .wall__bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--color-semantic-accent),
+      var(--color-semantic-accent) 6px,
+      var(--color-semantic-accent-strong) 6px,
+      var(--color-semantic-accent-strong) 12px
+    );
+    border-radius: var(--radius-sm);
+    color: #fff;
+  }
+  .wall__bar span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    font-size: 0.8rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .wall__flow {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .wall__flow li {
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    color: var(--color-semantic-text-muted);
+    font-size: 0.95rem;
+  }
+  .wall__flow em { color: var(--color-semantic-text); font-style: italic; }
+  .wall__dir {
+    flex: 0 0 auto;
+    color: var(--color-semantic-accent-strong);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .wall__dir--loop { color: var(--color-semantic-focus); }
+
+  .diagram figcaption {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-semantic-border);
+    color: var(--color-semantic-text-muted);
+    font-size: 0.95rem;
+  }
+  .diagram figcaption strong { color: var(--color-semantic-text); }
+
+  /* Expérience */
+  .experience {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-4);
+  }
+  .experience__card {
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .experience__card h3 { margin: 0 0 var(--space-2); color: var(--color-semantic-accent-strong); font-size: 1.1rem; }
+  .experience__card p { margin: 0; color: var(--color-semantic-text-muted); }
+  .experience__card strong { color: var(--color-semantic-text); }
+
+  /* DIAGRAMME : les trois temps */
+  .cycle__row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  .cycle__step { flex: 1 1 0; }
+  .cycle__step a {
+    display: block;
+    height: 100%;
+    background: var(--color-semantic-background);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    text-decoration: none;
+    color: var(--color-semantic-text);
+  }
+  .cycle__step a:hover { border-color: var(--color-semantic-accent); background: var(--color-semantic-surface-raised); }
+  .cycle__n {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    background: var(--color-semantic-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: var(--space-2);
+  }
+  .cycle__step strong { display: block; color: var(--color-semantic-accent-strong); font-size: 1.1rem; }
+  .cycle__desc { display: block; margin-top: var(--space-1); color: var(--color-semantic-text-muted); font-size: 0.9rem; }
+  .cycle__arrow {
+    align-self: center;
+    color: var(--color-semantic-text-muted);
+    font-size: 1.4rem;
+    flex: 0 0 auto;
+  }
+
+  /* Principes */
+  .principes__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+  .principe {
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+  }
+  .principe h3 { margin: 0 0 var(--space-1); font-size: 1rem; color: var(--color-semantic-accent-strong); }
+  .principe p { margin: 0; color: var(--color-semantic-text-muted); font-size: 0.9rem; }
+
+  /* CTA final */
+  .final-cta {
+    margin-top: var(--space-6);
+    text-align: center;
+    background: var(--color-semantic-surface);
+    border: 1px solid var(--color-semantic-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-4);
+  }
+  .final-cta h2 { margin: 0 0 var(--space-2); }
+  .final-cta p { margin: 0 0 var(--space-4); color: var(--color-semantic-text-muted); }
+
+  /* RESPONSIVE : le mur se dresse à l'horizontale sur petit écran */
+  @media (max-width: 40rem) {
+    .wall__grid { grid-template-columns: 1fr; }
+    .wall__bar { min-width: 0; padding: var(--space-1) 0; }
+    .wall__bar span { writing-mode: horizontal-tb; transform: none; }
+    .cycle__row { flex-direction: column; }
+    .cycle__arrow { transform: rotate(90deg); align-self: center; }
   }
 </style>
