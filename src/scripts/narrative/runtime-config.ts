@@ -11,6 +11,8 @@
 import { HttpNarrator, type Narrator } from './narrator';
 import { StubNarrator } from './stub-narrator';
 import { DownloadPublisher, HttpPublisher, type Publisher } from './export';
+import { type Judge } from './judge';
+import { StubJudge } from './stub-judge';
 
 export const TOKEN_KEY = 'cn-hub-token';
 
@@ -46,6 +48,18 @@ export function resolveNarrator(): { narrator: Narrator; mode: 'hub' | 'stub' | 
     return { narrator: new StubNarrator(), mode: 'stub-no-token' };
   }
   return { narrator: new StubNarrator(), mode: 'stub' };
+}
+
+/**
+ * Le juge sémantique (#39, Phase 2) : toujours le stub pour l'instant.
+ *
+ * `HttpJudge` n'existe pas encore (arrive en Phase 3, avec l'endpoint Hub
+ * `PUBLIC_JUDGE_ENDPOINT` et la passe async câblée dans `session.ts`) : tant
+ * qu'il n'est pas câblé, on retombe toujours sur `StubJudge`, qui ne rejette
+ * jamais rien — le juge reste hors-boucle, seul le filet lexical décide.
+ */
+export function resolveJudge(): { judge: Judge; mode: 'stub' } {
+  return { judge: new StubJudge(), mode: 'stub' };
 }
 
 /** Le publieur réel si Suddenly est configuré, sinon le téléchargement local. */

@@ -11,6 +11,20 @@
 //! doit pas dépendre de la façon dont le narrateur accentue. La *forme* du contrat
 //! (les [`Rejet`]) ne change pas ; la version « qualité » fera le même travail
 //! sémantiquement.
+//!
+//! ## Répartition retenue pour le juge sémantique (#39, ADR
+//! `aidd_docs/decisions/2026_07-verifier-judge-placement.md`)
+//!
+//! - **fuite** reste ICI : lexicale, canon-aware, côté client, synchrone. C'est
+//!   la seule vérification qui a réellement besoin du secret ; un juge LLM
+//!   canon-aware déplacerait le mur (le secret quitterait le client). Ce filet
+//!   reste donc le filet **autoritaire**, invoqué par [`crate::engine::Engine::resolve`].
+//! - **contradiction** et **move exécuté** sont *délégables* à un juge sémantique
+//!   canon-free (`/judge`, côté hôte TS, cf. `src/scripts/narrative/judge.ts`) :
+//!   ces deux vérifications ne lisent que des champs déjà publics
+//!   (`faits_etablis`, le `move` et le `revealable` du paquet), donc aveugler le
+//!   juge au canon proprement dit ne lui retire rien. La checklist ci-dessous
+//!   reste le filet lexical rapide en repli (cf. commentaire du module).
 
 use serde::Serialize;
 
