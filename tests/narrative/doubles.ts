@@ -7,6 +7,7 @@
 // Rust ; ici on teste le câblage TS.
 
 import type { NarrativeEngine } from '../../src/scripts/narrative/engine';
+import type { Judge, JudgeRejet } from '../../src/scripts/narrative/judge';
 import type { Narrator } from '../../src/scripts/narrative/narrator';
 import type { Outcome, Prepared, Rejet, ScenePacket } from '../../src/scripts/narrative/types';
 
@@ -97,5 +98,17 @@ export class ScriptedNarrator implements Narrator {
   async narrate(packetJson: string, n: number): Promise<string[]> {
     this.calls.push({ packetJson, n });
     return this.batches.shift() ?? [];
+  }
+}
+
+/** Juge scripté : renvoie les verdicts dans l'ordre ; mémorise les appels. */
+export class ScriptedJudge implements Judge {
+  readonly calls: Array<{ packet: ScenePacket; candidates: string[] }> = [];
+
+  constructor(private verdicts: Array<Array<JudgeRejet | null>>) {}
+
+  async judge(packet: ScenePacket, candidates: string[]): Promise<Array<JudgeRejet | null>> {
+    this.calls.push({ packet, candidates });
+    return this.verdicts.shift() ?? candidates.map(() => null);
   }
 }

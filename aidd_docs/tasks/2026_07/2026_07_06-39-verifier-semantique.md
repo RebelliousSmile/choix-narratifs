@@ -130,9 +130,9 @@ flowchart TD
 
 #### Acceptance criteria
 
-- [ ] ADR exists and names the chosen option with its wall-placement rationale.
-- [ ] The "no contract change / no resample change / no wall move" invariant is written down.
-- [ ] User has approved the placement.
+- [x] ADR exists and names the chosen option with its wall-placement rationale.
+- [x] The "no contract change / no resample change / no wall move" invariant is written down.
+- [x] User has approved the placement.
 
 ### Phase 2: Freeze the seam (lexical net + judge port), zero behavior change
 
@@ -147,9 +147,9 @@ flowchart TD
 
 #### Acceptance criteria
 
-- [ ] `pnpm test:engine` and `pnpm test` pass with no diff in behavior.
-- [ ] `pnpm gen:types` produces a no-op diff (contract types unchanged).
-- [ ] `Judge` interface compiles and is covered by a stub; loop still uses only the lexical net until Phase 3 flips it on.
+- [x] `pnpm test:engine` and `pnpm test` pass with no diff in behavior.
+- [x] `pnpm gen:types` produces a no-op diff (contract types unchanged).
+- [x] `Judge` interface compiles and is covered by a stub; loop still uses only the lexical net until Phase 3 flips it on.
 
 ### Phase 3: Canon-free semantic pass in the loop
 
@@ -165,9 +165,9 @@ flowchart TD
 
 #### Acceptance criteria
 
-- [ ] With the stub judge, `pnpm test` covers semantic-reject → resample and leak-cut paths.
-- [ ] The packet sent to `/judge` contains no canon (asserted in a test, mirroring `prepare_produit_un_paquet_canon_free`).
-- [ ] Resample count and `ResampleExhausted` semantics are unchanged.
+- [x] With the stub judge, `pnpm test` covers semantic-reject → resample and leak-cut paths.
+- [x] The packet sent to `/judge` contains no canon (asserted in a test, mirroring `prepare_produit_un_paquet_canon_free`).
+- [x] Resample count and `ResampleExhausted` semantics are unchanged.
 
 ### Phase 4: Harness + demo tuning
 
@@ -189,9 +189,14 @@ flowchart TD
 
 <!-- AI-initiated changes during implementation. Each entry is prefixed with 🤖. -->
 
+🤖 Phase 3 also wires `resolveJudge()` into the live call site (`src/components/MoteurNarratif.astro`, passing `judge` to `runTurn`), not itemized as a separate task in the plan but implied by "wire the judge into the live loop." Inert today: no `PUBLIC_JUDGE_ENDPOINT` is configured anywhere, so `resolveJudge()` resolves to `StubJudge` (mode `'stub'`) exactly as before — zero behavior change until a real Hub `/judge` endpoint is deployed and configured.
+
 ## Log
 
 <!-- APPEND ONLY. One entry per step attempt. Never rewrite. -->
+
+- 2026-07-06 — Phase 2 done: `verifier.rs` doc-comment split, `engine/core/tests/verifier_seam.rs` (3 tests), `judge.ts` (`Judge`/`JudgeRejet` interface), `stub-judge.ts`, `resolveJudge()` stub-only in `runtime-config.ts`, `judge.test.ts`. All green (64 Rust + 111 vitest), `gen:types` no-op diff. Committed `127b086`, pushed to `origin/main`.
+- 2026-07-06 — Phase 3 done: `session.ts` gains optional `judge?: Judge` on `RunTurnOptions`; candidates are pre-filtered by the judge before `engine.resolve()`, with a `survivorOriginalIndex` remap so `commit.index`/`rejets` stay expressed in the ORIGINAL narrator-batch space (backward-compatible — existing tests pass unchanged with no judge supplied). `HttpJudge` implemented in `judge.ts` against `/judge` (sibling of `/narrate`), reusing shared relay error-body parsing factored out of `narrator.ts` (`parseRelayErrorBody`, `NARRATE_ERROR_CODES`). `resolveJudge()` now mirrors `resolveNarrator()`'s hub/stub/stub-no-token resolution. Added `ScriptedJudge` test double and 4 new `session.test.ts` cases (leak still cut after judge approval, index remap across a judge-filtered batch, all-rejected → resample without calling `resolve()`, `ResampleExhausted` with semantic rejets). `resolveJudge()`/`judge` wired into the live `MoteurNarratif.astro` call site (design-system gate re-run: green, 16 files, 0 errors). Full suite green: 64 Rust + 120 vitest, `tsc --noEmit` clean.
 
 ## Validation flow demonstration
 

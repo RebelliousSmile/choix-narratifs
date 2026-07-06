@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 
 import { runTurn, resume, ResampleExhausted } from '../../src/scripts/narrative/session';
 import { MemorySnapshotStore } from '../../src/scripts/narrative/snapshot-store';
-import { FakeEngine, ScriptedNarrator } from './doubles';
+import { FakeEngine, ScriptedNarrator, ScriptedJudge } from './doubles';
 
 describe('runTurn — la boucle juste', () => {
   it('écarte le fuyard et commite le candidat valide', async () => {
@@ -72,6 +72,80 @@ describe('runTurn — la boucle juste', () => {
 
     const bytes = await store.load('s1');
     expect(bytes).not.toBeNull();
+  });
+});
+
+describe('runTurn — juge sémantique (#39, Phase 3)', () => {
+  it('le juge ne délègue jamais la fuite : le filet lexical écarte quand même le fuyard qu’il approuve', async () => {
+    const engine = new FakeEngine();
+    const narrator = new ScriptedNarrator([
+      [
+        'Le docker grogne : « Verain a payé. »', // fuyard lexical
+        'Il se détourne. « Partie, elle a quitté le quai. »',
+      ],
+    ]);
+    const judge = new ScriptedJudge([[null, null]]); // le juge n'objecte rien
+
+    const res = await runTurn(engine, narrator, null, 'Où est la cargaison ?', { judge });
+
+    expect(res.commit.index).toBe(1);
+    expect(judge.calls[0].candidates).toHaveLength(2);
+    // le juge ne reçoit jamais le canon (paquet canon-free par construction)
+    expect(JSON.stringify(judge.calls[0].packet)).not.toContain('secret_reponse');
+    expect(JSON.stringify(judge.calls[0].packet)).not.toContain('jetons_fuite');
+  });
+
+  it('remonte l’index original quand le juge filtre un candidat avant resolve()', async () => {
+    const engine = new FakeEngine();
+    const narrator = new ScriptedNarrator([
+      [
+        'Il ricane, mais ne dit rien d’utile.', // survit au juge, écarté par resolve() (move_non_execute)
+        'Il dit : la cargaison est toujours sur le quai.', // écarté par le juge (contradiction sémantique)
+        'Il se détourne. Elle a quitté le quai.', // gagnant
+      ],
+    ]);
+    const judge = new ScriptedJudge([
+      [null, { type: 'contradiction', detail: 'toujours sur le quai' }, null],
+    ]);
+
+    const res = await runTurn(engine, narrator, null, 'Qui a payé ?!', { judge });
+
+    // index du batch ORIGINAL (2), pas de celui des survivants (survivor-index 1)
+    expect(res.commit.index).toBe(2);
+    expect(res.resamples).toBe(0);
+  });
+
+  it('le juge écarte tout le batch : resample sans solliciter resolve(), même paquet re-soumis', async () => {
+    const engine = new FakeEngine();
+    const narrator = new ScriptedNarrator([
+      ['Il dit : la cargaison est toujours sur le quai.', 'Il sourit, ne bronche pas.'],
+      ['Il se détourne. Elle a quitté le quai.'],
+    ]);
+    const judge = new ScriptedJudge([
+      [{ type: 'contradiction', detail: 'toujours sur le quai' }, { type: 'move_non_execute' }],
+      [null],
+    ]);
+
+    const res = await runTurn(engine, narrator, null, 'Qui ?', { judge });
+
+    expect(res.resamples).toBe(1);
+    expect(narrator.calls).toHaveLength(2);
+    expect(narrator.calls[0].packetJson).toBe(narrator.calls[1].packetJson);
+  });
+
+  it('ResampleExhausted expose les rejets sémantiques avec la forme Rejet inchangée, en index original', async () => {
+    const engine = new FakeEngine();
+    const batchRejete = ['Il dit : la cargaison est toujours sur le quai.'];
+    const narrator = new ScriptedNarrator([batchRejete, batchRejete, batchRejete]);
+    const rejetAttendu = { type: 'contradiction' as const, detail: 'toujours sur le quai' };
+    const judge = new ScriptedJudge([[rejetAttendu], [rejetAttendu], [rejetAttendu]]);
+
+    const err = await runTurn(engine, narrator, null, 'Qui ?', { judge, maxResamples: 2 }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(err).toBeInstanceOf(ResampleExhausted);
+    expect((err as ResampleExhausted).derniersRejets).toEqual([[0, rejetAttendu]]);
   });
 });
 

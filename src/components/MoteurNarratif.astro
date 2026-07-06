@@ -368,12 +368,15 @@
   import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
   import { NarrateHttpError } from '../scripts/narrative/narrator';
   import { takePendingScene } from '../scripts/narrative/pending-scene';
-  import { resolveNarrator, TOKEN_KEY } from '../scripts/narrative/runtime-config';
+  import { resolveJudge, resolveNarrator, TOKEN_KEY } from '../scripts/narrative/runtime-config';
   // Types GÉNÉRÉS depuis le moteur (source de vérité) — pas de redéclaration locale.
   import type { SceneInfo, Rejet, TourTraceView } from '../scripts/narrative/generated';
 
   const SESSION_ID = 'moteur-v1';
   const { narrator, mode: narratorMode } = resolveNarrator();
+  // Sans PUBLIC_JUDGE_ENDPOINT (Hub /judge pas encore spécifié, #39), retombe
+  // sur le stub qui ne rejette jamais rien — inerte tant que non configuré.
+  const { judge } = resolveJudge();
 
   // ── DOM ───────────────────────────────────────────────────────────────────
   const loadingEl = document.getElementById('mn-loading')!;
@@ -625,7 +628,7 @@
     addEntry('mn-log__action', `Vous : ${action}`);
 
     try {
-      const result = await runTurn(engine, narrator, store, action, { sessionId: SESSION_ID });
+      const result = await runTurn(engine, narrator, store, action, { sessionId: SESSION_ID, judge });
       addEntry('mn-log__response', result.commit.candidat);
       actionEl.value = '';
       refreshSavoir();

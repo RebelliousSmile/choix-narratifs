@@ -34,13 +34,30 @@ export type NarrateErrorCode =
   | 'schema_incompatible'
   | 'provider_error';
 
-const NARRATE_ERROR_CODES: ReadonlySet<string> = new Set([
+/** Partagé avec `/judge` (#39, Phase 3) : même contrat d'erreur relais, cf. `judge.ts`. */
+export const NARRATE_ERROR_CODES: ReadonlySet<string> = new Set([
   'unauthorized',
   'quota_exhausted',
   'bad_request',
   'schema_incompatible',
   'provider_error',
 ] satisfies NarrateErrorCode[]);
+
+/** Corps d'erreur JSON brut du contrat relais — partagé `/narrate` et `/judge`. */
+export interface RelayErrorBody {
+  error?: string;
+  detail?: string;
+  retriable?: boolean;
+}
+
+/** Parse le corps JSON d'une réponse d'erreur relais ; `null` si illisible/non-JSON. */
+export async function parseRelayErrorBody(res: Response): Promise<RelayErrorBody | null> {
+  try {
+    return (await res.json()) as RelayErrorBody;
+  } catch {
+    return null;
+  }
+}
 
 /** Erreur typée du relais : permet à l'UI un message précis (jeton, quota, panne provider…). */
 export class NarrateHttpError extends Error {
@@ -57,18 +74,9 @@ export class NarrateHttpError extends Error {
 
 /** Lit le corps d'erreur ; retombe sur une Error générique si non conforme au contrat. */
 async function readNarrateError(res: Response): Promise<Error> {
-  try {
-    const body = (await res.json()) as { error?: string; detail?: string; retriable?: boolean };
-    if (typeof body.error === 'string' && NARRATE_ERROR_CODES.has(body.error)) {
-      return new NarrateHttpError(
-        res.status,
-        body.error as NarrateErrorCode,
-        body.detail ?? '',
-        body.retriable ?? false,
-      );
-    }
-  } catch {
-    // Corps illisible ou non-JSON : repli générique ci-dessous.
+  const body = await parseRelayErrorBody(res);
+  if (body && typeof body.error === 'string' && NARRATE_ERROR_CODES.has(body.error)) {
+    return new NarrateHttpError(res.status, body.error as NarrateErrorCode, body.detail ?? '', body.retriable ?? false);
   }
   return new Error(`Relais /narrate: HTTP ${res.status}`);
 }

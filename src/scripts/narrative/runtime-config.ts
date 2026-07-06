@@ -11,7 +11,7 @@
 import { HttpNarrator, type Narrator } from './narrator';
 import { StubNarrator } from './stub-narrator';
 import { DownloadPublisher, HttpPublisher, type Publisher } from './export';
-import { type Judge } from './judge';
+import { HttpJudge, type Judge } from './judge';
 import { StubJudge } from './stub-judge';
 
 export const TOKEN_KEY = 'cn-hub-token';
@@ -51,14 +51,19 @@ export function resolveNarrator(): { narrator: Narrator; mode: 'hub' | 'stub' | 
 }
 
 /**
- * Le juge sémantique (#39, Phase 2) : toujours le stub pour l'instant.
- *
- * `HttpJudge` n'existe pas encore (arrive en Phase 3, avec l'endpoint Hub
- * `PUBLIC_JUDGE_ENDPOINT` et la passe async câblée dans `session.ts`) : tant
- * qu'il n'est pas câblé, on retombe toujours sur `StubJudge`, qui ne rejette
- * jamais rien — le juge reste hors-boucle, seul le filet lexical décide.
+ * Le juge sémantique réel (#39, Phase 3) si le Hub est configuré, sinon le
+ * stub (qui ne rejette jamais rien — seul le filet lexical décide alors).
+ * Même distinction `stub-no-token`/`stub` que `resolveNarrator`.
  */
-export function resolveJudge(): { judge: Judge; mode: 'stub' } {
+export function resolveJudge(): { judge: Judge; mode: 'hub' | 'stub' | 'stub-no-token' } {
+  const endpoint = env('PUBLIC_JUDGE_ENDPOINT');
+  const token = localToken();
+  if (endpoint && token) {
+    return { judge: new HttpJudge(endpoint, token), mode: 'hub' };
+  }
+  if (endpoint && !token) {
+    return { judge: new StubJudge(), mode: 'stub-no-token' };
+  }
   return { judge: new StubJudge(), mode: 'stub' };
 }
 

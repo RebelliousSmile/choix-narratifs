@@ -8,9 +8,10 @@
 
 import type { NarrativeEngine } from './engine';
 import { parseOutcome, parsePrepared } from './engine';
+import type { Judge } from './judge';
 import { assertCanonShape, type Narrator } from './narrator';
 import type { SnapshotStore } from './snapshot-store';
-import type { Prepared, Rejet } from './types';
+import type { Outcome, Prepared, Rejet } from './types';
 
 export interface TurnCommit {
   index: number;
@@ -30,6 +31,35 @@ export interface RunTurnOptions {
   maxResamples?: number;
   /** Si fourni avec un store, persiste le snapshot après commit. */
   sessionId?: string;
+  /**
+   * Juge sémantique canon-free (#39, Phase 3). Absent = comportement inchangé
+   * (seul le filet lexical de `resolve()` décide). Fourni : chaque candidat
+   * passe d'abord le juge ; les survivants seuls vont à `resolve()`, qui reste
+   * le filet autoritaire pour la fuite. `index`/`rejets` renvoyés restent
+   * exprimés dans l'espace du batch ORIGINAL (pas celui des survivants).
+   */
+  judge?: Judge;
+}
+
+/**
+ * Recompose un `Outcome` de `resolve()` — dont les indices sont relatifs au
+ * sous-tableau des survivants passé au moteur — vers l'espace du batch
+ * original renvoyé par le narrateur, et y fusionne les rejets sémantiques
+ * (déjà en index original, puisque jugés sur le batch complet).
+ */
+function remapOutcome(
+  outcome: Outcome,
+  survivorOriginalIndex: number[],
+  semanticRejets: Array<[number, Rejet]>,
+): Outcome {
+  if (outcome.outcome === 'commit') {
+    return { ...outcome, index: survivorOriginalIndex[outcome.index] };
+  }
+  const rejets = [
+    ...semanticRejets,
+    ...outcome.rejets.map(([i, r]): [number, Rejet] => [survivorOriginalIndex[i], r]),
+  ].sort((a, b) => a[0] - b[0]);
+  return { outcome: 'resample_needed', rejets };
 }
 
 /** Levée quand tous les candidats échouent au-delà de `maxResamples`. */
@@ -66,7 +96,31 @@ export async function runTurn(
   let resamples = 0;
   for (;;) {
     const candidates = await narrator.narrate(packetJson, prepared.n);
-    const outcome = parseOutcome(engine.resolve(candidates));
+
+    let survivors = candidates;
+    let survivorOriginalIndex = candidates.map((_, i) => i);
+    const semanticRejets: Array<[number, Rejet]> = [];
+
+    if (opts.judge) {
+      const verdicts = await opts.judge.judge(prepared.packet, candidates);
+      survivors = [];
+      survivorOriginalIndex = [];
+      verdicts.forEach((verdict, i) => {
+        if (verdict) {
+          semanticRejets.push([i, verdict]);
+        } else {
+          survivors.push(candidates[i]);
+          survivorOriginalIndex.push(i);
+        }
+      });
+    }
+
+    // Le juge a tout écarté : même branche resample que le filet lexical,
+    // sans solliciter `resolve()` (aucun survivant à lui soumettre).
+    const outcome =
+      opts.judge && survivors.length === 0
+        ? ({ outcome: 'resample_needed', rejets: semanticRejets } as const)
+        : remapOutcome(parseOutcome(engine.resolve(survivors)), survivorOriginalIndex, semanticRejets);
 
     if (outcome.outcome === 'commit') {
       if (store && opts.sessionId) {
