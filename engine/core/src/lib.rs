@@ -12,6 +12,7 @@ pub mod engine;
 pub mod moves;
 pub mod packet;
 pub mod state;
+pub mod texte;
 pub mod verifier;
 
 pub use engine::{
