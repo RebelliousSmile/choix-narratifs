@@ -555,6 +555,10 @@
       ? WasmEngine.fromSnapshot(initialSnapshot)
       : new WasmEngine();
 
+    // Le narrateur local garde un état inter-tours (rotation, faits déjà lâchés) :
+    // on le remet à neuf pour que la scène rejouée reparte franchement.
+    narrator.reset?.();
+
     resetLog();
     renderScene();
     refreshSavoir();
