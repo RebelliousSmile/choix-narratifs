@@ -181,9 +181,9 @@ flowchart TD
 
 #### Acceptance criteria
 
-- [ ] Harness runs green with and without the judge flag.
-- [ ] A manual docker-scene run shows the semantic pass rejecting a semantically-off candidate that the lexical net would have missed.
-- [ ] No secret token appears in the harness trace.
+- [x] Harness runs green with and without the judge flag.
+- [x] A manual docker-scene run shows the semantic pass rejecting a semantically-off candidate that the lexical net would have missed.
+- [x] No secret token appears in the harness trace.
 
 ## Amendments
 
@@ -191,12 +191,15 @@ flowchart TD
 
 🤖 Phase 3 also wires `resolveJudge()` into the live call site (`src/components/MoteurNarratif.astro`, passing `judge` to `runTurn`), not itemized as a separate task in the plan but implied by "wire the judge into the live loop." Inert today: no `PUBLIC_JUDGE_ENDPOINT` is configured anywhere, so `resolveJudge()` resolves to `StubJudge` (mode `'stub'`) exactly as before — zero behavior change until a real Hub `/judge` endpoint is deployed and configured.
 
+🤖 Phase 4's harness judge is a Rust-native `judge_stub()` (not a TS/JS call), because `engine/harness/src/main.rs` is a synchronous, pure-Rust binary with no async runtime or JS interop — the TS `Judge` interface (`judge.ts`) cannot be invoked from it. `judge_stub()` mirrors `narrate_stub`'s `(tour, batch)`-keyed canned-verdict pattern and is gated by a new `--with-judge` CLI flag (`std::env::args()`), applied before `engine.resolve()` inside the existing `tour()` loop — same pre-filter/resample-without-resolve/index-remap shape as `session.ts`'s judge pass. A third demo tour was added (tour 3) whose sole candidate passes the real lexical `verifier()` (contains the move token `embarqué`, no canned `jetons_contradiction` token) while semantically negating the established fact `la cargaison a quitté le quai` in different wording — demonstrating the exact gap Phase 4 needed to close.
+
 ## Log
 
 <!-- APPEND ONLY. One entry per step attempt. Never rewrite. -->
 
 - 2026-07-06 — Phase 2 done: `verifier.rs` doc-comment split, `engine/core/tests/verifier_seam.rs` (3 tests), `judge.ts` (`Judge`/`JudgeRejet` interface), `stub-judge.ts`, `resolveJudge()` stub-only in `runtime-config.ts`, `judge.test.ts`. All green (64 Rust + 111 vitest), `gen:types` no-op diff. Committed `127b086`, pushed to `origin/main`.
 - 2026-07-06 — Phase 3 done: `session.ts` gains optional `judge?: Judge` on `RunTurnOptions`; candidates are pre-filtered by the judge before `engine.resolve()`, with a `survivorOriginalIndex` remap so `commit.index`/`rejets` stay expressed in the ORIGINAL narrator-batch space (backward-compatible — existing tests pass unchanged with no judge supplied). `HttpJudge` implemented in `judge.ts` against `/judge` (sibling of `/narrate`), reusing shared relay error-body parsing factored out of `narrator.ts` (`parseRelayErrorBody`, `NARRATE_ERROR_CODES`). `resolveJudge()` now mirrors `resolveNarrator()`'s hub/stub/stub-no-token resolution. Added `ScriptedJudge` test double and 4 new `session.test.ts` cases (leak still cut after judge approval, index remap across a judge-filtered batch, all-rejected → resample without calling `resolve()`, `ResampleExhausted` with semantic rejets). `resolveJudge()`/`judge` wired into the live `MoteurNarratif.astro` call site (design-system gate re-run: green, 16 files, 0 errors). Full suite green: 64 Rust + 120 vitest, `tsc --noEmit` clean.
+- 2026-07-06 — Phase 4 done: `engine/harness/src/main.rs` gains a `--with-judge` flag and a Rust-native `judge_stub()` (canned per-`(tour, batch)` verdicts, mirroring `narrate_stub`; never returns `Fuite`). Added tour 3: a candidate that passes the lexical `verifier()` (move token `embarqué` present, no canned contradiction token matched) while semantically contradicting the established fact `la cargaison a quitté le quai` via different wording ("Rien n'a été embarqué, la cargaison croupit encore dans le hangar du quai"). Manually dry-ran both modes: without `--with-judge`, the harness commits that candidate as-is (confirms the lexical gap); with `--with-judge`, the stub rejects it (`Contradiction`), triggers an invisible resample, and commits a clean follow-up candidate instead. Tours 1–2 verified byte-for-byte identical between both modes (default-unchanged guarantee). No `Verain` (capitalized secret) in either trace. `cargo test` still 64/64 green. ADR updated with calibration notes (no real thresholds yet — stub is deterministic; option C fallback not triggered).
 
 ## Validation flow demonstration
 

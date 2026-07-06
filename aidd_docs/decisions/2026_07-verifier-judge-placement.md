@@ -48,3 +48,12 @@ Les trois vérifications n'ont **pas** la même relation au secret :
 - Nouvelle couture asynchrone dans `session.ts` entre `narrate` et `resolve` (cf. plan, Phase 3).
 - Nouveau endpoint Hub `/judge` (sibling de `/narrate`), à spécifier côté Hub — dépendance non bloquante pour la voie stub (testable dès maintenant hors réseau).
 - Risque de faux positifs du juge sémantique : mitigé par repli sur l'option C si nécessaire (cf. registre des risques du plan).
+
+## Notes de calibrage (Phase 4, 2026-07-06)
+
+Dry-run du harnais (`engine/harness`, scène docker) avec un juge stub Rust natif (miroir de `narrate_stub`, gated par `--with-judge`) : cf. `engine/harness/src/main.rs`, tour 3.
+
+- **Candidat de démo** : « Rien n'a été embarqué, la cargaison croupit encore dans le hangar du quai. » Il contient le jeton de move `embarqué` (canon `jetons_move`) mais aucun jeton de `jetons_contradiction` canon (`toujours sur le quai` / `encore là` / `n'a pas bougé` / `jamais partie`) — le filet lexical le **commite tel quel** (confirmé par un run sans `--with-judge`), alors qu'il nie par le sens le fait établi « la cargaison a quitté le quai ». Avec `--with-judge`, le juge stub le rejette (`Contradiction`) → resample invisible → un aveu sans ambiguïté est commité à la place. Confirme le trou pressenti dans l'ADR (§ « robuste mais lexical — un synonyme ou une reformulation passe à travers »).
+- **Seuils / faux positifs** : le stub ne fait aucun jugement probabiliste — il rend un verdict *canned* déterministe par `(tour, batch)`, donc aucune donnée de seuil réel à calibrer ici. Le vrai juge (`/judge`, Hub) devra exposer sa propre marge de confiance ; à instrumenter quand l'endpoint existera, pas avant.
+- **Repli option C** : non déclenché — le mécanisme (filtrage pré-`resolve()`, resample invisible si tout le lot est écarté) se comporte comme prévu par l'ADR, sans lot faussement vidé à vide de façon répétée. À revisiter si le vrai juge Hub s'avère bruyant en usage réel.
+- **Confirmé** : `--with-judge` absent (défaut) reproduit le harnais Phase 1 à l'identique (tours 1 et 2 byte-for-byte inchangés) ; aucun secret (`Verain`, capitalisé) n'apparaît dans la trace dans les deux modes — seul le jeton replié `verain` (minuscule, déjà public dans `canon.jetons_fuite`) apparaît dans le motif de rejet Fuite, comportement hérité de Phase 1 et inchangé.
