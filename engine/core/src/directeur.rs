@@ -8,6 +8,7 @@ use crate::packet::{
     Cadre, Form, Locuteur, Ratio, Registre, ScenePacket, PACKET_SCHEMA_VERSION,
 };
 use crate::state::World;
+use crate::texte::plier;
 
 /// Le plan de beat gardé **côté moteur**. NE franchit PAS le mur : il porte les
 /// attentes de vérification (jetons du move, budget) que le verifier appliquera.
@@ -31,7 +32,7 @@ pub struct BeatBrief {
 
 /// Produit le brief du beat. `world` n'est lu que pour ses champs **publics**.
 pub fn prepare(world: &World, action_joueur: &str) -> BeatBrief {
-    let menace = mentionne_le_sujet_tu(action_joueur);
+    let menace = touche_au_sujet_tu(action_joueur, &world.withhold);
     let hearing = if menace {
         // La méprise est motivée (§6) : le docker entend une menace sur le secret.
         "menace sur le secret".to_string()
@@ -101,8 +102,67 @@ fn choisir_geste(menace: bool) -> &'static Move {
     }
 }
 
-/// Heuristique de méprise (stub Phase 1) : l'action touche-t-elle au sujet tu ?
-fn mentionne_le_sujet_tu(action: &str) -> bool {
-    let a = action.to_lowercase();
-    a.contains("payé") || a.contains("paye") || a.contains("cargaison") || a.contains("qui")
+/// Mots-outils écartés des étiquettes `withhold` : ils ne caractérisent pas le
+/// sujet tu et sur-déclencheraient la méprise (« qui a payé » → seul « payé »
+/// porte le sujet).
+const MOTS_OUTILS: &[&str] = &[
+    "qui", "que", "quoi", "est", "les", "des", "une", "aux", "par", "pour", "sur", "dans", "avec",
+    "son", "sa", "ses", "the", "and", "was", "who",
+];
+
+/// Termes-signaux du sujet tu, dérivés des étiquettes `withhold` : mots de
+/// contenu (≥ 3 lettres, hors mots-outils), repliés. Ex. `["qui a payé"]` → `["paye"]`.
+/// C'est CE qui rend la méprise agnostique à la scène (plus de liste codée en dur).
+fn termes_du_sujet_tu(withhold: &[String]) -> Vec<String> {
+    let mut termes: Vec<String> = Vec::new();
+    for etiquette in withhold {
+        for mot in plier(etiquette).split(|c: char| !c.is_alphanumeric()) {
+            if mot.chars().count() >= 3 && !MOTS_OUTILS.contains(&mot) && !termes.iter().any(|t| t == mot) {
+                termes.push(mot.to_string());
+            }
+        }
+    }
+    termes
+}
+
+/// Heuristique de méprise (Phase 1, avant le Hub) : l'action du joueur touche-t-elle
+/// un terme du sujet tu ? Dérivée de la scène (`withhold`) et repliée (accents/casse).
+/// Le vrai jugement d'intention viendra du narrateur/directeur LLM.
+fn touche_au_sujet_tu(action: &str, withhold: &[String]) -> bool {
+    let a = plier(action);
+    termes_du_sujet_tu(withhold)
+        .iter()
+        .any(|terme| a.contains(terme.as_str()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{termes_du_sujet_tu, touche_au_sujet_tu};
+
+    fn wh(labels: &[&str]) -> Vec<String> {
+        labels.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn termes_ecartent_les_mots_outils() {
+        // « qui a payé » → seul le mot de contenu « payé » (replié) subsiste.
+        assert_eq!(termes_du_sujet_tu(&wh(&["qui a payé"])), vec!["paye".to_string()]);
+    }
+
+    #[test]
+    fn meprise_agnostique_a_la_scene() {
+        // Une scène dont le sujet tu est « qui a trahi » déclenche sur « trahi »,
+        // sans aucune liste codée en dur (robuste aux accents/casse).
+        let secret = wh(&["qui a trahi le clan"]);
+        assert!(touche_au_sujet_tu("Tu sais qui l'a TRAHI ?", &secret));
+        assert!(!touche_au_sujet_tu("Belle soirée, non ?", &secret));
+    }
+
+    #[test]
+    fn amorce_docker_inchangee() {
+        // Régression : sur le sujet tu du docker, « payé » déclenche ; l'anodin non.
+        let docker = wh(&["qui a payé"]);
+        assert!(touche_au_sujet_tu("Je demande qui a payé pour la cargaison.", &docker));
+        assert!(!touche_au_sujet_tu("Bonsoir, belle nuit.", &docker));
+    }
 }

@@ -10,6 +10,11 @@ import { PACKET_SCHEMA_VERSION, type ScenePacket } from './types';
 export interface Narrator {
   /** Best-of-N : renvoie `n` candidats de prose (aveugles au canon). */
   narrate(packetJson: string, n: number): Promise<string[]>;
+  /**
+   * Réinitialise l'état interne au démarrage d'une scène (nouvelle session).
+   * Optionnel : un narrateur sans mémoire (ex. `HttpNarrator`) l'ignore.
+   */
+  reset?(): void;
 }
 
 /** Vérifie la forme minimale d'un paquet avant l'envoi. Lève si incompatible. */

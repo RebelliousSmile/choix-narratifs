@@ -93,18 +93,57 @@ export class HttpPublisher implements Publisher {
   }
 }
 
+/** Slug de fichier depuis le lieu (lettres/chiffres → tirets). */
+export function slugLieu(lieu: string): string {
+  return (
+    lieu
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '') // dé-accentue pour un nom de fichier ASCII
+      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'compte-rendu'
+  );
+}
+
+/** Date `YYYY-MM-DD` (préfixe de fichier, tri chronologique). */
+function jour(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
 /**
- * Stub de publication : ne sort pas du navigateur — propose le Markdown au
- * téléchargement. Remplaçable par `HttpPublisher` quand l'endpoint Suddenly existera.
+ * Enveloppe le corps Markdown d'un front-matter YAML publiable : titre, PNJ,
+ * date, faits/résolutions en compteurs. Rend l'export directement ingérable par
+ * un moteur de publication (Suddenly ou statique) sans post-traitement.
+ */
+export function withFrontMatter(cr: CompteRendu, markdown: string, now: Date = new Date()): string {
+  const esc = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  const lignes = [
+    '---',
+    `titre: ${esc(cr.scene.lieu)}`,
+    `pnj: ${esc(cr.scene.pnj_nom)}`,
+    `date: ${jour(now)}`,
+    `faits_appris: ${cr.faits_appris.length}`,
+    `resolu: ${cr.resolutions.length > 0}`,
+  ];
+  if (cr.scene.ambiance) lignes.push(`ambiance: ${esc(cr.scene.ambiance)}`);
+  lignes.push('---', '');
+  return lignes.join('\n') + markdown;
+}
+
+/**
+ * Publieur local (repli hors Hub) : produit un `.md` **publiable** — corps rendu
+ * + front-matter YAML — et le propose au téléchargement, nommé `AAAA-MM-JJ-lieu.md`.
+ * Remplacé par `HttpPublisher` dès que l'endpoint Suddenly existe (via `resolvePublisher`).
  */
 export class DownloadPublisher implements Publisher {
   async publish(cr: CompteRendu, markdown: string): Promise<string> {
-    const titre = cr.scene.lieu.replace(/[^\p{L}\p{N}]+/gu, '-').toLowerCase() || 'compte-rendu';
-    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const contenu = withFrontMatter(cr, markdown);
+    const nom = `${jour(new Date())}-${slugLieu(cr.scene.lieu)}.md`;
+    const blob = new Blob([contenu], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${titre}.md`;
+    a.download = nom;
     document.body.appendChild(a);
     a.click();
     a.remove();
