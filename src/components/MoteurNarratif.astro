@@ -60,6 +60,26 @@
       </div>
     </details>
 
+    <!-- Connexion Hub — jeton Muse (#38) -->
+    <details class="mn-hub" id="mn-hub-config" hidden>
+      <summary class="mn-savoir__summary">Connexion Hub (jeton Muse)</summary>
+      <p class="mn-hub__status" id="mn-hub-status"></p>
+      <form id="mn-hub-form" class="mn-hub__form" novalidate>
+        <label for="mn-hub-token-input" class="mn-form__label">Jeton Muse</label>
+        <input
+          id="mn-hub-token-input"
+          class="mn-form__input"
+          type="password"
+          autocomplete="off"
+          placeholder="Collez votre jeton…"
+        />
+        <div class="mn-hub__actions">
+          <button type="submit" class="mn-btn">Enregistrer</button>
+          <button type="button" id="mn-hub-clear" class="mn-btn mn-btn--ghost">Effacer</button>
+        </div>
+      </form>
+    </details>
+
     <!-- Pied de page -->
     <footer class="mn-footer">
       <button id="mn-new-session" class="mn-btn mn-btn--ghost">Nouvelle session</button>
@@ -311,6 +331,28 @@
     font-size: 0.75rem;
     color: var(--color-semantic-accent);
   }
+
+  /* ── Connexion Hub (jeton Muse) ────────────────────────────────────────── */
+  .mn-hub {
+    border-top: 1px solid var(--color-semantic-border);
+    background: var(--color-semantic-surface);
+  }
+  .mn-hub__status {
+    margin: 0;
+    padding: 0 var(--space-4);
+    font-size: 0.8rem;
+    color: var(--color-semantic-text-muted);
+  }
+  .mn-hub__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4) var(--space-3);
+  }
+  .mn-hub__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
   .mn-mode {
     margin-left: auto;
     font-size: 0.75rem;
@@ -324,8 +366,9 @@
   import { IdbSnapshotStore, MemorySnapshotStore } from '../scripts/narrative/snapshot-store';
   import type { SnapshotStore } from '../scripts/narrative/snapshot-store';
   import { resume, runTurn, ResampleExhausted } from '../scripts/narrative/session';
+  import { NarrateHttpError } from '../scripts/narrative/narrator';
   import { takePendingScene } from '../scripts/narrative/pending-scene';
-  import { resolveNarrator } from '../scripts/narrative/runtime-config';
+  import { resolveNarrator, TOKEN_KEY } from '../scripts/narrative/runtime-config';
   // Types GÉNÉRÉS depuis le moteur (source de vérité) — pas de redéclaration locale.
   import type { SceneInfo, Rejet, TourTraceView } from '../scripts/narrative/generated';
 
@@ -346,6 +389,11 @@
   const lieuEl = document.getElementById('mn-lieu')!;
   const ambianceEl = document.getElementById('mn-ambiance')!;
   const traceBodyEl = document.getElementById('mn-trace-body')!;
+  const hubConfigEl = document.getElementById('mn-hub-config') as HTMLDetailsElement;
+  const hubStatusEl = document.getElementById('mn-hub-status')!;
+  const hubFormEl = document.getElementById('mn-hub-form') as HTMLFormElement;
+  const hubInputEl = document.getElementById('mn-hub-token-input') as HTMLInputElement;
+  const hubClearEl = document.getElementById('mn-hub-clear') as HTMLButtonElement;
 
   // ── Store ─────────────────────────────────────────────────────────────────
   let store: SnapshotStore = new MemorySnapshotStore();
@@ -467,9 +515,59 @@
     persistStatusEl.textContent = persisted ? '' : '(session non persistée)';
     const modeEl = document.getElementById('mn-mode');
     if (modeEl) {
-      modeEl.textContent = narratorMode === 'hub' ? 'Narrateur : Hub' : 'Narrateur local (démo)';
+      modeEl.textContent =
+        narratorMode === 'hub'
+          ? 'Narrateur : Hub'
+          : narratorMode === 'stub-no-token'
+            ? 'Narrateur local (démo) — jeton Hub manquant'
+            : 'Narrateur local (démo)';
     }
   }
+
+  /** Message lisible pour une erreur du relais Hub (repli propre, #38). */
+  function narrateErrorMessage(err: NarrateHttpError): string {
+    switch (err.code) {
+      case 'unauthorized':
+        return 'jeton Hub invalide ou expiré.';
+      case 'quota_exhausted':
+        return 'crédit Muse épuisé.';
+      case 'schema_incompatible':
+        return 'version du moteur incompatible avec le Hub — rechargez la page.';
+      case 'provider_error':
+        return `service de narration temporairement indisponible${err.retriable ? ' (réessayez)' : ''}.`;
+      case 'bad_request':
+        return `requête rejetée par le Hub (${err.detail || 'paquet malformé'}).`;
+    }
+  }
+
+  // ── Connexion Hub (jeton Muse, #38) ──────────────────────────────────────
+  // Le panneau n'a de sens que si un endpoint Hub est configuré (mode 'stub'
+  // = pas de PUBLIC_NARRATE_ENDPOINT du tout → rien à connecter).
+  hubConfigEl.hidden = narratorMode === 'stub';
+  hubStatusEl.textContent =
+    narratorMode === 'hub' ? 'Jeton enregistré.' : 'Aucun jeton enregistré.';
+
+  hubFormEl.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const token = hubInputEl.value.trim();
+    if (!token) return;
+    try {
+      localStorage.setItem(TOKEN_KEY, token);
+    } catch {
+      hubStatusEl.textContent = 'Échec de l’enregistrement (stockage local indisponible).';
+      return;
+    }
+    location.reload();
+  });
+
+  hubClearEl.addEventListener('click', () => {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      // Rien à effacer si le stockage local est indisponible.
+    }
+    location.reload();
+  });
 
   // ── Démarrage moteur ──────────────────────────────────────────────────────
   async function startEngine(): Promise<void> {
@@ -535,6 +633,8 @@
     } catch (err) {
       if (err instanceof ResampleExhausted) {
         addEntry('mn-log__system', `[Aucun candidat valide après ${err.tentatives} tentative(s).]`);
+      } else if (err instanceof NarrateHttpError) {
+        addEntry('mn-log__system', `[Hub : ${narrateErrorMessage(err)}]`);
       } else {
         addEntry('mn-log__system', `[Erreur moteur : ${String(err)}]`);
       }

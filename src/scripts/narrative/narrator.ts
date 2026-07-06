@@ -26,6 +26,53 @@ export function assertCanonShape(packet: ScenePacket): void {
   }
 }
 
+/** Codes d'erreur typés du contrat Hub (`muses/narrate/contract/schema.json#NarrateError`). */
+export type NarrateErrorCode =
+  | 'unauthorized'
+  | 'quota_exhausted'
+  | 'bad_request'
+  | 'schema_incompatible'
+  | 'provider_error';
+
+const NARRATE_ERROR_CODES: ReadonlySet<string> = new Set([
+  'unauthorized',
+  'quota_exhausted',
+  'bad_request',
+  'schema_incompatible',
+  'provider_error',
+] satisfies NarrateErrorCode[]);
+
+/** Erreur typée du relais : permet à l'UI un message précis (jeton, quota, panne provider…). */
+export class NarrateHttpError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: NarrateErrorCode,
+    readonly detail: string,
+    readonly retriable: boolean,
+  ) {
+    super(`Relais /narrate [${code}] (HTTP ${status}) : ${detail}`);
+    this.name = 'NarrateHttpError';
+  }
+}
+
+/** Lit le corps d'erreur ; retombe sur une Error générique si non conforme au contrat. */
+async function readNarrateError(res: Response): Promise<Error> {
+  try {
+    const body = (await res.json()) as { error?: string; detail?: string; retriable?: boolean };
+    if (typeof body.error === 'string' && NARRATE_ERROR_CODES.has(body.error)) {
+      return new NarrateHttpError(
+        res.status,
+        body.error as NarrateErrorCode,
+        body.detail ?? '',
+        body.retriable ?? false,
+      );
+    }
+  } catch {
+    // Corps illisible ou non-JSON : repli générique ci-dessous.
+  }
+  return new Error(`Relais /narrate: HTTP ${res.status}`);
+}
+
 /** Implémentation HTTP du relais (Phase 3+). Documentée ici, branchée plus tard. */
 export class HttpNarrator implements Narrator {
   constructor(
@@ -44,7 +91,7 @@ export class HttpNarrator implements Narrator {
       body: `{"packet":${packetJson},"n":${n}}`,
     });
     if (!res.ok) {
-      throw new Error(`Relais /narrate: HTTP ${res.status}`);
+      throw await readNarrateError(res);
     }
     const data = (await res.json()) as { candidates: string[] };
     return data.candidates;

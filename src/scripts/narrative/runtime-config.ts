@@ -12,12 +12,13 @@ import { HttpNarrator, type Narrator } from './narrator';
 import { StubNarrator } from './stub-narrator';
 import { DownloadPublisher, HttpPublisher, type Publisher } from './export';
 
-const TOKEN_KEY = 'cn-hub-token';
+export const TOKEN_KEY = 'cn-hub-token';
 
 function env(key: string): string | undefined {
-  // import.meta.env est injecté par Vite/Astro ; absent en test → undefined.
-  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
-  return meta.env?.[key];
+  // Le littéral `import.meta.env` doit apparaître tel quel (sans indirection via
+  // une variable/cast intermédiaire) : Vite ne détecte et n'injecte l'objet
+  // d'environnement que s'il repère ce motif exact dans le code source.
+  return (import.meta.env as Record<string, string | undefined> | undefined)?.[key];
 }
 
 function localToken(): string | undefined {
@@ -28,12 +29,21 @@ function localToken(): string | undefined {
   }
 }
 
-/** Le narrateur réel si le Hub est configuré, sinon le stub de démo. */
-export function resolveNarrator(): { narrator: Narrator; mode: 'hub' | 'stub' } {
+/**
+ * Le narrateur réel si le Hub est configuré, sinon le stub de démo.
+ *
+ * `mode` distingue `'stub-no-token'` (endpoint posé mais jeton Muse absent du
+ * `localStorage`) de `'stub'` (rien configuré) : même narrateur de repli dans
+ * les deux cas, mais l'UI doit pouvoir signaler qu'il manque juste un jeton.
+ */
+export function resolveNarrator(): { narrator: Narrator; mode: 'hub' | 'stub' | 'stub-no-token' } {
   const endpoint = env('PUBLIC_NARRATE_ENDPOINT');
   const token = localToken();
   if (endpoint && token) {
     return { narrator: new HttpNarrator(endpoint, token), mode: 'hub' };
+  }
+  if (endpoint && !token) {
+    return { narrator: new StubNarrator(), mode: 'stub-no-token' };
   }
   return { narrator: new StubNarrator(), mode: 'stub' };
 }

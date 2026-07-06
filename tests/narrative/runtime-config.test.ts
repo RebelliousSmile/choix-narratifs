@@ -68,11 +68,24 @@ describe('résolution par config', () => {
     }
   });
 
+  afterEach(() => vi.unstubAllEnvs());
+
   it('sans endpoint → narrateur stub', () => {
     expect(resolveNarrator().mode).toBe('stub');
   });
 
   it('sans endpoint → publieur download', () => {
     expect(resolvePublisher().mode).toBe('download');
+  });
+
+  it('endpoint posé mais jeton absent → stub-no-token (bascule visible, #38)', () => {
+    vi.stubEnv('PUBLIC_NARRATE_ENDPOINT', 'https://hub.test/narrate');
+    expect(resolveNarrator().mode).toBe('stub-no-token');
+  });
+
+  it('endpoint + jeton → narrateur hub', () => {
+    vi.stubEnv('PUBLIC_NARRATE_ENDPOINT', 'https://hub.test/narrate');
+    globalThis.localStorage?.setItem('cn-hub-token', 'tok');
+    expect(resolveNarrator().mode).toBe('hub');
   });
 });
