@@ -2,7 +2,12 @@
 // (engine/core/tests/export.rs) ; ici on vérifie la vue lisible produite côté TS.
 
 import { describe, it, expect } from 'vitest';
-import { renderMarkdown, type CompteRendu } from '../../src/scripts/narrative/export';
+import {
+  renderMarkdown,
+  slugLieu,
+  withFrontMatter,
+  type CompteRendu,
+} from '../../src/scripts/narrative/export';
 
 function cr(over: Partial<CompteRendu> = {}): CompteRendu {
   return {
@@ -56,5 +61,43 @@ describe('renderMarkdown', () => {
     expect(md).not.toContain('null');
     // Aucune ligne d'ambiance en italique seul.
     expect(md.split('\n').some((l) => /^\*[^*]+\*$/.test(l))).toBe(false);
+  });
+});
+
+describe('slugLieu', () => {
+  it('dé-accentue et tirette', () => {
+    expect(slugLieu("L'arrière-salle du café")).toBe('l-arriere-salle-du-cafe');
+  });
+  it('rogne les tirets de bord', () => {
+    expect(slugLieu('  Le quai !!  ')).toBe('le-quai');
+  });
+  it('se replie sur un défaut si vide', () => {
+    expect(slugLieu('***')).toBe('compte-rendu');
+  });
+});
+
+describe('withFrontMatter', () => {
+  const date = new Date('2026-07-06T01:55:00Z');
+
+  it('préfixe un front-matter YAML publiable, date figée', () => {
+    const out = withFrontMatter(cr(), renderMarkdown(cr()), date);
+    expect(out.startsWith('---\n')).toBe(true);
+    expect(out).toContain('titre: "Le quai"');
+    expect(out).toContain('pnj: "Le docker"');
+    expect(out).toContain('date: 2026-07-06');
+    expect(out).toContain('faits_appris: 1');
+    expect(out).toContain('resolu: false');
+    // Le corps rendu suit le front-matter.
+    expect(out).toContain('# Le quai');
+  });
+
+  it('marque resolu quand il y a un dénouement', () => {
+    const c = cr({ resolutions: [{ revelation: 'C’était Verain.' }] });
+    expect(withFrontMatter(c, renderMarkdown(c), date)).toContain('resolu: true');
+  });
+
+  it('échappe les guillemets du titre', () => {
+    const c = cr({ scene: { lieu: 'Chez "Milo"', ambiance: null, pnj_nom: 'P', pnj_voix: 'v' } });
+    expect(withFrontMatter(c, '', date)).toContain('titre: "Chez \\"Milo\\""');
   });
 });

@@ -99,11 +99,12 @@ fn narrate_stub(packet_json: &str, tour: u32, batch: u32) -> Vec<String> {
         serde_json::from_str(packet_json).expect("le relais ne reçoit qu'un paquet valide");
 
     match (tour, batch) {
-        // Tour 1 : un fuyard (#0) + un valide (#1).
+        // Tour 1 : un fuyard (#0, cite le secret) + un aveu valide (#1).
         (1, _) => vec![
             "Le docker grogne. « Verain a payé pour tout ça. La cargaison a quitté le quai. »"
                 .into(),
-            "Le docker se détourne et crache. « La cargaison ? Partie. Elle a quitté le quai. »"
+            "Le docker pèse sa question, puis crache par terre. « La cargaison ? Partie. \
+             Elle a quitté le quai mardi soir, et vous n'en tirerez pas plus. »"
                 .into(),
         ],
         // Tour 2, batch 0 : fuite, contradiction, move non exécuté → tous écartés.
@@ -112,9 +113,10 @@ fn narrate_stub(packet_json: &str, tour: u32, batch: u32) -> Vec<String> {
             "Il hausse les épaules. « La cargaison est toujours sur le quai. »".into(),
             "Il sourit, serein, et ne bronche pas.".into(),
         ],
-        // Tour 2, resample : un candidat valide.
+        // Tour 2, resample : le PNJ se braque mais lâche à nouveau le fait (relance valide).
         (2, _) => vec![
-            "Le docker détourne les yeux. « Lâche-moi. Tout ce que je sais : elle a quitté le quai. »"
+            "Le docker vous repousse d'une main. « Lâche-moi. Je vous l'ai dit : \
+             elle a quitté le quai. Rien de plus. »"
                 .into(),
         ],
         _ => vec![],
