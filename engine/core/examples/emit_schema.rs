@@ -10,7 +10,10 @@ use cn_core::engine::{
     SceneInfo, SecretResolution, TourTraceView, VerdictTrace, CommitTrace,
 };
 use cn_core::moves::Move;
-use cn_core::packet::{Cadre, Form, Locuteur, Ratio, Registre, ScenePacket, ShapeTag};
+use cn_core::packet::{
+    Cadre, Form, JudgeRejet, JudgeRequest, JudgeResponse, Locuteur, Ratio, Registre, ScenePacket,
+    ShapeTag,
+};
 use cn_core::state::SceneSpec;
 use cn_core::verifier::Rejet;
 use schemars::gen::SchemaSettings;
@@ -27,6 +30,8 @@ fn main() {
     reg!(
         ScenePacket, Cadre, Locuteur, Form, Registre, Ratio, ShapeTag,
         Prepared, Outcome, Rejet, SceneInfo,
+        // Enveloppe du juge sémantique canon-free (`/judge`, #39).
+        JudgeRequest, JudgeResponse, JudgeRejet,
         SceneSpec, Move,
         CompteRendu, Echange, ResolutionPublique, SecretResolution, Decision, ExportError,
         VerdictTrace, CommitTrace, TourTraceView,

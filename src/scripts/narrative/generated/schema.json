@@ -227,6 +227,90 @@
       ],
       "type": "object"
     },
+    "JudgeRejet": {
+      "description": "Verdict que le juge peut rendre. La `Fuite` est **structurellement absente** (pas seulement interdite par convention) : le juge ne peut pas l'exprimer. Même forme filaire que [`crate::verifier::Rejet`] (`tag=\"type\"`, `content=\"detail\"`, `snake_case`) → isomorphe au `JudgeRejet` de `judge.ts` (`Extract<Rejet, contradiction | move_non_execute>`).",
+      "oneOf": [
+        {
+          "description": "La prose nie un fait établi — jugé par le sens, sans canon.",
+          "properties": {
+            "detail": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "contradiction"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "La prose n'exécute pas le move décidé.",
+          "properties": {
+            "type": {
+              "enum": [
+                "move_non_execute"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "JudgeRequest": {
+      "additionalProperties": false,
+      "description": "Corps de `POST /judge`. Canon-free par construction : `packet` (déjà canon-free) + les candidats déjà générés — rien d'autre ne doit entrer.",
+      "properties": {
+        "candidates": {
+          "description": "Les candidats de prose à juger (le lot best-of-N déjà rendu par le narrateur).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "packet": {
+          "$ref": "#/definitions/ScenePacket"
+        }
+      },
+      "required": [
+        "candidates",
+        "packet"
+      ],
+      "type": "object"
+    },
+    "JudgeResponse": {
+      "additionalProperties": false,
+      "description": "Réponse de `POST /judge` : un verdict par candidat, dans l'ordre. `None` = rien à objecter sémantiquement. Jamais de `Fuite` (cf. [`JudgeRejet`]).",
+      "properties": {
+        "verdicts": {
+          "description": "Aligné 1:1 sur `candidates` de la requête. `Array<JudgeRejet | null>` en TS.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/JudgeRejet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "verdicts"
+      ],
+      "type": "object"
+    },
     "Locuteur": {
       "additionalProperties": false,
       "description": "Le PNJ qui parle / agit ce beat.",

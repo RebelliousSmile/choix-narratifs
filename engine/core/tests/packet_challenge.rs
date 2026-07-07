@@ -229,3 +229,64 @@ fn limite_un_secret_dans_withhold_passe_la_validation() {
     p.withhold = vec!["la réponse est Verain".into()];
     assert!(p.validate().is_ok());
 }
+
+// --- 10. L'enveloppe du juge sémantique (`/judge`, #39) : canon-free + Fuite absente ---
+
+#[test]
+fn judge_request_refuse_champ_surnumeraire() {
+    // Forme fermée : rien d'autre que packet + candidates. On part d'une requête
+    // VALIDE et on injecte un champ parasite (« canon ») → doit être rejeté.
+    let req = JudgeRequest { packet: exemple(), candidates: vec!["a".into()] };
+    let mut v = serde_json::to_value(&req).unwrap();
+    v.as_object_mut().unwrap().insert("canon".into(), serde_json::json!("Verain"));
+    let json = serde_json::to_string(&v).unwrap();
+    assert!(
+        serde_json::from_str::<JudgeRequest>(&json).is_err(),
+        "deny_unknown_fields doit rejeter le champ surnuméraire « canon »"
+    );
+}
+
+#[test]
+fn judge_request_validate_borne_les_candidats() {
+    let ok = JudgeRequest { packet: exemple(), candidates: vec!["a".into()] };
+    assert!(ok.validate().is_ok());
+
+    let vide = JudgeRequest { packet: exemple(), candidates: vec![] };
+    assert_eq!(vide.validate(), Err(PacketError::CandidatsHorsBornes { len: 0 }));
+
+    let trop = JudgeRequest {
+        packet: exemple(),
+        candidates: (0..(N_MAX as usize + 1)).map(|i| i.to_string()).collect(),
+    };
+    assert_eq!(
+        trop.validate(),
+        Err(PacketError::CandidatsHorsBornes { len: N_MAX as usize + 1 })
+    );
+}
+
+#[test]
+fn judge_response_round_trip_avec_verdicts_mixtes() {
+    let r = JudgeResponse {
+        verdicts: vec![None, Some(JudgeRejet::Contradiction("nie un fait".into())), Some(JudgeRejet::MoveNonExecute)],
+    };
+    let json = serde_json::to_string(&r).unwrap();
+    let back: JudgeResponse = serde_json::from_str(&json).unwrap();
+    assert_eq!(r, back);
+    // `None` voyage bien en `null`.
+    assert!(json.contains("null"));
+}
+
+#[test]
+fn judge_response_ne_peut_pas_exprimer_la_fuite() {
+    // Le juge ne voit jamais le secret : `Fuite` est STRUCTURELLEMENT hors de son
+    // vocabulaire. Un verdict `fuite` sur le fil est donc rejeté au parse — preuve
+    // que le type (et non une simple convention) tient le mur.
+    let json = r#"{"verdicts":[{"type":"fuite","detail":"Verain"}]}"#;
+    assert!(
+        serde_json::from_str::<JudgeResponse>(json).is_err(),
+        "JudgeRejet ne doit pas pouvoir désérialiser un verdict de fuite"
+    );
+    // Contre-preuve : les deux verdicts légitimes passent.
+    let ok = r#"{"verdicts":[{"type":"contradiction","detail":"x"},{"type":"move_non_execute"}]}"#;
+    assert!(serde_json::from_str::<JudgeResponse>(ok).is_ok());
+}
