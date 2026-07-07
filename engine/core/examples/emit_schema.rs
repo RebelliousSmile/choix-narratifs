@@ -21,7 +21,13 @@ use serde_json::{json, Value};
 
 fn main() {
     // Un seul générateur → toutes les définitions partagées dans un même `$defs`.
-    let mut gen = SchemaSettings::draft2019_09().into_generator();
+    // `definitions_path` aligné sur `$defs` : par défaut schemars émet des `$ref`
+    // en `#/definitions/`, incohérents avec le conteneur `$defs` assemblé plus bas
+    // (draft 2019-09). On force le pointeur pour que les refs internes visent
+    // `#/$defs/` — sinon le Hub doit corriger à la main (viole l'invariant #4).
+    let mut settings = SchemaSettings::draft2019_09();
+    settings.definitions_path = "#/$defs/".to_string();
+    let mut gen = settings.into_generator();
 
     // Enregistre chaque type de frontière (les dépendances suivent automatiquement).
     macro_rules! reg {

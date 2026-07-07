@@ -55,7 +55,7 @@
       "properties": {
         "echanges": {
           "items": {
-            "$ref": "#/definitions/Echange"
+            "$ref": "#/$defs/Echange"
           },
           "type": "array"
         },
@@ -67,12 +67,12 @@
         },
         "resolutions": {
           "items": {
-            "$ref": "#/definitions/ResolutionPublique"
+            "$ref": "#/$defs/ResolutionPublique"
           },
           "type": "array"
         },
         "scene": {
-          "$ref": "#/definitions/SceneInfo"
+          "$ref": "#/$defs/SceneInfo"
         }
       },
       "required": [
@@ -207,16 +207,16 @@
           "default": [],
           "description": "Shapes à NE PAS reproduire (typiquement les 3 dernières utilisées), pour casser l'appariement 1:1 en lockstep (§6).",
           "items": {
-            "$ref": "#/definitions/ShapeTag"
+            "$ref": "#/$defs/ShapeTag"
           },
           "type": "array"
         },
         "ratio": {
-          "$ref": "#/definitions/Ratio",
+          "$ref": "#/$defs/Ratio",
           "description": "Ratio souhaité non-verbal / verbal."
         },
         "registre": {
-          "$ref": "#/definitions/Registre",
+          "$ref": "#/$defs/Registre",
           "description": "Registre / ton de ce beat."
         }
       },
@@ -278,7 +278,7 @@
           "type": "array"
         },
         "packet": {
-          "$ref": "#/definitions/ScenePacket"
+          "$ref": "#/$defs/ScenePacket"
         }
       },
       "required": [
@@ -296,7 +296,7 @@
           "items": {
             "anyOf": [
               {
-                "$ref": "#/definitions/JudgeRejet"
+                "$ref": "#/$defs/JudgeRejet"
               },
               {
                 "type": "null"
@@ -400,7 +400,7 @@
                     "type": "integer"
                   },
                   {
-                    "$ref": "#/definitions/Rejet"
+                    "$ref": "#/$defs/Rejet"
                   }
                 ],
                 "maxItems": 2,
@@ -427,7 +427,7 @@
           "type": "integer"
         },
         "packet": {
-          "$ref": "#/definitions/ScenePacket"
+          "$ref": "#/$defs/ScenePacket"
         }
       },
       "required": [
@@ -562,11 +562,11 @@
           "type": "string"
         },
         "cadre": {
-          "$ref": "#/definitions/Cadre",
+          "$ref": "#/$defs/Cadre",
           "description": "Cadre non-secret de la scène : lieu, ambiance, présents."
         },
         "form": {
-          "$ref": "#/definitions/Form",
+          "$ref": "#/$defs/Form",
           "description": "Contraintes de forme posées par beat (§6) : des clôtures, pas des couloirs."
         },
         "hearing": {
@@ -574,7 +574,7 @@
           "type": "string"
         },
         "locuteur": {
-          "$ref": "#/definitions/Locuteur",
+          "$ref": "#/$defs/Locuteur",
           "description": "Le PNJ qui agit ce beat : identité publique + voix."
         },
         "move": {
@@ -690,7 +690,7 @@
       "description": "Entrée du producteur : la décision prise pour un secret donné.",
       "properties": {
         "decision": {
-          "$ref": "#/definitions/Decision"
+          "$ref": "#/$defs/Decision"
         },
         "secret": {
           "type": "string"
@@ -720,7 +720,7 @@
         "commit": {
           "anyOf": [
             {
-              "$ref": "#/definitions/CommitTrace"
+              "$ref": "#/$defs/CommitTrace"
             },
             {
               "type": "null"
@@ -737,7 +737,7 @@
         },
         "verdicts": {
           "items": {
-            "$ref": "#/definitions/VerdictTrace"
+            "$ref": "#/$defs/VerdictTrace"
           },
           "type": "array"
         }
@@ -760,7 +760,7 @@
         "rejet": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Rejet"
+              "$ref": "#/$defs/Rejet"
             },
             {
               "type": "null"

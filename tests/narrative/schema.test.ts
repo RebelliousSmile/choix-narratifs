@@ -36,4 +36,12 @@ describe('JSON Schema publié par le moteur', () => {
   it('deny_unknown_fields → additionalProperties:false sur le paquet', () => {
     expect(defs.ScenePacket.additionalProperties).toBe(false);
   });
+
+  it('CN-C : les $ref internes pointent vers #/$defs/, jamais #/definitions/', () => {
+    // Le conteneur est `$defs` (draft 2019-09) — des refs `#/definitions/`
+    // pointeraient dans le vide et forceraient le Hub à corriger à la main.
+    const brut = JSON.stringify(schema);
+    expect(brut).not.toContain('#/definitions/');
+    expect(brut).toContain('#/$defs/');
+  });
 });
