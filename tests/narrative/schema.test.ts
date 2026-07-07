@@ -37,6 +37,15 @@ describe('JSON Schema publié par le moteur', () => {
     expect(defs.ScenePacket.additionalProperties).toBe(false);
   });
 
+  it('CN-B : l’enveloppe /narrate figure dans le schéma (anti-dérive non aveugle)', () => {
+    // Sans ces types, la dérive d'enveloppe (#41/CN-A) ne pouvait pas être vue
+    // par le garde-fou. Ils sont maintenant émis depuis la source de vérité.
+    expect(defs.NarrateRequest).toBeDefined();
+    expect(defs.NarrateResponse).toBeDefined();
+    expect(defs.NarrateResponse.required).toEqual(['candidates', 'schema_version']);
+    expect(defs.NarrateResponse.properties.credits_spent).toBeUndefined();
+  });
+
   it('CN-C : les $ref internes pointent vers #/$defs/, jamais #/definitions/', () => {
     // Le conteneur est `$defs` (draft 2019-09) — des refs `#/definitions/`
     // pointeraient dans le vide et forceraient le Hub à corriger à la main.

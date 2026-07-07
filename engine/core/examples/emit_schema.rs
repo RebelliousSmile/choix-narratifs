@@ -11,8 +11,8 @@ use cn_core::engine::{
 };
 use cn_core::moves::Move;
 use cn_core::packet::{
-    Cadre, Form, JudgeRejet, JudgeRequest, JudgeResponse, Locuteur, Ratio, Registre, ScenePacket,
-    ShapeTag,
+    Cadre, Form, JudgeRejet, JudgeRequest, JudgeResponse, Locuteur, NarrateRequest, NarrateResponse,
+    Ratio, Registre, ScenePacket, ShapeTag,
 };
 use cn_core::state::SceneSpec;
 use cn_core::verifier::Rejet;
@@ -36,6 +36,8 @@ fn main() {
     reg!(
         ScenePacket, Cadre, Locuteur, Form, Registre, Ratio, ShapeTag,
         Prepared, Outcome, Rejet, SceneInfo,
+        // Enveloppe du relais `/narrate` (requête + réponse) — CN-B.
+        NarrateRequest, NarrateResponse,
         // Enveloppe du juge sémantique canon-free (`/judge`, #39).
         JudgeRequest, JudgeResponse, JudgeRejet,
         SceneSpec, Move,

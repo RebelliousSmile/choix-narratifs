@@ -346,6 +346,50 @@
       ],
       "type": "object"
     },
+    "NarrateRequest": {
+      "additionalProperties": false,
+      "description": "Corps de `POST /narrate`. Le relais valide : `schema_version`, forme fermée, et `N_MIN <= n <= N_MAX`. Il ne lit jamais le *sens* du paquet (aveugle au canon).",
+      "properties": {
+        "n": {
+          "description": "best-of-N : nombre de candidats à générer.",
+          "format": "uint8",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "packet": {
+          "$ref": "#/$defs/ScenePacket"
+        }
+      },
+      "required": [
+        "n",
+        "packet"
+      ],
+      "type": "object"
+    },
+    "NarrateResponse": {
+      "additionalProperties": false,
+      "description": "Réponse de `POST /narrate` (corps). Alignée sur ce que le Hub renvoie réellement : `{ candidates, schema_version }`. Le crédit Muse débité n'est PAS dans le corps — il voyage en en-tête `X-Muses-Credits-Spent`, lu côté hôte.",
+      "properties": {
+        "candidates": {
+          "description": "Les candidats de prose (aveugles aux secrets). Le verifier les triera.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "description": "Écho de la version de contrat traitée par le relais (doit valoir [`PACKET_SCHEMA_VERSION`]).",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidates",
+        "schema_version"
+      ],
+      "type": "object"
+    },
     "Outcome": {
       "description": "Résultat de `resolve`.",
       "oneOf": [

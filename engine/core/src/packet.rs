@@ -249,6 +249,7 @@ impl ScenePacket {
 /// et `N_MIN <= n <= N_MAX`. Il ne lit jamais le *sens* du paquet (aveugle au canon).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NarrateRequest {
     pub packet: ScenePacket,
     /// best-of-N : nombre de candidats à générer.
@@ -270,6 +271,7 @@ impl NarrateRequest {
 /// dans le corps — il voyage en en-tête `X-Muses-Credits-Spent`, lu côté hôte.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NarrateResponse {
     /// Les candidats de prose (aveugles aux secrets). Le verifier les triera.
     pub candidates: Vec<String>,
