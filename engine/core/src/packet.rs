@@ -265,14 +265,16 @@ impl NarrateRequest {
     }
 }
 
-/// Réponse de `POST /narrate`.
+/// Réponse de `POST /narrate` (corps). Alignée sur ce que le Hub renvoie
+/// réellement : `{ candidates, schema_version }`. Le crédit Muse débité n'est PAS
+/// dans le corps — il voyage en en-tête `X-Muses-Credits-Spent`, lu côté hôte.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct NarrateResponse {
     /// Les candidats de prose (aveugles aux secrets). Le verifier les triera.
     pub candidates: Vec<String>,
-    /// Crédits Muse débités (≈ n).
-    pub credits_spent: u32,
+    /// Écho de la version de contrat traitée par le relais (doit valoir [`PACKET_SCHEMA_VERSION`]).
+    pub schema_version: u32,
 }
 
 // ---------------------------------------------------------------------------

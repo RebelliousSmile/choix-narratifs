@@ -191,7 +191,7 @@ fn json_minimal_sans_champs_default_parse() {
 fn narrate_response_round_trip() {
     let r = NarrateResponse {
         candidates: vec!["a".into(), "b".into()],
-        credits_spent: 3,
+        schema_version: 1,
     };
     let json = serde_json::to_string(&r).unwrap();
     let back: NarrateResponse = serde_json::from_str(&json).unwrap();
@@ -199,8 +199,25 @@ fn narrate_response_round_trip() {
 }
 
 #[test]
+fn narrate_response_accepte_le_corps_reel_du_hub() {
+    // Le Hub renvoie { candidates, schema_version } ; le crédit est en en-tête
+    // X-Muses-Credits-Spent, jamais dans le corps.
+    let json = r#"{"candidates":["il se détourne."],"schema_version":1}"#;
+    let r: NarrateResponse = serde_json::from_str(json).unwrap();
+    assert_eq!(r.schema_version, 1);
+}
+
+#[test]
+fn narrate_response_refuse_lancien_credits_spent_dans_le_corps() {
+    // Régression anti-dérive (CN-A) : le crédit a migré en en-tête → un
+    // `credits_spent` dans le corps est désormais refusé.
+    let json = r#"{"candidates":[],"credits_spent":0}"#;
+    assert!(serde_json::from_str::<NarrateResponse>(json).is_err());
+}
+
+#[test]
 fn narrate_response_refuse_champ_surnumeraire() {
-    let json = r#"{"candidates":[],"credits_spent":0,"debug":"x"}"#;
+    let json = r#"{"candidates":[],"schema_version":1,"debug":"x"}"#;
     assert!(serde_json::from_str::<NarrateResponse>(json).is_err());
 }
 
