@@ -24,6 +24,7 @@ fn spec() -> SceneSpec {
         ambiance: None,
         pnj_nom: "Soren".into(),
         pnj_voix: "nerveux".into(),
+        language: None,
         secret: "Maline a tout orchestré".into(),
         jetons_fuite: vec!["Maline".into()],
         revealable: vec!["la livraison a eu lieu mardi".into()],

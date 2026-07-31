@@ -68,6 +68,11 @@ pub struct World {
     pub canon: Canon,
     pub cadre: Cadre,
     pub locuteur: Locuteur,
+    /// Langue de la scène (BCP-47 : "fr", "fr-CA", "en"). Propriété **publique**
+    /// de la scène — franchit le paquet, jamais du canon. `default` : les snapshots
+    /// antérieurs (sans langue) se chargent en retombant sur le défaut.
+    #[serde(default = "langue_par_defaut")]
+    pub language: String,
     /// Faits non-secrets que le directeur peut exposer (sous budget).
     pub revealable: Vec<String>,
     /// Étiquettes de sujet tu (jamais le contenu) — passe telles quelles au paquet.
@@ -101,6 +106,10 @@ pub struct SceneSpec {
     pub ambiance: Option<String>,
     pub pnj_nom: String,
     pub pnj_voix: String,
+    /// Langue de la scène (BCP-47). Optionnel côté auteur : absent → défaut "fr".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts", ts(optional))]
+    pub language: Option<String>,
     /// Le grand secret (la réponse tue).
     pub secret: String,
     /// Mots qui trahissent le secret. Si vide, dérivé des noms propres du secret.
@@ -192,6 +201,11 @@ fn derive_jetons_fuite(secret: &str) -> Vec<String> {
         .collect()
 }
 
+/// Langue par défaut quand aucune n'est fournie (auteur / vieux snapshot).
+fn langue_par_defaut() -> String {
+    "fr".into()
+}
+
 impl World {
     /// Construit un monde jouable depuis un devis d'auteur.
     ///
@@ -206,6 +220,11 @@ impl World {
             .map(|r| r.trim().to_string())
             .filter(|r| !r.is_empty())
             .collect();
+        // Langue absente/vide (auteur qui ne l'a pas saisie) → défaut.
+        let language = spec
+            .language
+            .filter(|l| !l.trim().is_empty())
+            .unwrap_or_else(langue_par_defaut);
         World {
             canon: Canon {
                 secret_reponse: spec.secret,
@@ -219,6 +238,7 @@ impl World {
                 presents: vec![],
             },
             locuteur: Locuteur { nom: spec.pnj_nom, voix: spec.pnj_voix },
+            language,
             jetons_move: revealable.clone(),
             revealable,
             withhold: spec.withhold,
@@ -251,6 +271,7 @@ impl World {
                 nom: "le docker".into(),
                 voix: "bourru, phrases courtes".into(),
             },
+            language: "fr".into(),
             revealable: vec!["la cargaison a quitté le quai".into()],
             withhold: vec!["qui a payé".into()],
             jetons_move: vec!["quitté le quai".into(), "partie".into(), "embarqué".into()],

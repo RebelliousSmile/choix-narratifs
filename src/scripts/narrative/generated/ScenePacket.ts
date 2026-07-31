@@ -17,6 +17,13 @@ schema_version: number,
  */
 cadre: Cadre, 
 /**
+ * Langue de la scène, au format BCP-47 ("fr", "fr-CA", "en"). Héritée de la
+ * scène (`World`), jamais devinée par le narrateur depuis le texte. Non-canon :
+ * ni secret, ni vérité, ni état épistémique — traverse le mur sans le violer.
+ * Aligné sur ActivityPub `contentMap` (indexé par tag de langue, utile Phase 6).
+ */
+language: string, 
+/**
  * Le PNJ qui agit ce beat : identité publique + voix.
  */
 locuteur: Locuteur, 

@@ -66,6 +66,12 @@ pub struct ScenePacket {
     /// Cadre non-secret de la scène : lieu, ambiance, présents.
     pub cadre: Cadre,
 
+    /// Langue de la scène, au format BCP-47 ("fr", "fr-CA", "en"). Héritée de la
+    /// scène (`World`), jamais devinée par le narrateur depuis le texte. Non-canon :
+    /// ni secret, ni vérité, ni état épistémique — traverse le mur sans le violer.
+    /// Aligné sur ActivityPub `contentMap` (indexé par tag de langue, utile Phase 6).
+    pub language: String,
+
     /// Le PNJ qui agit ce beat : identité publique + voix.
     pub locuteur: Locuteur,
 
@@ -350,6 +356,7 @@ mod tests {
                 ambiance: Some("pluie fine, lanternes".into()),
                 presents: vec![],
             },
+            language: "fr".into(),
             locuteur: Locuteur {
                 nom: "le docker".into(),
                 voix: "bourru, phrases courtes".into(),

@@ -24,6 +24,7 @@ fn exemple() -> ScenePacket {
             ambiance: Some("pluie fine".into()),
             presents: vec![],
         },
+        language: "fr".into(),
         locuteur: Locuteur { nom: "le docker".into(), voix: "bourru".into() },
         action_joueur: "Je lui demande où est passée la cargaison.".into(),
         hearing: "menace sur le secret".into(),
@@ -173,6 +174,7 @@ fn json_minimal_sans_champs_default_parse() {
     let json = r#"{
         "schema_version":1,
         "cadre":{"lieu":"x"},
+        "language":"fr",
         "locuteur":{"nom":"a","voix":"b"},
         "action_joueur":"","hearing":"","move":"",
         "revealable":[],"withhold":[],

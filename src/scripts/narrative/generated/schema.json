@@ -617,6 +617,10 @@
           "description": "Comment le locuteur ENTEND l'énoncé du joueur, via son savoir/biais. La *forme* de la méprise (§6), motivée et lisible — pas le secret.",
           "type": "string"
         },
+        "language": {
+          "description": "Langue de la scène, au format BCP-47 (\"fr\", \"fr-CA\", \"en\"). Héritée de la scène (`World`), jamais devinée par le narrateur depuis le texte. Non-canon : ni secret, ni vérité, ni état épistémique — traverse le mur sans le violer. Aligné sur ActivityPub `contentMap` (indexé par tag de langue, utile Phase 6).",
+          "type": "string"
+        },
         "locuteur": {
           "$ref": "#/$defs/Locuteur",
           "description": "Le PNJ qui agit ce beat : identité publique + voix."
@@ -651,6 +655,7 @@
         "cadre",
         "form",
         "hearing",
+        "language",
         "locuteur",
         "move",
         "revealable",
@@ -691,6 +696,13 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "language": {
+          "description": "Langue de la scène (BCP-47). Optionnel côté auteur : absent → défaut \"fr\".",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "lieu": {
           "type": "string"

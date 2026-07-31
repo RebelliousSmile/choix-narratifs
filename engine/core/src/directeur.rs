@@ -63,6 +63,7 @@ pub fn prepare(world: &World, action_joueur: &str) -> BeatBrief {
             ambiance: world.cadre.ambiance.clone(),
             presents: world.cadre.presents.clone(),
         },
+        language: world.language.clone(),
         locuteur: Locuteur {
             nom: world.locuteur.nom.clone(),
             voix: world.locuteur.voix.clone(),

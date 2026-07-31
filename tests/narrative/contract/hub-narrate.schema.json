@@ -81,6 +81,7 @@
       "required": [
         "schema_version",
         "cadre",
+        "language",
         "locuteur",
         "action_joueur",
         "hearing",
@@ -95,6 +96,10 @@
           "description": "Version du contrat (PACKET_SCHEMA_VERSION). Un paquet d'une autre version → réponse `schema_incompatible`."
         },
         "cadre": { "$ref": "#/$defs/Cadre" },
+        "language": {
+          "type": "string",
+          "description": "Langue de la scène, BCP-47 (\"fr\", \"fr-CA\", \"en\"). Héritée de la scène, non-canon. Aligné ActivityPub contentMap (Phase 6)."
+        },
         "locuteur": { "$ref": "#/$defs/Locuteur" },
         "action_joueur": {
           "type": "string",
