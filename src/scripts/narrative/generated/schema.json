@@ -55,7 +55,7 @@
       "properties": {
         "echanges": {
           "items": {
-            "$ref": "#/definitions/Echange"
+            "$ref": "#/$defs/Echange"
           },
           "type": "array"
         },
@@ -67,12 +67,12 @@
         },
         "resolutions": {
           "items": {
-            "$ref": "#/definitions/ResolutionPublique"
+            "$ref": "#/$defs/ResolutionPublique"
           },
           "type": "array"
         },
         "scene": {
-          "$ref": "#/definitions/SceneInfo"
+          "$ref": "#/$defs/SceneInfo"
         }
       },
       "required": [
@@ -207,16 +207,16 @@
           "default": [],
           "description": "Shapes à NE PAS reproduire (typiquement les 3 dernières utilisées), pour casser l'appariement 1:1 en lockstep (§6).",
           "items": {
-            "$ref": "#/definitions/ShapeTag"
+            "$ref": "#/$defs/ShapeTag"
           },
           "type": "array"
         },
         "ratio": {
-          "$ref": "#/definitions/Ratio",
+          "$ref": "#/$defs/Ratio",
           "description": "Ratio souhaité non-verbal / verbal."
         },
         "registre": {
-          "$ref": "#/definitions/Registre",
+          "$ref": "#/$defs/Registre",
           "description": "Registre / ton de ce beat."
         }
       },
@@ -224,6 +224,90 @@
         "budget_revelation",
         "ratio",
         "registre"
+      ],
+      "type": "object"
+    },
+    "JudgeRejet": {
+      "description": "Verdict que le juge peut rendre. La `Fuite` est **structurellement absente** (pas seulement interdite par convention) : le juge ne peut pas l'exprimer. Même forme filaire que [`crate::verifier::Rejet`] (`tag=\"type\"`, `content=\"detail\"`, `snake_case`) → isomorphe au `JudgeRejet` de `judge.ts` (`Extract<Rejet, contradiction | move_non_execute>`).",
+      "oneOf": [
+        {
+          "description": "La prose nie un fait établi — jugé par le sens, sans canon.",
+          "properties": {
+            "detail": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "contradiction"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "La prose n'exécute pas le move décidé.",
+          "properties": {
+            "type": {
+              "enum": [
+                "move_non_execute"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "JudgeRequest": {
+      "additionalProperties": false,
+      "description": "Corps de `POST /judge`. Canon-free par construction : `packet` (déjà canon-free) + les candidats déjà générés — rien d'autre ne doit entrer.",
+      "properties": {
+        "candidates": {
+          "description": "Les candidats de prose à juger (le lot best-of-N déjà rendu par le narrateur).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "packet": {
+          "$ref": "#/$defs/ScenePacket"
+        }
+      },
+      "required": [
+        "candidates",
+        "packet"
+      ],
+      "type": "object"
+    },
+    "JudgeResponse": {
+      "additionalProperties": false,
+      "description": "Réponse de `POST /judge` : un verdict par candidat, dans l'ordre. `None` = rien à objecter sémantiquement. Jamais de `Fuite` (cf. [`JudgeRejet`]).",
+      "properties": {
+        "verdicts": {
+          "description": "Aligné 1:1 sur `candidates` de la requête. `Array<JudgeRejet | null>` en TS.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/JudgeRejet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "verdicts"
       ],
       "type": "object"
     },
@@ -259,6 +343,50 @@
       "required": [
         "id",
         "libelle"
+      ],
+      "type": "object"
+    },
+    "NarrateRequest": {
+      "additionalProperties": false,
+      "description": "Corps de `POST /narrate`. Le relais valide : `schema_version`, forme fermée, et `N_MIN <= n <= N_MAX`. Il ne lit jamais le *sens* du paquet (aveugle au canon).",
+      "properties": {
+        "n": {
+          "description": "best-of-N : nombre de candidats à générer.",
+          "format": "uint8",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "packet": {
+          "$ref": "#/$defs/ScenePacket"
+        }
+      },
+      "required": [
+        "n",
+        "packet"
+      ],
+      "type": "object"
+    },
+    "NarrateResponse": {
+      "additionalProperties": false,
+      "description": "Réponse de `POST /narrate` (corps). Alignée sur ce que le Hub renvoie réellement : `{ candidates, schema_version }`. Le crédit Muse débité n'est PAS dans le corps — il voyage en en-tête `X-Muses-Credits-Spent`, lu côté hôte.",
+      "properties": {
+        "candidates": {
+          "description": "Les candidats de prose (aveugles aux secrets). Le verifier les triera.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "description": "Écho de la version de contrat traitée par le relais (doit valoir [`PACKET_SCHEMA_VERSION`]).",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidates",
+        "schema_version"
       ],
       "type": "object"
     },
@@ -316,7 +444,7 @@
                     "type": "integer"
                   },
                   {
-                    "$ref": "#/definitions/Rejet"
+                    "$ref": "#/$defs/Rejet"
                   }
                 ],
                 "maxItems": 2,
@@ -343,7 +471,7 @@
           "type": "integer"
         },
         "packet": {
-          "$ref": "#/definitions/ScenePacket"
+          "$ref": "#/$defs/ScenePacket"
         }
       },
       "required": [
@@ -478,19 +606,23 @@
           "type": "string"
         },
         "cadre": {
-          "$ref": "#/definitions/Cadre",
+          "$ref": "#/$defs/Cadre",
           "description": "Cadre non-secret de la scène : lieu, ambiance, présents."
         },
         "form": {
-          "$ref": "#/definitions/Form",
+          "$ref": "#/$defs/Form",
           "description": "Contraintes de forme posées par beat (§6) : des clôtures, pas des couloirs."
         },
         "hearing": {
           "description": "Comment le locuteur ENTEND l'énoncé du joueur, via son savoir/biais. La *forme* de la méprise (§6), motivée et lisible — pas le secret.",
           "type": "string"
         },
+        "language": {
+          "description": "Langue de la scène, au format BCP-47 (\"fr\", \"fr-CA\", \"en\"). Héritée de la scène (`World`), jamais devinée par le narrateur depuis le texte. Non-canon : ni secret, ni vérité, ni état épistémique — traverse le mur sans le violer. Aligné sur ActivityPub `contentMap` (indexé par tag de langue, utile Phase 6).",
+          "type": "string"
+        },
         "locuteur": {
-          "$ref": "#/definitions/Locuteur",
+          "$ref": "#/$defs/Locuteur",
           "description": "Le PNJ qui agit ce beat : identité publique + voix."
         },
         "move": {
@@ -523,6 +655,7 @@
         "cadre",
         "form",
         "hearing",
+        "language",
         "locuteur",
         "move",
         "revealable",
@@ -563,6 +696,13 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "language": {
+          "description": "Langue de la scène (BCP-47). Optionnel côté auteur : absent → défaut \"fr\".",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "lieu": {
           "type": "string"
@@ -606,7 +746,7 @@
       "description": "Entrée du producteur : la décision prise pour un secret donné.",
       "properties": {
         "decision": {
-          "$ref": "#/definitions/Decision"
+          "$ref": "#/$defs/Decision"
         },
         "secret": {
           "type": "string"
@@ -636,7 +776,7 @@
         "commit": {
           "anyOf": [
             {
-              "$ref": "#/definitions/CommitTrace"
+              "$ref": "#/$defs/CommitTrace"
             },
             {
               "type": "null"
@@ -653,7 +793,7 @@
         },
         "verdicts": {
           "items": {
-            "$ref": "#/definitions/VerdictTrace"
+            "$ref": "#/$defs/VerdictTrace"
           },
           "type": "array"
         }
@@ -676,7 +816,7 @@
         "rejet": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Rejet"
+              "$ref": "#/$defs/Rejet"
             },
             {
               "type": "null"

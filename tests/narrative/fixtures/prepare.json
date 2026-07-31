@@ -6,6 +6,7 @@
       "ambiance": "pluie fine, lanternes",
       "presents": []
     },
+    "language": "fr",
     "locuteur": {
       "nom": "le docker",
       "voix": "bourru, phrases courtes"

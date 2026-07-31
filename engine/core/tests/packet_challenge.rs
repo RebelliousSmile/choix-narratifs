@@ -24,6 +24,7 @@ fn exemple() -> ScenePacket {
             ambiance: Some("pluie fine".into()),
             presents: vec![],
         },
+        language: "fr".into(),
         locuteur: Locuteur { nom: "le docker".into(), voix: "bourru".into() },
         action_joueur: "Je lui demande où est passée la cargaison.".into(),
         hearing: "menace sur le secret".into(),
@@ -173,6 +174,7 @@ fn json_minimal_sans_champs_default_parse() {
     let json = r#"{
         "schema_version":1,
         "cadre":{"lieu":"x"},
+        "language":"fr",
         "locuteur":{"nom":"a","voix":"b"},
         "action_joueur":"","hearing":"","move":"",
         "revealable":[],"withhold":[],
@@ -191,7 +193,7 @@ fn json_minimal_sans_champs_default_parse() {
 fn narrate_response_round_trip() {
     let r = NarrateResponse {
         candidates: vec!["a".into(), "b".into()],
-        credits_spent: 3,
+        schema_version: 1,
     };
     let json = serde_json::to_string(&r).unwrap();
     let back: NarrateResponse = serde_json::from_str(&json).unwrap();
@@ -199,8 +201,25 @@ fn narrate_response_round_trip() {
 }
 
 #[test]
+fn narrate_response_accepte_le_corps_reel_du_hub() {
+    // Le Hub renvoie { candidates, schema_version } ; le crédit est en en-tête
+    // X-Muses-Credits-Spent, jamais dans le corps.
+    let json = r#"{"candidates":["il se détourne."],"schema_version":1}"#;
+    let r: NarrateResponse = serde_json::from_str(json).unwrap();
+    assert_eq!(r.schema_version, 1);
+}
+
+#[test]
+fn narrate_response_refuse_lancien_credits_spent_dans_le_corps() {
+    // Régression anti-dérive (CN-A) : le crédit a migré en en-tête → un
+    // `credits_spent` dans le corps est désormais refusé.
+    let json = r#"{"candidates":[],"credits_spent":0}"#;
+    assert!(serde_json::from_str::<NarrateResponse>(json).is_err());
+}
+
+#[test]
 fn narrate_response_refuse_champ_surnumeraire() {
-    let json = r#"{"candidates":[],"credits_spent":0,"debug":"x"}"#;
+    let json = r#"{"candidates":[],"schema_version":1,"debug":"x"}"#;
     assert!(serde_json::from_str::<NarrateResponse>(json).is_err());
 }
 
@@ -228,4 +247,65 @@ fn limite_un_secret_dans_withhold_passe_la_validation() {
     let mut p = exemple();
     p.withhold = vec!["la réponse est Verain".into()];
     assert!(p.validate().is_ok());
+}
+
+// --- 10. L'enveloppe du juge sémantique (`/judge`, #39) : canon-free + Fuite absente ---
+
+#[test]
+fn judge_request_refuse_champ_surnumeraire() {
+    // Forme fermée : rien d'autre que packet + candidates. On part d'une requête
+    // VALIDE et on injecte un champ parasite (« canon ») → doit être rejeté.
+    let req = JudgeRequest { packet: exemple(), candidates: vec!["a".into()] };
+    let mut v = serde_json::to_value(&req).unwrap();
+    v.as_object_mut().unwrap().insert("canon".into(), serde_json::json!("Verain"));
+    let json = serde_json::to_string(&v).unwrap();
+    assert!(
+        serde_json::from_str::<JudgeRequest>(&json).is_err(),
+        "deny_unknown_fields doit rejeter le champ surnuméraire « canon »"
+    );
+}
+
+#[test]
+fn judge_request_validate_borne_les_candidats() {
+    let ok = JudgeRequest { packet: exemple(), candidates: vec!["a".into()] };
+    assert!(ok.validate().is_ok());
+
+    let vide = JudgeRequest { packet: exemple(), candidates: vec![] };
+    assert_eq!(vide.validate(), Err(PacketError::CandidatsHorsBornes { len: 0 }));
+
+    let trop = JudgeRequest {
+        packet: exemple(),
+        candidates: (0..(N_MAX as usize + 1)).map(|i| i.to_string()).collect(),
+    };
+    assert_eq!(
+        trop.validate(),
+        Err(PacketError::CandidatsHorsBornes { len: N_MAX as usize + 1 })
+    );
+}
+
+#[test]
+fn judge_response_round_trip_avec_verdicts_mixtes() {
+    let r = JudgeResponse {
+        verdicts: vec![None, Some(JudgeRejet::Contradiction("nie un fait".into())), Some(JudgeRejet::MoveNonExecute)],
+    };
+    let json = serde_json::to_string(&r).unwrap();
+    let back: JudgeResponse = serde_json::from_str(&json).unwrap();
+    assert_eq!(r, back);
+    // `None` voyage bien en `null`.
+    assert!(json.contains("null"));
+}
+
+#[test]
+fn judge_response_ne_peut_pas_exprimer_la_fuite() {
+    // Le juge ne voit jamais le secret : `Fuite` est STRUCTURELLEMENT hors de son
+    // vocabulaire. Un verdict `fuite` sur le fil est donc rejeté au parse — preuve
+    // que le type (et non une simple convention) tient le mur.
+    let json = r#"{"verdicts":[{"type":"fuite","detail":"Verain"}]}"#;
+    assert!(
+        serde_json::from_str::<JudgeResponse>(json).is_err(),
+        "JudgeRejet ne doit pas pouvoir désérialiser un verdict de fuite"
+    );
+    // Contre-preuve : les deux verdicts légitimes passent.
+    let ok = r#"{"verdicts":[{"type":"contradiction","detail":"x"},{"type":"move_non_execute"}]}"#;
+    assert!(serde_json::from_str::<JudgeResponse>(ok).is_ok());
 }

@@ -125,7 +125,10 @@ function objSig(def: any) {
 const enumSig = (def: any): string[] => [...(def.enum ?? [])].sort();
 
 describe('C. Garde anti-dérive ScenePacket (contrat Hub vendorisé vs source CN)', () => {
-  const objets = ['ScenePacket', 'Cadre', 'Locuteur', 'Form'];
+  // CN-B : l'enveloppe /narrate est désormais dans la source CN → on peut la garder
+  // aussi (avant, `NarrateRequest`/`NarrateResponse` manquaient au schéma généré,
+  // ce qui rendait l'anti-dérive d'enveloppe aveugle — cf. la dérive CN-A).
+  const objets = ['ScenePacket', 'Cadre', 'Locuteur', 'Form', 'NarrateRequest'];
   const enums = ['Registre', 'Ratio', 'ShapeTag'];
 
   it.each(objets)('%s : mêmes champs / required / additionalProperties', (nom) => {
@@ -136,5 +139,15 @@ describe('C. Garde anti-dérive ScenePacket (contrat Hub vendorisé vs source CN
 
   it.each(enums)('%s : mêmes membres d’enum', (nom) => {
     expect(enumSig(hubDefs[nom])).toEqual(enumSig(cnDefs[nom]));
+  });
+
+  it('NarrateResponse (CN) ≡ NarrateResponseOk (Hub) : mêmes champs', () => {
+    // Noms distincts (le Hub sépare Ok/Error) et `required` volontairement
+    // différent — le Hub rend `schema_version` optionnel (écho), CN le requiert
+    // (champ Rust). On compare donc les CHAMPS, pas le `required`.
+    const props = (d: any) => Object.keys(d.properties ?? {}).sort();
+    expect(props(cnDefs.NarrateResponse)).toEqual(props(hubDefs.NarrateResponseOk));
+    // Anti-dérive CN-A : le crédit ne réapparaît pas dans le corps.
+    expect(cnDefs.NarrateResponse.properties.credits_spent).toBeUndefined();
   });
 });

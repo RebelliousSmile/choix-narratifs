@@ -20,6 +20,7 @@ fn spec_jouable() -> SceneSpec {
         ambiance: Some("Néons, fumée".into()),
         pnj_nom: "Soren".into(),
         pnj_voix: "Volubile, regarde ses mains".into(),
+        language: None,
         secret: "Maline a commandité le vol".into(),
         jetons_fuite: vec![], // dérivé : "Maline"
         revealable: vec!["le coffre était déjà ouvert".into()],

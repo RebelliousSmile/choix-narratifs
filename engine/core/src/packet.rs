@@ -66,6 +66,12 @@ pub struct ScenePacket {
     /// Cadre non-secret de la scène : lieu, ambiance, présents.
     pub cadre: Cadre,
 
+    /// Langue de la scène, au format BCP-47 ("fr", "fr-CA", "en"). Héritée de la
+    /// scène (`World`), jamais devinée par le narrateur depuis le texte. Non-canon :
+    /// ni secret, ni vérité, ni état épistémique — traverse le mur sans le violer.
+    /// Aligné sur ActivityPub `contentMap` (indexé par tag de langue, utile Phase 6).
+    pub language: String,
+
     /// Le PNJ qui agit ce beat : identité publique + voix.
     pub locuteur: Locuteur,
 
@@ -195,6 +201,8 @@ pub enum PacketError {
     BudgetTropGrand { budget: u8, disponibles: usize },
     /// `n` (best-of-N) hors des bornes autorisées.
     NHorsBornes { n: u8 },
+    /// Le lot de candidats à juger (`/judge`) est hors des bornes [N_MIN, N_MAX].
+    CandidatsHorsBornes { len: usize },
 }
 
 impl std::fmt::Display for PacketError {
@@ -208,6 +216,9 @@ impl std::fmt::Display for PacketError {
             }
             PacketError::NHorsBornes { n } => {
                 write!(f, "n={} hors bornes [{}, {}]", n, N_MIN, N_MAX)
+            }
+            PacketError::CandidatsHorsBornes { len } => {
+                write!(f, "candidats à juger={} hors bornes [{}, {}]", len, N_MIN, N_MAX)
             }
         }
     }
@@ -244,6 +255,7 @@ impl ScenePacket {
 /// et `N_MIN <= n <= N_MAX`. Il ne lit jamais le *sens* du paquet (aveugle au canon).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NarrateRequest {
     pub packet: ScenePacket,
     /// best-of-N : nombre de candidats à générer.
@@ -260,14 +272,76 @@ impl NarrateRequest {
     }
 }
 
-/// Réponse de `POST /narrate`.
+/// Réponse de `POST /narrate` (corps). Alignée sur ce que le Hub renvoie
+/// réellement : `{ candidates, schema_version }`. Le crédit Muse débité n'est PAS
+/// dans le corps — il voyage en en-tête `X-Muses-Credits-Spent`, lu côté hôte.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NarrateResponse {
     /// Les candidats de prose (aveugles aux secrets). Le verifier les triera.
     pub candidates: Vec<String>,
-    /// Crédits Muse débités (≈ n).
-    pub credits_spent: u32,
+    /// Écho de la version de contrat traitée par le relais (doit valoir [`PACKET_SCHEMA_VERSION`]).
+    pub schema_version: u32,
+}
+
+// ---------------------------------------------------------------------------
+// L'enveloppe de requête / réponse du juge sémantique (`POST /judge`) — #39.
+// Frère CANON-FREE de `/narrate` : le juge ne reçoit que le paquet (déjà
+// canon-free) et les candidats déjà rendus. Il ne juge QUE `Contradiction` et
+// `MoveNonExecute` — jamais `Fuite`, qui reste le filet lexical autoritaire,
+// canon-aware et synchrone dans `resolve()` (cf. verifier.rs + ADR
+// `aidd_docs/decisions/2026_07-verifier-judge-placement.md`, option A).
+// ---------------------------------------------------------------------------
+
+/// Verdict que le juge peut rendre. La `Fuite` est **structurellement absente**
+/// (pas seulement interdite par convention) : le juge ne peut pas l'exprimer.
+/// Même forme filaire que [`crate::verifier::Rejet`] (`tag="type"`,
+/// `content="detail"`, `snake_case`) → isomorphe au `JudgeRejet` de `judge.ts`
+/// (`Extract<Rejet, contradiction | move_non_execute>`).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "type", content = "detail", rename_all = "snake_case")]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub enum JudgeRejet {
+    /// La prose nie un fait établi — jugé par le sens, sans canon.
+    Contradiction(String),
+    /// La prose n'exécute pas le move décidé.
+    MoveNonExecute,
+}
+
+/// Corps de `POST /judge`. Canon-free par construction : `packet` (déjà
+/// canon-free) + les candidats déjà générés — rien d'autre ne doit entrer.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct JudgeRequest {
+    pub packet: ScenePacket,
+    /// Les candidats de prose à juger (le lot best-of-N déjà rendu par le narrateur).
+    pub candidates: Vec<String>,
+}
+
+/// Réponse de `POST /judge` : un verdict par candidat, dans l'ordre. `None` =
+/// rien à objecter sémantiquement. Jamais de `Fuite` (cf. [`JudgeRejet`]).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct JudgeResponse {
+    /// Aligné 1:1 sur `candidates` de la requête. `Array<JudgeRejet | null>` en TS.
+    pub verdicts: Vec<Option<JudgeRejet>>,
+}
+
+impl JudgeRequest {
+    /// Validation **structurelle** : paquet valide + `candidates` dans [N_MIN, N_MAX].
+    /// Borne haute = `N_MAX` : le juge évalue un lot best-of-N (même cardinalité que
+    /// `/narrate`) ; 0 candidat n'a rien à juger. Le juge ne lit jamais le *sens*.
+    pub fn validate(&self) -> Result<(), PacketError> {
+        self.packet.validate()?;
+        let len = self.candidates.len();
+        if len < N_MIN as usize || len > N_MAX as usize {
+            return Err(PacketError::CandidatsHorsBornes { len });
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -282,6 +356,7 @@ mod tests {
                 ambiance: Some("pluie fine, lanternes".into()),
                 presents: vec![],
             },
+            language: "fr".into(),
             locuteur: Locuteur {
                 nom: "le docker".into(),
                 voix: "bourru, phrases courtes".into(),

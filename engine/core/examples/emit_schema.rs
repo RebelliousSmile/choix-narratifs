@@ -10,7 +10,10 @@ use cn_core::engine::{
     SceneInfo, SecretResolution, TourTraceView, VerdictTrace, CommitTrace,
 };
 use cn_core::moves::Move;
-use cn_core::packet::{Cadre, Form, Locuteur, Ratio, Registre, ScenePacket, ShapeTag};
+use cn_core::packet::{
+    Cadre, Form, JudgeRejet, JudgeRequest, JudgeResponse, Locuteur, NarrateRequest, NarrateResponse,
+    Ratio, Registre, ScenePacket, ShapeTag,
+};
 use cn_core::state::SceneSpec;
 use cn_core::verifier::Rejet;
 use schemars::gen::SchemaSettings;
@@ -18,7 +21,13 @@ use serde_json::{json, Value};
 
 fn main() {
     // Un seul générateur → toutes les définitions partagées dans un même `$defs`.
-    let mut gen = SchemaSettings::draft2019_09().into_generator();
+    // `definitions_path` aligné sur `$defs` : par défaut schemars émet des `$ref`
+    // en `#/definitions/`, incohérents avec le conteneur `$defs` assemblé plus bas
+    // (draft 2019-09). On force le pointeur pour que les refs internes visent
+    // `#/$defs/` — sinon le Hub doit corriger à la main (viole l'invariant #4).
+    let mut settings = SchemaSettings::draft2019_09();
+    settings.definitions_path = "#/$defs/".to_string();
+    let mut gen = settings.into_generator();
 
     // Enregistre chaque type de frontière (les dépendances suivent automatiquement).
     macro_rules! reg {
@@ -27,6 +36,10 @@ fn main() {
     reg!(
         ScenePacket, Cadre, Locuteur, Form, Registre, Ratio, ShapeTag,
         Prepared, Outcome, Rejet, SceneInfo,
+        // Enveloppe du relais `/narrate` (requête + réponse) — CN-B.
+        NarrateRequest, NarrateResponse,
+        // Enveloppe du juge sémantique canon-free (`/judge`, #39).
+        JudgeRequest, JudgeResponse, JudgeRejet,
         SceneSpec, Move,
         CompteRendu, Echange, ResolutionPublique, SecretResolution, Decision, ExportError,
         VerdictTrace, CommitTrace, TourTraceView,

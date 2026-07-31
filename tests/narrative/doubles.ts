@@ -14,6 +14,7 @@ import type { Outcome, Prepared, Rejet, ScenePacket } from '../../src/scripts/na
 const PACKET: ScenePacket = {
   schema_version: 1,
   cadre: { lieu: 'le quai, à la nuit tombée', ambiance: 'pluie fine', presents: [] },
+  language: 'fr',
   locuteur: { nom: 'le docker', voix: 'bourru, phrases courtes' },
   action_joueur: '',
   hearing: 'menace sur le secret',

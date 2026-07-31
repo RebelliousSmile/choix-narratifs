@@ -11,6 +11,10 @@
  */
 export type SceneSpec = { lieu: string, ambiance?: string, pnj_nom: string, pnj_voix: string, 
 /**
+ * Langue de la scène (BCP-47). Optionnel côté auteur : absent → défaut "fr".
+ */
+language?: string, 
+/**
  * Le grand secret (la réponse tue).
  */
 secret: string, 
